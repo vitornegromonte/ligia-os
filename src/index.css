@@ -1,0 +1,97 @@
+:root {
+  --ligia-orange-1: #FF4B1F;
+  --ligia-orange-2: #FF9068;
+  --ligia-gradient: linear-gradient(135deg, #FF4B1F, #FF9068);
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Sora', sans-serif;
+
+  --bg: #0f0f0d;
+  --sidebar: #141411;
+  --surface: #181815;
+  --surface-2: #1f1f1b;
+  --surface-3: #272722;
+  --line: #34332d;
+  --line-soft: #2a2a25;
+  --text: #f2efe6;
+  --muted: #a09d91;
+  --muted-2: #767368;
+
+  --accent: var(--ligia-orange-1);
+  --accent-hover: var(--ligia-orange-2);
+  --accent-soft: rgba(255, 75, 31, 0.12);
+  --accent-border: rgba(255, 75, 31, 0.32);
+
+  --green: #6da87c;
+  --blue: #6b8eb3;
+  --yellow: #c4a358;
+  --danger: #c76b60;
+
+  --radius-sm: 9px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 20px 60px rgba(0,0,0,.28);
+  --sidebar-width: 244px;
+  --transition: 180ms ease;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 78% -10%, rgba(255,75,31,.07), transparent 31%),
+    radial-gradient(circle at 20% 80%, rgba(255,75,31,.04), transparent 31%),
+    var(--bg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+
+button, input, select, textarea { font: inherit; }
+
+button { color: inherit; }
+
+button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+::selection {
+  background: rgba(255,75,31,.35);
+  color: #fff;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb {
+  background: #37362f;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.gradient-text {
+  background: var(--ligia-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 900px) {
+  .app-shell { display: block; }
+
+  .sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform .25s ease;
+  }
+
+  .main { grid-column: auto; }
+
+  .mobile-menu { display: grid !important; place-items: center; }
+}
