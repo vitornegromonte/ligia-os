@@ -9,7 +9,7 @@ const people = [
     color: "#b7c2d2", status: "online",
     lattes: "http://lattes.cnpq.br/1111111", github: "https://github.com/amara",
     linkedin: "https://linkedin.com/in/amara", kaggle: "https://kaggle.com/amara",
-    cv: "amara_cv.pdf", bio: "Pesquisadora em PLN com foco em modelos transformer e sistemas de diálogo. Contribui em projetos open-source e participa ativamente de competições de NLP.",
+    cv: "https://drive.google.com/amara", bio: "Pesquisadora em PLN com foco em modelos transformer e sistemas de diálogo. Contribui em projetos open-source e participa ativamente de competições de NLP.",
     history: [["CIn-UFPE", "Mestranda em Ciência da Computação"], ["Ligia", "Pesquisadora NLP"]]
   },
   {
@@ -22,7 +22,7 @@ const people = [
     color: "#c6b6d1", status: "online",
     lattes: "http://lattes.cnpq.br/2222222", github: "https://github.com/jonas",
     linkedin: "https://linkedin.com/in/jonas", kaggle: "https://kaggle.com/jonas",
-    cv: "jonas_cv.pdf", bio: "Cientista de dados com experiência em sistemas de recomendação e modelos preditivos. Interesse em ML aplicado a problemas de negócio.",
+    cv: "https://drive.google.com/jonas", bio: "Cientista de dados com experiência em sistemas de recomendação e modelos preditivos. Interesse em ML aplicado a problemas de negócio.",
     history: [["IME-USP", "Graduando em Estatística"], ["Ligia", "Cientista de Dados"]]
   },
   {
@@ -35,7 +35,7 @@ const people = [
     color: "#d1ba9e", status: "busy",
     lattes: "http://lattes.cnpq.br/3333333", github: "https://github.com/sofia",
     linkedin: "https://linkedin.com/in/sofia", kaggle: "",
-    cv: "sofia_cv.pdf", bio: "Profissional de produto e design com foco em experiência do usuário. Trabalha na interseção entre comunicação e tecnologia.",
+    cv: "https://drive.google.com/sofia", bio: "Profissional de produto e design com foco em experiência do usuário. Trabalha na interseção entre comunicação e tecnologia.",
     history: [["UFPE", "Graduanda em Design"], ["Ligia", "Líder de Produto"]]
   },
   {
@@ -48,7 +48,7 @@ const people = [
     color: "#aebfba", status: "online",
     lattes: "http://lattes.cnpq.br/4444444", github: "https://github.com/elena",
     linkedin: "https://linkedin.com/in/elena", kaggle: "",
-    cv: "elena_cv.pdf", bio: "Comunicadora apaixonada por conectar pessoas e ideias. Organiza eventos, produz conteúdo e fortalece a comunidade Ligia.",
+    cv: "https://drive.google.com/elena", bio: "Comunicadora apaixonada por conectar pessoas e ideias. Organiza eventos, produz conteúdo e fortalece a comunidade Ligia.",
     history: [["UFPE", "Graduanda em Comunicação Social"], ["Ligia", "Analista de Comunidade"]]
   },
   {
@@ -61,7 +61,7 @@ const people = [
     color: "#c6b6d1", status: "away",
     lattes: "http://lattes.cnpq.br/5555555", github: "https://github.com/theo",
     linkedin: "https://linkedin.com/in/theo", kaggle: "https://kaggle.com/theo",
-    cv: "theo_cv.pdf", bio: "Pesquisador em aprendizado por reforço com background em engenharia. Desenvolve agentes autônomos para simulação e robótica.",
+    cv: "https://drive.google.com/theo", bio: "Pesquisador em aprendizado por reforço com background em engenharia. Desenvolve agentes autônomos para simulação e robótica.",
     history: [["ITA", "Mestrando em Engenharia Aeroespacial"], ["Ligia", "Pesquisador ML"]]
   },
   {
@@ -74,7 +74,7 @@ const people = [
     color: "#b7c2d2", status: "online",
     lattes: "http://lattes.cnpq.br/6666666", github: "https://github.com/maya",
     linkedin: "https://linkedin.com/in/maya", kaggle: "https://kaggle.com/maya",
-    cv: "maya_cv.pdf", bio: "Pesquisadora em PLN com foco em textos jurídicos. Desenvolve ferramentas para automação de análise documental.",
+    cv: "https://drive.google.com/maya", bio: "Pesquisadora em PLN com foco em textos jurídicos. Desenvolve ferramentas para automação de análise documental.",
     history: [["UFMG", "Graduanda em Ciência da Computação"], ["Ligia", "Pesquisadora NLP"]]
   },
   {
@@ -87,7 +87,7 @@ const people = [
     color: "#d1ba9e", status: "online",
     lattes: "http://lattes.cnpq.br/7777777", github: "https://github.com/noah",
     linkedin: "https://linkedin.com/in/noah", kaggle: "https://kaggle.com/noah",
-    cv: "noah_cv.pdf", bio: "Analista de dados com foco em dashboards e visualização. Transforma dados brutos em insights acionáveis para a comunidade.",
+    cv: "https://drive.google.com/noah", bio: "Analista de dados com foco em dashboards e visualização. Transforma dados brutos em insights acionáveis para a comunidade.",
     history: [["UFRJ", "Graduando em Administração"], ["Ligia", "Analista de Dados"]]
   },
   {
@@ -100,7 +100,7 @@ const people = [
     color: "#aebfba", status: "online",
     lattes: "http://lattes.cnpq.br/8888888", github: "https://github.com/priya",
     linkedin: "https://linkedin.com/in/priya", kaggle: "https://kaggle.com/priya",
-    cv: "priya_cv.pdf", bio: "Pesquisadora em visão computacional com experiência em detecção e segmentação de objetos. Aplicações em agricultura de precisão.",
+    cv: "https://drive.google.com/priya", bio: "Pesquisadora em visão computacional com experiência em detecção e segmentação de objetos. Aplicações em agricultura de precisão.",
     history: [["UNICAMP", "Mestranda em Computação Visual"], ["Ligia", "Pesquisadora CV"]]
   }
 ];

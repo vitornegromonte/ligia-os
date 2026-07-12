@@ -1,15 +1,14 @@
 import { useOutletContext } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
-  Users, Blocks, Sparkles, Search, LayoutGrid, List, UserPlus,
+  Users, Blocks, Search, LayoutGrid, List, UserPlus,
   Building, Github, Award, Menu, FileDown, Mail, GraduationCap, Linkedin,
   Bot, Globe, Cpu, Microscope,
-  BriefcaseBusiness, X,
-  CalendarDays, Bell, MoreHorizontal, BookOpen
+  X,
+  CalendarDays, Bell, MoreHorizontal, BookOpen, ExternalLink
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import initialPeople from "../data/people.js";
-import initialProjects from "../data/projects.js";
+import { fetchProfiles, createProfile } from "../services/profiles.js";
 
 const roleOptions = [
   { value: "all", label: "Todas as áreas" },
@@ -25,10 +24,6 @@ const availabilityOptions = [
   { value: "Limited", label: "Limitado" },
   { value: "Allocated", label: "Alocado" }
 ];
-
-const projectIconMap = {
-  bot: Bot, sparkles: Sparkles, globe: Globe, cpu: Cpu, microscope: Microscope
-};
 
 const s = {
   topbar: {
@@ -137,83 +132,16 @@ const s = {
     color: "#161512", fontFamily: "var(--font-heading)",
     fontSize: 17, fontWeight: 500, background: color
   }),
-  statusDot: (status) => ({
-    position: "absolute", right: -2, bottom: -2, width: 11, height: 11,
-    border: "2px solid var(--surface)", borderRadius: "50%",
-    background: status === "busy" ? "var(--yellow)" : status === "away" ? "var(--muted-2)" : "var(--green)"
-  }),
   personTitle: { minWidth: 0 },
   personName: { margin: "0 0 3px", fontSize: 14, fontWeight: 650, letterSpacing: "-.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   personSub: { margin: 0, color: "var(--muted)", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   teamTag: { display: "inline-flex", marginTop: 4, fontSize: 10, color: "var(--accent)", border: "1px solid var(--accent-border)", background: "var(--accent-soft)", padding: "4px 8px", borderRadius: 9999, whiteSpace: "nowrap" },
   projectLine: {
-    display: "flex", alignItems: "center", gap: 8, minHeight: 37,
-    marginBottom: 15, padding: "8px 10px", borderRadius: 8,
-    color: "var(--muted)", background: "rgba(255,255,255,.025)", fontSize: 11
+    display: "flex", alignItems: "center", gap: 8,
+    marginTop: 8,
+    cursor: "pointer",
+    transition: "color var(--transition)"
   },
-  skills: { display: "flex", flexWrap: "wrap", gap: 6, minHeight: 26 },
-  tag: (accent) => ({
-    display: "inline-flex", alignItems: "center", padding: "4px 8px",
-    border: `1px solid ${accent ? "var(--accent-border)" : "#34332d"}`,
-    borderRadius: 9999, fontSize: 10, whiteSpace: "nowrap",
-    color: accent ? "#fff" : "#aaa79e",
-    background: accent ? "var(--accent-soft)" : "#22221e"
-  }),
-  cardFoot: {
-    display: "flex", alignItems: "center", marginTop: 18,
-    paddingTop: 13, borderTop: "1px solid var(--line-soft)",
-    color: "var(--muted-2)", fontSize: 10
-  },
-  cardFootList: { display: "flex", alignItems: "center", margin: 0, padding: 0, border: 0, color: "var(--muted-2)", fontSize: 10 },
-  emptyState: {
-    gridColumn: "1 / -1", padding: "70px 20px",
-    border: "1px dashed var(--line)", borderRadius: "var(--radius)",
-    color: "var(--muted)", textAlign: "center"
-  },
-  modalBackdrop: (open) => ({
-    position: "fixed", inset: 0, zIndex: 100,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: 20, background: "rgba(5,5,4,.72)", backdropFilter: "blur(9px)",
-    opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
-    transition: "opacity .22s ease, visibility .22s ease"
-  }),
-  modal: {
-    width: "min(760px, 100%)", maxHeight: "min(860px, 92vh)",
-    overflowY: "auto", border: "1px solid #37362f", borderRadius: 18,
-    background: "#181815", boxShadow: "var(--shadow)",
-    transform: "translateY(0) scale(1)"
-  },
-  modalHeader: {
-    position: "sticky", top: 0, zIndex: 2,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "15px 18px", borderBottom: "1px solid var(--line-soft)",
-    background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
-  },
-  smallModal: { width: "min(620px, 100%)", maxHeight: "min(860px, 92vh)", overflowY: "auto", border: "1px solid #37362f", borderRadius: 18, background: "#181815", boxShadow: "var(--shadow)", transform: "translateY(0) scale(1)" },
-  projectsGrid: {
-    display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16
-  },
-  projectCard: {
-    padding: 23, border: "1px solid var(--line-soft)",
-    borderRadius: "var(--radius)", background: "var(--surface)",
-    transition: "all var(--transition)"
-  },
-  projectTop: {
-    display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 15, marginBottom: 22
-  },
-  projectIcon: (color) => ({
-    width: 40, height: 40, display: "grid", placeItems: "center",
-    borderRadius: 11, color: color, background: `${color}20`
-  }),
-  projectStatus: { display: "flex", alignItems: "center", gap: 6, color: "var(--green)", fontSize: 10 },
-  projectStatusDot: { width: 6, height: 6, borderRadius: "50%", background: "currentColor" },
-  progressMeta: { display: "flex", justifyContent: "space-between", marginBottom: 7, color: "var(--muted)", fontSize: 10 },
-  progressBar: { height: 4, marginBottom: 20, overflow: "hidden", borderRadius: 9999, background: "var(--surface-3)" },
-  progressFill: (progress, color) => ({
-    display: "block", height: "100%", borderRadius: "inherit",
-    width: `${progress}%`, background: color
-  }),
-  projectFoot: { display: "flex", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--line-soft)" },
   avatarStack: { display: "flex" },
   miniAvatar: (color) => ({
     width: 29, height: 29, display: "grid", placeItems: "center",
@@ -258,14 +186,53 @@ const s = {
     border: "1px solid var(--line)", borderRadius: 9,
     color: "var(--muted)", background: "var(--surface)",
     cursor: "pointer", transition: "all var(--transition)"
-  }
+  },
+  skills: { display: "flex", flexWrap: "wrap", gap: 6, minHeight: 26 },
+  tag: (accent) => ({
+    display: "inline-flex", alignItems: "center", padding: "4px 8px",
+    border: `1px solid ${accent ? "var(--accent-border)" : "#34332d"}`,
+    borderRadius: 9999, fontSize: 10, whiteSpace: "nowrap",
+    color: accent ? "#fff" : "#aaa79e",
+    background: accent ? "var(--accent-soft)" : "#22221e"
+  }),
+  cardFoot: {
+    display: "flex", alignItems: "center", marginTop: 18,
+    paddingTop: 13, borderTop: "1px solid var(--line-soft)",
+    color: "var(--muted-2)", fontSize: 10
+  },
+  cardFootList: { display: "flex", alignItems: "center", margin: 0, padding: 0, border: 0, color: "var(--muted-2)", fontSize: 10 },
+  emptyState: {
+    gridColumn: "1 / -1", padding: "70px 20px",
+    border: "1px dashed var(--line)", borderRadius: "var(--radius)",
+    color: "var(--muted)", textAlign: "center"
+  },
+  modalBackdrop: (open) => ({
+    position: "fixed", inset: 0, zIndex: 100,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    padding: 20, background: "rgba(5,5,4,.72)", backdropFilter: "blur(9px)",
+    opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
+    transition: "opacity .22s ease, visibility .22s ease"
+  }),
+  modal: {
+    width: "min(720px, 100%)", maxHeight: "90vh", overflowY: "auto",
+    border: "1px solid #37362f", borderRadius: 18,
+    background: "#181815", boxShadow: "var(--shadow)"
+  },
+  smallModal: {
+    width: "min(480px, 100%)", maxHeight: "90vh", overflowY: "auto",
+    border: "1px solid #37362f", borderRadius: 18,
+    background: "#181815", boxShadow: "var(--shadow)"
+  },
+  modalHeader: {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "15px 20px", borderBottom: "1px solid var(--line-soft)",
+    background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
+  },
 };
 
 export default function TalentBank() {
   const { menuOpen, setMenuOpen } = useOutletContext();
-  const [currentView, setCurrentView] = useState("talent");
-  const [people, setPeople] = useState(initialPeople);
-  const [projects] = useState(initialProjects);
+  const [people, setPeople] = useState([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
@@ -281,8 +248,11 @@ export default function TalentBank() {
     bio: "", researchInterests: ""
   });
 
-  useEffect(() => { window.scrollTo({ top: 0 }); }, [currentView]);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, []);
   useEffect(() => { document.title = "Ligia — Banco de Talentos"; }, []);
+  useEffect(() => {
+    fetchProfiles().then(setPeople).catch(e => console.warn("TalentBank load error:", e.message));
+  }, []);
 
   const filtered = people.filter(person => {
     const query = search.toLowerCase().trim();
@@ -300,39 +270,9 @@ export default function TalentBank() {
   function handleAddSubmit(e) {
     e.preventDefault();
     const name = formData.name.trim();
-    if (!name) return;
-    const initials = name.split(/\s+/).map(p => p[0]).join("").slice(0, 2).toUpperCase();
-    const palette = ["#c6b6d1", "#aebfba", "#d1ba9e", "#b7c2d2"];
-    const newPerson = {
-      id: Date.now(), name, initials,
-      email: formData.email, team: formData.team || "Geral",
-      discipline: formData.discipline,
-      skills: formData.skills.split(",").map(s => s.trim()).filter(Boolean),
-      project: "Não atribuído · Pronto para matching",
-      availability: formData.availability === "Disponível" ? "Available" : formData.availability === "Limitado" ? "Limited" : "Allocated",
-      capacity: formData.availability === "Disponível" ? "100% disponível" : "Capacidade limitada",
-      affiliation: formData.affiliation || "",
-      researchInterests: formData.researchInterests || "",
-      color: palette[people.length % palette.length],
-      status: "online",
-      lattes: formData.lattes, github: formData.github,
-      linkedin: formData.linkedin, kaggle: formData.kaggle,
-      cv: "Nenhum CV enviado",
-      bio: formData.bio || "Novo membro Ligia. Detalhes do perfil serão concluídos em breve.",
-      history: [["Ligia", "Novo membro · Aguardando alocação de projeto"]]
-    };
-    setPeople(prev => [newPerson, ...prev]);
-    setFormData({ name: "", email: "", team: "", discipline: "NLP", skills: "", affiliation: "", availability: "Disponível", lattes: "", github: "", linkedin: "", kaggle: "", bio: "", researchInterests: "" });
     closeAddModal();
     showToast(`${name} adicionado ao pool de talentos`);
   }
-
-  const switchView = (view) => {
-    setCurrentView(view);
-    if (view === "campus") showToast("Campus — em desenvolvimento");
-  };
-
-  const viewLabels = { talent: "Banco de Talentos", projects: "Projetos internos", campus: "Campus" };
 
   return (
     <>
@@ -342,10 +282,10 @@ export default function TalentBank() {
           <Menu size={20} />
         </button>
         <div style={s.breadcrumbs}>
-          Ligia &nbsp;/&nbsp; <strong style={s.breadcrumbStrong}>{viewLabels[currentView]}</strong>
+          Ligia &nbsp;/&nbsp; <strong style={s.breadcrumbStrong}>Banco de Talentos</strong>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
-          <button style={s.iconBtn} onClick={() => { setCurrentView("talent"); setTimeout(() => document.getElementById("talentSearch")?.focus(), 300); }}>
+          <button style={s.iconBtn} onClick={() => setTimeout(() => document.getElementById("talentSearch")?.focus(), 300)}>
             <Search size={16} />
           </button>
           <button style={s.iconBtn} onClick={() => showToast("Você está em dia")}>
@@ -355,14 +295,9 @@ export default function TalentBank() {
       </header>
 
       <div style={s.content}>
-        {currentView === "talent" && (
-          <section>
-            <div style={{ marginBottom: 36 }}>
-              <div style={{
-                marginBottom: 8, color: "var(--muted-2)", fontSize: 11,
-                fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase"
-              }}>Inteligência de pessoas</div>
-              <h1 style={{
+        <section>
+          <div style={{ marginBottom: 36 }}>
+            <h1 style={{
                 margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
                 fontWeight: 500, letterSpacing: "-.03em"
               }}><span className="gradient-text">Banco de Talentos.</span></h1>
@@ -407,7 +342,6 @@ export default function TalentBank() {
                       <div style={s.cardHead}>
                         <div style={s.avatar(person.color)}>
                           {person.initials}
-                          <span style={s.statusDot(person.status)}></span>
                         </div>
                         <div style={s.personTitle}>
                           <h3 style={s.personName}>{person.name}</h3>
@@ -451,7 +385,6 @@ export default function TalentBank() {
                       <div style={{ ...s.cardHead, margin: 0 }}>
                         <div style={s.avatar(person.color)}>
                           {person.initials}
-                          <span style={s.statusDot(person.status)}></span>
                         </div>
                         <div style={s.personTitle}>
                           <h3 style={s.personName}>{person.name}</h3>
@@ -483,115 +416,7 @@ export default function TalentBank() {
               ))}
             </div>
           </section>
-        )}
 
-        {currentView === "projects" && (
-          <section>
-            <div style={{ marginBottom: 36 }}>
-              <div style={{
-                marginBottom: 8, color: "var(--muted-2)", fontSize: 11,
-                fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase"
-              }}>Trabalho atual</div>
-              <h1 style={{
-                margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
-                fontWeight: 500, letterSpacing: "-.03em"
-              }}><span className="gradient-text">Projetos internos.</span></h1>
-              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13, lineHeight: 1.7, maxWidth: 520 }}>
-                Veja onde sua inteligência coletiva está sendo aplicada, quem está contribuindo e onde há necessidade de capacidade.
-              </p>
-            </div>
-
-            <div style={s.projectsGrid}>
-              {projects.map(project => {
-                const IconComponent = projectIconMap[project.icon] || Bot;
-                return (
-                  <article key={project.id} style={{ ...s.projectCard }}>
-                    <div style={s.projectTop}>
-                      <div style={s.projectIcon(project.color)}>
-                        <IconComponent size={18} />
-                      </div>
-                      <span style={s.projectStatus}>
-                        <span style={s.projectStatusDot}></span> {project.status}
-                      </span>
-                    </div>
-                    <h2 style={{ margin: "0 0 7px", fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 500 }}>{project.name}</h2>
-                    <p style={{ margin: "0 0 20px", color: "var(--muted)", fontSize: 12, minHeight: 42 }}>{project.description}</p>
-                    <div style={s.progressMeta}>
-                      <span>Progresso do marco</span>
-                      <strong>{project.progress}%</strong>
-                    </div>
-                    <div style={s.progressBar}>
-                      <span style={s.progressFill(project.progress, project.color)}></span>
-                    </div>
-                    <div style={s.projectFoot}>
-                      <div style={s.avatarStack}>
-                        {project.members.map(id => {
-                          const p = people.find(person => person.id === id);
-                          return p ? (
-                            <div key={id} style={s.miniAvatar(p.color)} title={p.name}>
-                              {p.initials}
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
-                      <span style={s.deadline}>
-                        <CalendarDays size={12} /> Próximo marco {project.deadline}
-                      </span>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {currentView === "campus" && (
-          <section>
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: "80px 20px", textAlign: "center",
-              border: "1px solid var(--line-soft)", borderRadius: "var(--radius-lg)",
-              background: "var(--surface)"
-            }}>
-              <BriefcaseBusiness size={48} style={{ color: "var(--accent)", marginBottom: 20 }} />
-              <h1 style={{ margin: "0 0 12px", fontSize: 32, fontFamily: "var(--font-heading)", fontWeight: 500 }}>
-                <span className="gradient-text">Campus Inteligente</span>
-              </h1>
-              <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 480, lineHeight: 1.7, margin: "0 0 24px" }}>
-                Correspondência inteligente entre vagas e talentos usando análise multidimensional de habilidades, disponibilidade e adequação ao projeto.
-              </p>
-              <span style={{
-                padding: "6px 16px", borderRadius: 9999, fontSize: 11,
-                background: "var(--accent-soft)", color: "var(--accent)",
-                border: "1px solid var(--accent-border)"
-              }}>Em desenvolvimento</span>
-            </div>
-          </section>
-        )}
-
-        <div style={{ display: "flex", gap: 8, marginTop: 30, justifyContent: "center" }}>
-          <button onClick={() => switchView("talent")} style={{
-            ...s.btn, borderColor: currentView === "talent" ? "var(--accent-border)" : "var(--line)",
-            color: currentView === "talent" ? "var(--accent)" : "var(--muted)",
-            background: currentView === "talent" ? "var(--accent-soft)" : "var(--surface-2)"
-          }}>
-            <Users size={14} /> Talentos
-          </button>
-          <button onClick={() => switchView("projects")} style={{
-            ...s.btn, borderColor: currentView === "projects" ? "var(--accent-border)" : "var(--line)",
-            color: currentView === "projects" ? "var(--accent)" : "var(--muted)",
-            background: currentView === "projects" ? "var(--accent-soft)" : "var(--surface-2)"
-          }}>
-            <Blocks size={14} /> Projetos
-          </button>
-          <button onClick={() => switchView("campus")} style={{
-            ...s.btn, borderColor: currentView === "campus" ? "var(--accent-border)" : "var(--line)",
-            color: currentView === "campus" ? "var(--accent)" : "var(--muted)",
-            background: currentView === "campus" ? "var(--accent-soft)" : "var(--surface-2)"
-          }}>
-            <Sparkles size={14} /> Campus
-          </button>
-        </div>
       </div>
 
       <div style={s.modalBackdrop(!!selectedPerson)} onClick={e => { if (e.target === e.currentTarget) closeProfile(); }}>
@@ -605,7 +430,6 @@ export default function TalentBank() {
               <div style={{ display: "flex", gap: 18, alignItems: "center", marginBottom: 28 }}>
                 <div style={{ ...s.avatar(selectedPerson.color), width: 72, height: 72, borderRadius: 19, fontSize: 25 }}>
                   {selectedPerson.initials}
-                  <span style={s.statusDot(selectedPerson.status)}></span>
                 </div>
                 <div>
                   <h2 id="profileName" style={{ margin: "0 0 4px", fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>{selectedPerson.name}</h2>
@@ -676,16 +500,29 @@ export default function TalentBank() {
                     </div>
                   </div>
                   <div style={{ marginTop: 20 }}>
-                    <div onClick={() => showToast(`Download de ${selectedPerson.cv} iniciado`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 10, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", cursor: "pointer" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, background: "rgba(255,255,255,.15)" }}>
-                        <BookOpen size={18} color="#fff" />
+                    {selectedPerson.cv ? (
+                      <a href={selectedPerson.cv} target="_blank" rel="noopener"
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 10, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", cursor: "pointer", color: "#fff", textDecoration: "none" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, background: "rgba(255,255,255,.15)" }}>
+                          <ExternalLink size={18} color="#fff" />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <strong style={{ display: "block", color: "#fff", fontSize: 13, fontWeight: 600 }}>Abrir CV</strong>
+                          <span style={{ color: "rgba(255,255,255,.7)", fontSize: 10 }}>Google Drive / Link externo</span>
+                        </div>
+                        <ExternalLink size={18} style={{ color: "rgba(255,255,255,.8)" }} />
+                      </a>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 10, background: "var(--surface-2)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, background: "var(--surface-3)" }}>
+                          <ExternalLink size={18} style={{ color: "var(--muted-2)" }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <strong style={{ display: "block", color: "var(--muted)", fontSize: 13, fontWeight: 600 }}>CV não disponível</strong>
+                          <span style={{ color: "var(--muted-2)", fontSize: 10 }}>Nenhum link cadastrado</span>
+                        </div>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <strong style={{ display: "block", color: "#fff", fontSize: 13, fontWeight: 600 }}>Baixar CV</strong>
-                        <span style={{ color: "rgba(255,255,255,.7)", fontSize: 10 }}>{selectedPerson.cv}</span>
-                      </div>
-                      <FileDown size={18} style={{ color: "rgba(255,255,255,.8)" }} />
-                    </div>
+                    )}
                   </div>
                 </aside>
               </div>

@@ -3,11 +3,12 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Menu, Users, Activity, CircleGauge, BrainCircuit, Award,
   GraduationCap, Github, Linkedin, Building, BookOpen,
-  BarChart3, PieChart, TrendingUp, CalendarDays, ChevronDown,
-  Search, Filter, ArrowUpRight
+  BarChart3, PieChart, TrendingUp, ChevronDown,
+  Search, Filter, ArrowUpRight, Kanban, Circle, Clock, CheckCircle2, Package
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import people from "../data/people.js";
+import { fetchProfiles } from "../services/profiles.js";
+import { fetchProjectsWithMilestones } from "../services/projects.js";
 
 const teamColors = {
   NLP: { bar: "#6b8eb3", bg: "rgba(107,142,179,.15)" },
@@ -16,51 +17,69 @@ const teamColors = {
   "Comunicação": { bar: "#c76b60", bg: "rgba(199,107,96,.15)" }
 };
 
-const statusColors = {
-  online: { dot: "#6da87c", label: "Online" },
-  busy: { dot: "#c76b60", label: "Ocupado" },
-  away: { dot: "#c4a358", label: "Ausente" }
-};
-
 export default function Dashboard() {
   const { menuOpen, setMenuOpen } = useOutletContext();
-  const [activeSection, setActiveSection] = useState("overview");
+  const [people, setPeople] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { document.title = "Ligia — Dashboard"; window.scrollTo({ top: 0 }); }, []);
 
+  useEffect(() => {
+    Promise.all([
+      fetchProfiles(),
+      fetchProjectsWithMilestones(),
+    ]).then(([p, proj]) => {
+      setPeople(p);
+      setProjects(proj);
+      setLoading(false);
+    }).catch(e => {
+      console.warn("Dashboard load error:", e.message);
+      setLoading(false);
+    });
+  }, []);
+
   const stats = useMemo(() => {
     const total = people.length;
-    const active = people.filter(p => p.status === "online").length;
-    const available = people.filter(p => p.availability === "Available").length;
+    const totalSkills = new Set(people.flatMap(p => p.skills || []));
     const withLattes = people.filter(p => p.lattes).length;
     const withGithub = people.filter(p => p.github).length;
-    const totalSkills = new Set(people.flatMap(p => p.skills));
-    return { total, active, available, withLattes, withGithub, totalSkills: totalSkills.size };
-  }, []);
+    const withLinkedin = people.filter(p => p.linkedin).length;
+    const withKaggle = people.filter(p => p.kaggle).length;
+    const withAffiliation = people.filter(p => p.affiliation).length;
+
+    const totalMilestones = projects.reduce((acc, p) => acc + (p.milestones?.length || 0), 0);
+    const backlogMilestones = projects.reduce((acc, p) => acc + (p.milestones?.filter(m => m.status === "backlog").length || 0), 0);
+    const todoMilestones = projects.reduce((acc, p) => acc + (p.milestones?.filter(m => m.status === "todo").length || 0), 0);
+    const inProgressMilestones = projects.reduce((acc, p) => acc + (p.milestones?.filter(m => m.status === "in_progress").length || 0), 0);
+    const doneMilestones = projects.reduce((acc, p) => acc + (p.milestones?.filter(m => m.status === "done").length || 0), 0);
+
+    return {
+      total, totalSkills: totalSkills.size,
+      totalProjects: projects.length,
+      totalMilestones, backlogMilestones,
+      todoMilestones, inProgressMilestones, doneMilestones,
+      withLattes, withGithub, withLinkedin, withKaggle, withAffiliation,
+    };
+  }, [people, projects]);
 
   const teamDist = useMemo(() => {
     const dist = {};
     people.forEach(p => { dist[p.team] = (dist[p.team] || 0) + 1; });
     return Object.entries(dist).sort((a, b) => b[1] - a[1]);
-  }, []);
+  }, [people]);
 
-  const availDist = useMemo(() => {
+  const capacityDist = useMemo(() => {
     const dist = {};
-    people.forEach(p => { dist[p.availability] = (dist[p.availability] || 0) + 1; });
+    people.forEach(p => { dist[p.capacity || "Não informado"] = (dist[p.capacity || "Não informado"] || 0) + 1; });
     return dist;
-  }, []);
-
-  const statusDist = useMemo(() => {
-    const dist = {};
-    people.forEach(p => { dist[p.status] = (dist[p.status] || 0) + 1; });
-    return dist;
-  }, []);
+  }, [people]);
 
   const skillRank = useMemo(() => {
     const freq = {};
-    people.forEach(p => p.skills.forEach(s => { freq[s] = (freq[s] || 0) + 1; }));
+    people.forEach(p => (p.skills || []).forEach(s => { freq[s] = (freq[s] || 0) + 1; }));
     return Object.entries(freq).sort((a, b) => b[1] - a[1]);
-  }, []);
+  }, [people]);
 
   const maxTeamCount = Math.max(...teamDist.map(([, c]) => c), 1);
   const maxSkillCount = Math.max(...skillRank.map(([, c]) => c), 1);
@@ -123,11 +142,13 @@ export default function Dashboard() {
       </header>
 
       <div style={c.page}>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--muted)", fontSize: 13 }}>
+            Carregando dados...
+          </div>
+        ) : (
+        <>
         <div style={{ marginBottom: 36 }}>
-          <div style={{
-            marginBottom: 8, color: "var(--muted-2)", fontSize: 11,
-            fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase"
-          }}>Visão geral</div>
           <h1 style={{
             margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
             fontWeight: 500, letterSpacing: "-.03em"
@@ -157,10 +178,10 @@ export default function Dashboard() {
               <div style={{
                 display: "grid", placeItems: "center", width: 36, height: 36,
                 borderRadius: 10, background: "rgba(109,168,124,.15)", color: "#6da87c"
-              }}><Activity size={18} /></div>
+              }}><Kanban size={18} /></div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 600, fontFamily: "var(--font-heading)", letterSpacing: "-.03em" }}>{stats.active}</div>
-            <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 4 }}>Ativos agora</div>
+            <div style={{ fontSize: 28, fontWeight: 600, fontFamily: "var(--font-heading)", letterSpacing: "-.03em" }}>{stats.totalProjects}</div>
+            <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 4 }}>Projetos ativos</div>
           </div>
 
           <div style={c.statCard}>
@@ -168,10 +189,10 @@ export default function Dashboard() {
               <div style={{
                 display: "grid", placeItems: "center", width: 36, height: 36,
                 borderRadius: 10, background: "rgba(107,142,179,.15)", color: "#6b8eb3"
-              }}><CircleGauge size={18} /></div>
+              }}><Activity size={18} /></div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 600, fontFamily: "var(--font-heading)", letterSpacing: "-.03em" }}>{stats.available}</div>
-            <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 4 }}>Disponíveis</div>
+            <div style={{ fontSize: 28, fontWeight: 600, fontFamily: "var(--font-heading)", letterSpacing: "-.03em" }}>{stats.totalMilestones}</div>
+            <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 4 }}>Total de marcos</div>
           </div>
 
           <div style={c.statCard}>
@@ -213,20 +234,24 @@ export default function Dashboard() {
           </div>
 
           <div style={c.card}>
-            <h3 style={c.sectionTitle}><TrendingUp size={16} style={{ color: "var(--accent)" }} /> Disponibilidade</h3>
+            <h3 style={c.sectionTitle}><TrendingUp size={16} style={{ color: "var(--accent)" }} /> Marcos por status</h3>
             <div style={{ display: "grid", gap: 12 }}>
               {[
-                { key: "Available", label: "Disponível", color: "#6da87c" },
-                { key: "Limited", label: "Limitado", color: "#c4a358" },
-                { key: "Allocated", label: "Alocado", color: "#c76b60" }
+                { key: "backlog", label: "Backlog", count: stats.backlogMilestones, color: "var(--muted-3)", icon: Package },
+                { key: "todo", label: "A fazer", count: stats.todoMilestones, color: "var(--muted-2)", icon: Circle },
+                { key: "in_progress", label: "Em andamento", count: stats.inProgressMilestones, color: "#c4a358", icon: Clock },
+                { key: "done", label: "Concluído", count: stats.doneMilestones, color: "#6da87c", icon: CheckCircle2 },
               ].map(item => {
-                const count = availDist[item.key] || 0;
-                const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
+                const total = stats.totalMilestones || 1;
+                const pct = Math.round((item.count / total) * 100);
+                const Icon = item.icon;
                 return (
                   <div key={item.key}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                      <span style={{ fontSize: 12, fontWeight: 500 }}>{item.label}</span>
-                      <span style={{ color: "var(--muted-2)", fontSize: 11 }}>{count} · {pct}%</span>
+                      <span style={{ fontSize: 12, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                        <Icon size={13} style={{ color: item.color }} /> {item.label}
+                      </span>
+                      <span style={{ color: "var(--muted-2)", fontSize: 11 }}>{item.count} · {pct}%</span>
                     </div>
                     <div style={{ height: 8, borderRadius: 999, background: "var(--surface-2)", overflow: "hidden" }}>
                       <div style={{
@@ -237,26 +262,6 @@ export default function Dashboard() {
                   </div>
                 );
               })}
-            </div>
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line-soft)" }}>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {Object.entries(statusDist).map(([status, count]) => {
-                  const s = statusColors[status] || { dot: "var(--muted-2)", label: status };
-                  return (
-                    <span key={status} style={{
-                      display: "inline-flex", alignItems: "center", gap: 5,
-                      padding: "4px 10px", borderRadius: 999,
-                      background: "var(--surface-2)", fontSize: 11
-                    }}>
-                      <span style={{
-                        width: 7, height: 7, borderRadius: "50%",
-                        background: s.dot, display: "inline-block"
-                      }} />
-                      {s.label}: {count}
-                    </span>
-                  );
-                })}
-              </div>
             </div>
           </div>
         </div>
@@ -295,9 +300,9 @@ export default function Dashboard() {
               {[
                 { icon: GraduationCap, label: "Lattes", count: stats.withLattes, color: "#6b8eb3" },
                 { icon: Github, label: "GitHub", count: stats.withGithub, color: "#fff" },
-                { icon: Linkedin, label: "LinkedIn", count: people.filter(p => p.linkedin).length, color: "#6b8eb3" },
-                { icon: Award, label: "Kaggle", count: people.filter(p => p.kaggle).length, color: "#c4a358" },
-                { icon: Building, label: "Vínculo institucional", count: people.filter(p => p.affiliation).length, color: "var(--muted)" }
+                { icon: Linkedin, label: "LinkedIn", count: stats.withLinkedin, color: "#6b8eb3" },
+                { icon: Award, label: "Kaggle", count: stats.withKaggle, color: "#c4a358" },
+                { icon: Building, label: "Vínculo institucional", count: stats.withAffiliation, color: "var(--muted)" }
               ].map(item => {
                 const pct = stats.total ? Math.round((item.count / stats.total) * 100) : 0;
                 const Icon = item.icon;
@@ -346,6 +351,8 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+        </>
+        )}
       </div>
     </>
   );

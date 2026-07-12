@@ -238,7 +238,7 @@ export default function Certificates() {
     const slug = eventName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "evento";
     const dateText = eventDate.trim() || "Data do evento";
     const hoursText = certHours.trim() || "Carga horária";
-    const logoPath = "/media/Varia%C3%A7%C3%A3o%3DLogotipo_colorido.png";
+    const logoPath = "/media/logo.svg";
     const inner = names.map(name => `
       <div style="width:297mm;height:210mm;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,#1a1a17,#141411);overflow:hidden;font-family:'Times New Roman',serif;padding:36px 44px;page-break-after:always;box-sizing:border-box">
         <div style="position:absolute;inset:18px;border:1px solid rgba(255,75,31,.12);border-radius:10px;pointer-events:none"></div>
@@ -288,7 +288,6 @@ export default function Certificates() {
 
       <div style={s.content}>
         <div style={{ marginBottom: 40 }}>
-          <div style={s.eyebrow}>Gerador</div>
           <h1 style={s.h1}><span className="gradient-text">Certificados.</span></h1>
           <p style={s.desc}>Importe uma lista de nomes, defina o evento e a data, e gere certificados personalizados para todos os participantes. Pronto para impressão.</p>
         </div>
@@ -400,7 +399,7 @@ export default function Certificates() {
                 border: "1px solid rgba(255,255,255,.04)",
                 borderRadius: 6, pointerEvents: "none"
               }}></div>
-              <img src="/media/Varia%C3%A7%C3%A3o%3DLogotipo_colorido.png"
+              <img src="/media/logo.svg"
                 alt="Ligia"
                 style={{ width: 54, height: "auto", marginBottom: 12, opacity: 0.8 }} />
               <div style={{

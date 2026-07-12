@@ -5,8 +5,9 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import people from "../data/people.js";
-import projects from "../data/projects.js";
+import { fetchProfiles } from "../services/profiles.js";
+import { fetchProjectsWithMilestones } from "../services/projects.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const features = [
   { to: "/dashboard", icon: BarChart3, title: "Dashboard", desc: "Métricas da equipe, distribuição por time, skills e indicadores de atividade." },
@@ -18,18 +19,40 @@ const features = [
 export default function Home() {
   const { menuOpen, setMenuOpen } = useOutletContext();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const [stats, setStats] = useState([
+    { value: 0, label: "Membros", color: "#6da87c" },
+    { value: 0, label: "Projetos ativos", color: "#6b8eb3" },
+    { value: 0, label: "Marcos", color: "#c4a358" },
+    { value: 0, label: "Concluídos", color: "var(--muted)" },
+  ]);
 
-  useEffect(() => { document.title = "Ligia — Início"; window.scrollTo({ top: 0 }); }, []);
+  useEffect(() => {
+    document.title = "Ligia — Início";
+    window.scrollTo({ top: 0 });
+    loadData();
+  }, []);
 
-  const totalMilestones = projects.reduce((acc, p) => acc + p.milestones.length, 0);
-  const doneMilestones = projects.reduce((acc, p) => acc + p.milestones.filter(m => m.status === "done").length, 0);
-
-  const stats = [
-    { value: people.length, label: "Membros", color: "#6da87c" },
-    { value: projects.length, label: "Projetos ativos", color: "#6b8eb3" },
-    { value: totalMilestones, label: "Marcos", color: "#c4a358" },
-    { value: doneMilestones, label: "Concluídos", color: "var(--muted)" },
-  ];
+  async function loadData() {
+    try {
+      const [profiles, projects] = await Promise.all([
+        fetchProfiles(),
+        fetchProjectsWithMilestones(profile?.id, profile?.role),
+      ]);
+      const totalMilestones = projects.reduce((acc, p) => acc + (p.milestones?.length || 0), 0);
+      const doneMilestones = projects.reduce(
+        (acc, p) => acc + (p.milestones?.filter(m => m.status === "done").length || 0), 0
+      );
+      setStats([
+        { value: profiles.length, label: "Membros", color: "#6da87c" },
+        { value: projects.length, label: "Projetos ativos", color: "#6b8eb3" },
+        { value: totalMilestones, label: "Marcos", color: "#c4a358" },
+        { value: doneMilestones, label: "Concluídos", color: "var(--muted)" },
+      ]);
+    } catch (e) {
+      console.warn("Home loadData error:", e.message);
+    }
+  }
 
   return (
     <>
@@ -66,7 +89,7 @@ export default function Home() {
 
       <div style={{ padding: "48px clamp(20px, 4vw, 52px) 72px" }}>
         <div style={{ marginBottom: 36 }}>
-          <img src="/media/Varia%C3%A7%C3%A3o%3DLogotipo_colorido.png" alt="Ligia"
+          <img src="/media/logo.svg" alt="Ligia"
             style={{ height: 40, width: "auto", marginBottom: 20 }} />
           <h1 style={{
             margin: "0 0 12px", fontSize: "clamp(32px, 5vw, 48px)",

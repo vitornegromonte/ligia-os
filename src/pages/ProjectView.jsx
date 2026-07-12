@@ -1,19 +1,10 @@
 import { useOutletContext, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import { Menu, ChevronRight, FolderOpen, BookOpen } from "lucide-react";
-import { projectDocs } from "../data/docs.js";
+import { fetchProjectDocs } from "../services/docs.js";
 import { marked } from "marked";
 
 marked.setOptions({ breaks: true, gfm: true });
-
-const iconMap = {
-  DoorOpen: "DoorOpen", CalendarPlus: "CalendarPlus", Palette: "Palette",
-  Backpack: "Backpack", GitBranch: "GitBranch", Server: "Server",
-  FlaskConical: "FlaskConical", ScrollText: "ScrollText", BookMarked: "BookMarked",
-  Layers: "Layers", Quote: "Quote", ListChecks: "ListChecks",
-  Microscope: "Microscope", Beaker: "Beaker", Bot: "Bot", Sparkles: "Sparkles",
-  Globe: "Globe", Cpu: "Cpu"
-};
 
 const categoryLabels = {
   "infraestrutura": "Infraestrutura",
@@ -31,10 +22,15 @@ export default function ProjectView() {
   const { projectId, docId } = useParams();
   const navigate = useNavigate();
   const [selectedDocId, setSelectedDocId] = useState(docId || null);
+  const [projectDocs, setProjectDocs] = useState([]);
+
+  useEffect(() => {
+    fetchProjectDocs().then(setProjectDocs);
+  }, []);
 
   const project = useMemo(
     () => projectDocs.find(p => p.id === projectId),
-    [projectId]
+    [projectDocs, projectId]
   );
 
   const selectedDoc = useMemo(

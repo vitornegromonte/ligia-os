@@ -4,11 +4,13 @@ import {
   Menu, Search, BookOpen, Clock, FileText, FolderOpen,
   FlaskConical, ListChecks, DoorOpen, CalendarPlus, Palette,
   Backpack, GitBranch, Server, ScrollText, BookMarked,
-  Layers, Quote, Beaker, Microscope, Bot, Sparkles, Globe, Cpu
+  Layers, Quote, Beaker, Microscope, Bot, Sparkles, Globe, Cpu, Plus
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
 import DocModal from "../components/DocModal.jsx";
-import { guides, researchDocs, projectDocs } from "../data/docs.js";
+import CreateDocModal from "../components/CreateDocModal.jsx";
+import { fetchGuides, fetchResearchDocs, fetchProjectDocs } from "../services/docs.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const iconMap = {
   DoorOpen, CalendarPlus, Palette, Backpack, GitBranch, Server,
@@ -28,11 +30,25 @@ const researchAreas = ["Todos", "NLP", "CV", "ML", "Geral"];
 export default function Documentation() {
   const { menuOpen, setMenuOpen } = useOutletContext();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState("guias");
   const [filter, setFilter] = useState("Todos");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalContent, setModalContent] = useState("");
+  const [guides, setGuides] = useState([]);
+  const [researchDocs, setResearchDocs] = useState([]);
+  const [projectDocs, setProjectDocs] = useState([]);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    Promise.all([
+      fetchGuides().then(setGuides),
+      fetchResearchDocs().then(setResearchDocs),
+      fetchProjectDocs().then(setProjectDocs),
+    ]);
+  }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [activeTab]);
   useEffect(() => { document.title = "Ligia — Documentação"; }, []);
@@ -154,8 +170,22 @@ export default function Documentation() {
     );
   }
 
+  function refreshDocs() {
+    Promise.all([
+      fetchGuides().then(setGuides),
+      fetchResearchDocs().then(setResearchDocs),
+      fetchProjectDocs().then(setProjectDocs),
+    ]);
+  }
+
   return (
     <>
+      <CreateDocModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={refreshDocs}
+        defaultTab={activeTab}
+      />
       <header style={{
         position: "sticky", top: 0, zIndex: 30, height: 66,
         display: "flex", alignItems: "center", gap: 18,
@@ -187,12 +217,22 @@ export default function Documentation() {
         </div>
       </header>
 
+      {profile?.role === "admin" && (
+        <button onClick={() => setCreateModalOpen(true)} title="Nova documentação"
+          style={{
+            position: "fixed", right: 32, bottom: 32, zIndex: 50,
+            width: 52, height: 52, display: "grid", placeItems: "center",
+            border: 0, borderRadius: "50%",
+            color: "#fff", background: "var(--accent)",
+            cursor: "pointer", boxShadow: "0 6px 24px rgba(255,75,31,.35)",
+            transition: "transform var(--transition)"
+          }}>
+          <Plus size={24} />
+        </button>
+      )}
+
       <div style={{ padding: "36px clamp(20px, 4vw, 52px) 72px" }}>
         <div style={{ marginBottom: 32 }}>
-          <div style={{
-            marginBottom: 8, color: "var(--muted-2)", fontSize: 11,
-            fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase"
-          }}>Central de conhecimento</div>
           <h1 style={{
             margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
             fontWeight: 500, letterSpacing: "-.03em"

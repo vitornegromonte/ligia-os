@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House
+  Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import ProfileEdit from "./ProfileEdit.jsx";
 
 const navGroups = [
   {
@@ -23,8 +26,11 @@ const navGroups = [
 ];
 
 export default function Sidebar({ open, onClose }) {
+  const { profile, signOut } = useAuth();
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
   return (
     <>
+      <ProfileEdit open={profileEditOpen} onClose={() => setProfileEditOpen(false)} />
       {open && <div className="mobile-overlay" onClick={onClose} style={{
         position: "fixed", inset: 0, zIndex: 35,
         background: "rgba(0,0,0,.55)"
@@ -43,7 +49,7 @@ export default function Sidebar({ open, onClose }) {
           display: "flex", alignItems: "center", gap: 12,
           height: 78, padding: "0 22px", textDecoration: "none", color: "inherit"
         }}>
-          <img src="/media/Varia%C3%A7%C3%A3o%3DLogotipo_colorido.png" alt="Ligia"
+          <img src="/media/logo.svg" alt="Ligia"
             style={{ height: 32, width: "auto", flex: "0 0 auto" }} />
           <div style={{
             fontFamily: "var(--font-heading)", fontSize: 18,
@@ -80,27 +86,49 @@ export default function Sidebar({ open, onClose }) {
         ))}
 
         <div style={{ marginTop: "auto", padding: "14px 12px 18px" }}>
-          <div className="workspace" style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: 11, border: "1px solid var(--line-soft)",
-            borderRadius: 12, background: "rgba(255,255,255,.018)"
-          }}>
+          {profile && (
             <div style={{
-              width: 32, height: 32, display: "grid", flex: "0 0 auto",
-              placeItems: "center", borderRadius: 9,
-              color: "#17140f", background: "#e7c8a6",
-              fontWeight: 750, fontSize: 11, fontFamily: "var(--font-heading)"
-            }}>LI</div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="workspace-name" style={{
-                overflow: "hidden", color: "var(--text)", fontSize: 12,
-                fontWeight: 600, textOverflow: "ellipsis",
-                whiteSpace: "nowrap", fontFamily: "var(--font-body)"
-              }}>Ligia Core</div>
-              <div style={{ color: "var(--muted-2)", fontSize: 11 }}>Workspace privado</div>
+              display: "flex", alignItems: "center", gap: 10,
+              padding: 11, border: "1px solid var(--line-soft)",
+              borderRadius: 12, background: "rgba(255,255,255,.018)"
+            }}>
+              <button onClick={() => setProfileEditOpen(true)}
+                style={{ display: "contents", cursor: "pointer", background: "none", border: "none", padding: 0 }}>
+                <div style={{
+                  width: 32, height: 32, display: "grid", flex: "0 0 auto",
+                  placeItems: "center", borderRadius: 9,
+                  color: "#17140f", background: profile.color || "#e7c8a6",
+                  fontWeight: 750, fontSize: 11, fontFamily: "var(--font-heading)"
+                }}>
+                  {profile.initials || profile.name?.slice(0, 2).toUpperCase() || "??"}
+                </div>
+                <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
+                  <div className="workspace-name" style={{
+                    overflow: "hidden", color: "var(--text)", fontSize: 12,
+                    fontWeight: 600, textOverflow: "ellipsis",
+                    whiteSpace: "nowrap", fontFamily: "var(--font-body)"
+                  }}>{profile.name || "Usuário"}</div>
+                  <div style={{ color: "var(--muted-2)", fontSize: 11, textTransform: "capitalize" }}>{profile.role}</div>
+                </div>
+              </button>
+              <button onClick={() => setProfileEditOpen(true)} title="Editar perfil" style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "var(--muted)", padding: 4,
+                display: "grid", placeItems: "center",
+                borderRadius: 6, flexShrink: 0
+              }}>
+                <Settings size={14} />
+              </button>
+              <button onClick={signOut} title="Sair" style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "var(--muted)", padding: 4,
+                display: "grid", placeItems: "center",
+                borderRadius: 6, flexShrink: 0
+              }}>
+                <LogOut size={15} />
+              </button>
             </div>
-            <ChevronsUpDown size={15} style={{ color: "var(--muted)", flexShrink: 0 }} />
-          </div>
+          )}
         </div>
       </aside>
     </>
