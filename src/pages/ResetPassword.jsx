@@ -25,7 +25,7 @@ export default function ResetPassword() {
     setSubmitting(true);
     try {
       await updatePassword(password);
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       setError(err.message === "New password should be different from the old password."
         ? "A nova senha deve ser diferente da atual."

@@ -78,6 +78,7 @@ export default function Agenda() {
       ends_at: "",
       location: "",
       all_day: false,
+      visibility: "internal",
       description: "",
       participants: [],
     });
@@ -92,6 +93,7 @@ export default function Agenda() {
       ends_at: event.ends_at ? toLocalInput(event.ends_at) : "",
       location: event.location || "",
       all_day: event.all_day || false,
+      visibility: event.visibility || "internal",
       description: event.description || "",
       participants: event.participants || [],
     });
@@ -112,6 +114,7 @@ export default function Agenda() {
           location: form.location,
           all_day: form.all_day,
           description: form.description,
+          visibility: form.visibility,
         });
         await setEventParticipants(editing.id, form.participants);
         showToast("Evento atualizado");
@@ -123,6 +126,7 @@ export default function Agenda() {
           location: form.location,
           all_day: form.all_day,
           description: form.description,
+          visibility: form.visibility,
           created_by: profile?.id,
         }, form.participants);
         showToast(`"${ev.title}" criado`);
@@ -250,6 +254,26 @@ export default function Agenda() {
                 <input type="checkbox" checked={form.all_day} onChange={e => setField("all_day", e.target.checked)} />
                 Dia inteiro
               </label>
+              <Field label="Visibilidade">
+                <div style={{ display: "flex", gap: 6, padding: 4, borderRadius: 9, background: "var(--surface-2)" }}>
+                  {[["internal", "Interno"], ["public", "Público"]].map(([val, label]) => (
+                    <button key={val} type="button" onClick={() => setField("visibility", val)} style={{
+                      flex: 1, height: 36, border: 0, borderRadius: 7, cursor: "pointer",
+                      fontSize: 12.5, fontWeight: 600, fontFamily: "var(--font-body)",
+                      color: form.visibility === val ? "#fff" : "var(--muted)",
+                      background: form.visibility === val ? "var(--accent)" : "transparent",
+                      transition: "background var(--transition), color var(--transition)"
+                    }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ marginTop: 6, color: "var(--muted-2)", fontSize: 11, lineHeight: 1.6 }}>
+                  {form.visibility === "public"
+                    ? "Visível publicamente na landing da liga."
+                    : "Visível apenas para membros na plataforma."}
+                </div>
+              </Field>
               <Field label="Participantes">
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {profiles.map(p => {

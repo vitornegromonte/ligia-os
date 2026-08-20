@@ -19,7 +19,7 @@ const navGroups = [
   {
     label: "Navegação",
     items: [
-      { to: "/", icon: House, label: "Início" },
+      { to: "/inicio", icon: House, label: "Início" },
       { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
       { to: "/projetos", icon: Kanban, label: "Projetos" },
       { to: "/docs", icon: BookOpen, label: "Documentação" },

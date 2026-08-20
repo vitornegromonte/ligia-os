@@ -25,6 +25,8 @@ function mapProfile(p) {
     bio: p.bio || "",
     history: p.history || [],
     avatar_url: p.avatar_url || "",
+    category: p.category || "membro",
+    director_role: p.director_role || "",
     calendar_url: p.calendar_url || "",
     resume_text: p.resume_text || "",
   };
@@ -126,6 +128,9 @@ export async function updateProfile(id, updates) {
       if (updates.initials !== undefined) mapped.initials = updates.initials;
       if (updates.discipline !== undefined) mapped.discipline = updates.discipline;
       if (updates.color !== undefined) mapped.color = updates.color;
+      if (updates.avatar_url !== undefined) mapped.avatar_url = updates.avatar_url;
+      if (updates.category !== undefined) mapped.category = updates.category;
+      if (updates.director_role !== undefined) mapped.director_role = updates.director_role;
       mockPeople[idx] = mapped;
       return mapped;
     }
@@ -153,6 +158,9 @@ export async function updateProfile(id, updates) {
   if (updates.resume_text !== undefined) dbUpdates.resume_text = updates.resume_text;
   if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
   if (updates.history !== undefined) dbUpdates.history = updates.history;
+  if (updates.avatar_url !== undefined) dbUpdates.avatar_url = updates.avatar_url;
+  if (updates.category !== undefined) dbUpdates.category = updates.category;
+  if (updates.director_role !== undefined) dbUpdates.director_role = updates.director_role;
 
   const { data, error } = await supabase
     .from("profiles")

@@ -8,7 +8,7 @@ import {
   CalendarDays, MoreHorizontal, ExternalLink
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import { fetchProfiles, createProfile, updateRole } from "../services/profiles.js";
+import { fetchProfiles, createProfile, updateRole, updateProfile } from "../services/profiles.js";
 import { fetchEvents } from "../services/events.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useRealtime } from "../hooks/useRealtime.js";
@@ -27,6 +27,20 @@ const accessRoleOptions = [
   { value: "admin", label: "Admin" },
   { value: "membro", label: "Membro" },
   { value: "visitante", label: "Visitante" }
+];
+
+const categoryOptions = [
+  { value: "membro", label: "Membro" },
+  { value: "diretor", label: "Diretor" },
+  { value: "professor", label: "Professor" }
+];
+
+const directorRoleOptions = [
+  "Executivo",
+  "Pesquisa",
+  "Ensino",
+  "Extensão",
+  "Comunicação"
 ];
 
 const availabilityOptions = [
@@ -141,8 +155,9 @@ const s = {
     display: "grid", flex: "0 0 auto", placeItems: "center",
     border: "1px solid rgba(255,255,255,.08)", borderRadius: 13,
     color: "#161512", fontFamily: "var(--font-heading)",
-    fontSize: 17, fontWeight: 500, background: color
+    fontSize: 17, fontWeight: 500, background: color, overflow: "hidden"
   }),
+  avatarImg: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
   personTitle: { minWidth: 0 },
   personName: { margin: "0 0 3px", fontSize: 14, fontWeight: 650, letterSpacing: "-.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   personSub: { margin: 0, color: "var(--muted)", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
@@ -291,12 +306,37 @@ export default function TalentBank() {
   function openAddModal() { setAddModalOpen(true); }
   function closeAddModal() { setAddModalOpen(false); }
 
+  function PersonAvatar({ person, size = 46, radius = 13, fontSize = 17, style }) {
+    if (person.avatar_url) {
+      return (
+        <div style={{ position: "relative", width: size, height: size, flex: "0 0 auto", borderRadius: radius, background: "var(--surface-2)", overflow: "hidden", ...style }}>
+          <img src={person.avatar_url} alt={person.name} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      );
+    }
+    return (
+      <div style={{ ...s.avatar(person.color || "#b7c2d2"), width: size, height: size, borderRadius: radius, fontSize, ...style }}>
+        {person.initials}
+      </div>
+    );
+  }
+
   async function handleRoleChange(profileId, role) {
     try {
       await updateRole(profileId, role);
       setPeople(prev => prev.map(p => p.id === profileId ? { ...p, role } : p));
       setSelectedPerson(prev => prev && prev.id === profileId ? { ...prev, role } : prev);
       showToast("Permissão atualizada");
+    } catch (err) {
+      showToast("Erro: " + err.message);
+    }
+  }
+
+  async function handleProfileField(profileId, field, value) {
+    try {
+      await updateProfile(profileId, { [field]: value });
+      setPeople(prev => prev.map(p => p.id === profileId ? { ...p, [field]: value } : p));
+      setSelectedPerson(prev => prev && prev.id === profileId ? { ...prev, [field]: value } : prev);
     } catch (err) {
       showToast("Erro: " + err.message);
     }
@@ -399,9 +439,7 @@ export default function TalentBank() {
                   {gridMode === "grid" ? (
                     <>
                       <div style={s.cardHead}>
-                        <div style={s.avatar(person.color)}>
-                          {person.initials}
-                        </div>
+                        <PersonAvatar person={person} />
                         <div style={s.personTitle}>
                           <h3 style={s.personName}>{person.name}</h3>
                           <span style={s.teamTag}>{person.team}</span>
@@ -453,9 +491,7 @@ export default function TalentBank() {
                   ) : (
                     <>
                       <div style={{ ...s.cardHead, margin: 0 }}>
-                        <div style={s.avatar(person.color)}>
-                          {person.initials}
-                        </div>
+                        <PersonAvatar person={person} />
                         <div style={s.personTitle}>
                           <h3 style={s.personName}>{person.name}</h3>
                           <span style={s.teamTag}>{person.team}</span>
@@ -507,9 +543,7 @@ export default function TalentBank() {
             </div>
             <div style={{ padding: 26 }}>
               <div style={{ display: "flex", gap: 18, alignItems: "center", marginBottom: 28 }}>
-                <div style={{ ...s.avatar(selectedPerson.color), width: 72, height: 72, borderRadius: 19, fontSize: 25 }}>
-                  {selectedPerson.initials}
-                </div>
+                <PersonAvatar person={selectedPerson} size={72} radius={19} fontSize={25} />
                 <div>
                   <h2 id="profileName" style={{ margin: "0 0 4px", fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>{selectedPerson.name}</h2>
                   <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>{selectedPerson.team} · {selectedPerson.affiliation}</p>
@@ -535,6 +569,55 @@ export default function TalentBank() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1.35fr .65fr", gap: 24 }}>
                 <div>
+                  {currentUser?.role === "admin" && (
+                    <div style={{ marginBottom: 25, padding: "16px 18px", borderRadius: 10, border: "1px solid var(--line-soft)", background: "var(--surface-2)" }}>
+                      <h3 style={{ marginBottom: 12, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Organização da liga</h3>
+                      <div style={{ display: "grid", gap: 12 }}>
+                        <div>
+                          <label style={{ display: "block", marginBottom: 6, color: "var(--muted-2)", fontSize: 11 }}>Categoria</label>
+                          <select value={selectedPerson.category || "membro"}
+                            onChange={e => handleProfileField(selectedPerson.id, "category", e.target.value)}
+                            style={{
+                              width: "100%", height: 38, padding: "0 10px", border: "1px solid var(--line)",
+                              borderRadius: 8, outline: "none", color: "var(--text)",
+                              background: "var(--surface)", cursor: "pointer", fontSize: 12
+                            }}>
+                            {categoryOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                          </select>
+                        </div>
+                        {selectedPerson.category === "diretor" && (
+                          <div>
+                            <label style={{ display: "block", marginBottom: 6, color: "var(--muted-2)", fontSize: 11 }}>Diretoria</label>
+                            <select value={selectedPerson.director_role || ""}
+                              onChange={e => handleProfileField(selectedPerson.id, "director_role", e.target.value)}
+                              style={{
+                                width: "100%", height: 38, padding: "0 10px", border: "1px solid var(--line)",
+                                borderRadius: 8, outline: "none", color: "var(--text)",
+                                background: "var(--surface)", cursor: "pointer", fontSize: 12
+                              }}>
+                              <option value="">Selecionar diretoria</option>
+                              {directorRoleOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                          </div>
+                        )}
+                        <div>
+                          <label style={{ display: "block", marginBottom: 6, color: "var(--muted-2)", fontSize: 11 }}>Foto de perfil (URL)</label>
+                          <input
+                            defaultValue={selectedPerson.avatar_url || ""}
+                            placeholder="https://…"
+                            onBlur={e => {
+                              const v = e.target.value.trim();
+                              if (v !== (selectedPerson.avatar_url || "")) handleProfileField(selectedPerson.id, "avatar_url", v);
+                            }}
+                            style={{
+                              width: "100%", height: 38, padding: "0 10px", border: "1px solid var(--line)",
+                              borderRadius: 8, outline: "none", color: "var(--text)",
+                              background: "var(--surface)", fontSize: 12
+                            }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div style={{ marginBottom: 25 }}>
                     <h3 style={{ marginBottom: 11, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Sobre</h3>
                     <p style={{ color: "#c2bfb6", fontSize: 12, lineHeight: 1.7 }}>{selectedPerson.bio}</p>

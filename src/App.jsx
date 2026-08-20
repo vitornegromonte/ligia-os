@@ -7,6 +7,8 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword.jsx"));
+const Landing = lazy(() => import("./pages/Landing.jsx"));
+const ProcessoSeletivo = lazy(() => import("./pages/ProcessoSeletivo.jsx"));
 const Home = lazy(() => import("./pages/Home.jsx"));
 const TalentBank = lazy(() => import("./pages/TalentBank.jsx"));
 const Documentation = lazy(() => import("./pages/Documentation.jsx"));
@@ -32,6 +34,8 @@ export default function App() {
     <AuthProvider>
       <Suspense fallback={fallback}>
         <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/processo-seletivo" element={<ProcessoSeletivo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -40,7 +44,7 @@ export default function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route path="/" element={<Home />} />
+            <Route path="/inicio" element={<Home />} />
             <Route path="/dia" element={<MyDay />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/notas" element={<Notas />} />

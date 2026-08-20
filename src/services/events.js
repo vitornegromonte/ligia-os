@@ -27,6 +27,8 @@ export async function fetchEvents() {
     ends_at: e.ends_at || "",
     all_day: e.all_day || false,
     location: e.location || "",
+    visibility: e.visibility || "internal",
+    image_url: e.image_url || "",
     created_by: e.created_by || "",
     participants: partsByEvent[e.id] || [],
   }));
@@ -44,6 +46,8 @@ export async function createEvent(data, participantIds = []) {
       ends_at: data.ends_at || null,
       all_day: data.all_day || false,
       location: data.location || "",
+      visibility: data.visibility || "internal",
+      image_url: data.image_url || "",
       created_by: data.created_by || null,
     })
     .select()
@@ -70,6 +74,8 @@ export async function updateEvent(id, updates) {
   if (updates.ends_at !== undefined) dbUpdates.ends_at = updates.ends_at || null;
   if (updates.all_day !== undefined) dbUpdates.all_day = updates.all_day;
   if (updates.location !== undefined) dbUpdates.location = updates.location || "";
+  if (updates.visibility !== undefined) dbUpdates.visibility = updates.visibility;
+  if (updates.image_url !== undefined) dbUpdates.image_url = updates.image_url;
 
   const { data, error } = await supabase
     .from("events")
