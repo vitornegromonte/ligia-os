@@ -2,17 +2,21 @@ import { useOutletContext, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   Menu, Search, BarChart3, Kanban, Users, BookOpen, Award,
-  ArrowUpRight
+  ArrowUpRight, Sun, CalendarDays, StickyNote
 } from "lucide-react";
-import { showToast } from "../utils/toast.js";
+import { openGlobalSearch } from "../utils/searchBus.js";
+import NotificationsBell from "../components/NotificationsBell.jsx";
 import { fetchProfiles } from "../services/profiles.js";
 import { fetchProjectsWithMilestones } from "../services/projects.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const features = [
+  { to: "/dia", icon: Sun, title: "Meu Dia", desc: "Tarefas pessoais e marcos atribuídos a você, em board, tabela, calendário e lista." },
+  { to: "/agenda", icon: CalendarDays, title: "Agenda", desc: "Reuniões, eventos e compromissos da equipe em calendário mensal." },
+  { to: "/notas", icon: StickyNote, title: "Notas", desc: "Notas rápidas e de reunião em markdown, com menções @Nome." },
   { to: "/dashboard", icon: BarChart3, title: "Dashboard", desc: "Métricas da equipe, distribuição por time, skills e indicadores de atividade." },
   { to: "/projetos", icon: Kanban, title: "Projetos", desc: "Acompanhe o andamento dos projetos de pesquisa e seus marcos." },
-  { to: "/talentos", icon: Users, title: "Banco de Talentos", desc: "Perfil dos membros, skills, projetos e redes acadêmicas." },
+  { to: "/membros", icon: Users, title: "Membros", desc: "Perfis, habilidades, agenda pública e currículos dos membros da liga." },
   { to: "/docs", icon: BookOpen, title: "Documentação", desc: "Guias, referências de pesquisa e documentação técnica dos projetos." },
 ];
 
@@ -76,7 +80,7 @@ export default function Home() {
           }}>Início</strong>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-          <button onClick={() => showToast("Busca em desenvolvimento")}
+          <button onClick={openGlobalSearch} aria-label="Buscar" title="Buscar (Ctrl+K)"
             style={{
               display: "grid", placeItems: "center", width: 32, height: 32,
               border: 0, borderRadius: 9, color: "var(--muted)", background: "transparent",
@@ -84,6 +88,7 @@ export default function Home() {
             }}>
             <Search size={18} />
           </button>
+          <NotificationsBell />
         </div>
       </header>
 
@@ -101,7 +106,7 @@ export default function Home() {
             maxWidth: 540, color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px"
           }}>
             Plataforma de gestão interna da Liga Acadêmica de Inteligência Artificial.
-            Acompanhe projetos, talentos, documentação e certificados da comunidade.
+            Acompanhe projetos, membros, documentação e certificados da comunidade.
           </p>
         </div>
 

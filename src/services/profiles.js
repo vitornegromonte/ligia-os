@@ -13,7 +13,7 @@ function mapProfile(p) {
     skills: p.skills || [],
     project: p.project || "",
     affiliation: p.affiliation || "",
-    availability: p.capacity ? "Available" : "Available",
+    availability: p.capacity ? p.capacity : "Disponível",
     capacity: p.capacity || "Disponível",
     researchInterests: p.research_interests || "",
     color: p.color || "#b7c2d2",
@@ -25,6 +25,8 @@ function mapProfile(p) {
     bio: p.bio || "",
     history: p.history || [],
     avatar_url: p.avatar_url || "",
+    calendar_url: p.calendar_url || "",
+    resume_text: p.resume_text || "",
   };
 }
 
@@ -90,6 +92,8 @@ export async function createProfile(profile) {
       cv: profile.cv,
       bio: profile.bio,
       history: profile.history || [],
+      calendar_url: profile.calendar_url || "",
+      resume_text: profile.resume_text || "",
     })
     .select()
     .single();
@@ -112,8 +116,10 @@ export async function updateProfile(id, updates) {
       if (updates.linkedin !== undefined) mapped.linkedin = updates.linkedin;
       if (updates.kaggle !== undefined) mapped.kaggle = updates.kaggle;
       if (updates.cv !== undefined) mapped.cv = updates.cv;
+      if (updates.calendar_url !== undefined) mapped.calendar_url = updates.calendar_url;
+      if (updates.resume_text !== undefined) mapped.resume_text = updates.resume_text;
       if (updates.name !== undefined) mapped.name = updates.name;
-      if (updates.research_interests !== undefined) mapped.researchInterests = updates.research_interests;
+      if (updates.researchInterests !== undefined) mapped.researchInterests = updates.researchInterests;
       if (updates.project !== undefined) mapped.project = updates.project;
       if (updates.capacity !== undefined) mapped.capacity = updates.capacity;
       if (updates.history !== undefined) mapped.history = updates.history;
@@ -143,12 +149,32 @@ export async function updateProfile(id, updates) {
   if (updates.linkedin !== undefined) dbUpdates.linkedin = updates.linkedin;
   if (updates.kaggle !== undefined) dbUpdates.kaggle = updates.kaggle;
   if (updates.cv !== undefined) dbUpdates.cv = updates.cv;
+  if (updates.calendar_url !== undefined) dbUpdates.calendar_url = updates.calendar_url;
+  if (updates.resume_text !== undefined) dbUpdates.resume_text = updates.resume_text;
   if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
   if (updates.history !== undefined) dbUpdates.history = updates.history;
 
   const { data, error } = await supabase
     .from("profiles")
     .update(dbUpdates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateRole(id, role) {
+  if (!isConfigured()) {
+    const p = mockPeople.find(x => x.id === id);
+    if (p) p.role = role;
+    return p;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ role })
     .eq("id", id)
     .select()
     .single();

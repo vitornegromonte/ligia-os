@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, GraduationCap, Github, Linkedin, Award, ExternalLink } from "lucide-react";
+import { X, GraduationCap, Github, Linkedin, Award, ExternalLink, CalendarDays, FileText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { updateProfile } from "../services/profiles.js";
 import { showToast } from "../utils/toast.js";
@@ -194,6 +194,26 @@ export default function ProfileEdit({ open, onClose }) {
                   <ExternalLink size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
                   <input value={f.cv || ""} onChange={e => handleChange("cv", e.target.value)}
                     placeholder="Link do CV (Google Drive, Dropbox…)"
+                    style={{
+                      flex: 1, height: 42, padding: "0 14px",
+                      border: "1px solid var(--line)", borderRadius: 9,
+                      outline: "none", color: "var(--text)", background: "var(--surface)"
+                    }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <CalendarDays size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input value={f.calendar_url || ""} onChange={e => handleChange("calendar_url", e.target.value)}
+                    placeholder="Link da agenda pública (Google Calendar…)"
+                    style={{
+                      flex: 1, height: 42, padding: "0 14px",
+                      border: "1px solid var(--line)", borderRadius: 9,
+                      outline: "none", color: "var(--text)", background: "var(--surface)"
+                    }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <FileText size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input value={f.resume_text || ""} onChange={e => handleChange("resume_text", e.target.value)}
+                    placeholder="Texto integral do currículo (para o buscador de vagas)"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,

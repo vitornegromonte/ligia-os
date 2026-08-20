@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recovery, setRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession()
@@ -17,7 +18,8 @@ export function AuthProvider({ children }) {
       })
       .catch(() => setLoading(false));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
       setSession(session);
       if (session?.user) fetchProfile(session.user.id);
       else { setProfile(null); setLoading(false); }
@@ -83,9 +85,25 @@ export function AuthProvider({ children }) {
     }
     setSession(null);
     setProfile(null);
+    setRecovery(false);
   }
 
-  const value = { session, profile, setProfile, loading, signIn, signUp, signOut };
+  async function resetPassword(email) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async function updatePassword(newPassword) {
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    setRecovery(false);
+    return data;
+  }
+
+  const value = { session, profile, setProfile, loading, recovery, signIn, signUp, signOut, resetPassword, updatePassword };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

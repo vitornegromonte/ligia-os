@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings
+  Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
+  Sun, CalendarDays, StickyNote
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ProfileEdit from "./ProfileEdit.jsx";
 
 const navGroups = [
+  {
+    label: "Dia a dia",
+    items: [
+      { to: "/dia", icon: Sun, label: "Meu Dia" },
+      { to: "/agenda", icon: CalendarDays, label: "Agenda" },
+      { to: "/notas", icon: StickyNote, label: "Notas" },
+    ]
+  },
   {
     label: "Navegação",
     items: [
@@ -14,7 +23,7 @@ const navGroups = [
       { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
       { to: "/projetos", icon: Kanban, label: "Projetos" },
       { to: "/docs", icon: BookOpen, label: "Documentação" },
-      { to: "/talentos", icon: Users, label: "Banco de Talentos" },
+      { to: "/membros", icon: Users, label: "Membros" },
     ]
   },
   {

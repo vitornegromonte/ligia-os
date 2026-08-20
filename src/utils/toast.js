@@ -3,6 +3,6 @@ export const toastState = {
   close: () => {}
 };
 
-export function showToast(message) {
-  toastState.set(message);
+export function showToast(message, type = "success") {
+  toastState.set(message, type);
 }

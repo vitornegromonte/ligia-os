@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { X, Circle, Clock, CheckCircle2, Package, Save } from "lucide-react";
-import { updateMilestone } from "../services/projects.js";
+import { X, Circle, Clock, CheckCircle2, Package, Save, Trash2 } from "lucide-react";
+import { updateMilestone, deleteMilestone } from "../services/projects.js";
 import { showToast } from "../utils/toast.js";
 
 const statusOptions = [
@@ -10,10 +10,11 @@ const statusOptions = [
   { value: "done", label: "Concluído", icon: CheckCircle2, color: "#6da87c", bg: "rgba(109,168,124,.15)" },
 ];
 
-export default function MilestoneDetail({ milestone, profiles, onClose, onUpdated }) {
+export default function MilestoneDetail({ milestone, profiles, onClose, onUpdated, onDeleted }) {
   const [status, setStatus] = useState(milestone?.status);
   const [description, setDescription] = useState(milestone?.description || "");
   const [saving, setSaving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!milestone) return null;
 
@@ -26,6 +27,20 @@ export default function MilestoneDetail({ milestone, profiles, onClose, onUpdate
       const updated = await updateMilestone(milestone.id, { status, description });
       showToast("Atividade atualizada");
       onUpdated({ ...milestone, status, description });
+      onClose();
+    } catch (err) {
+      showToast("Erro: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setSaving(true);
+    try {
+      await deleteMilestone(milestone.id);
+      showToast("Atividade removida");
+      onDeleted?.(milestone.id);
       onClose();
     } catch (err) {
       showToast("Erro: " + err.message);
@@ -131,16 +146,44 @@ export default function MilestoneDetail({ milestone, profiles, onClose, onUpdate
             </div>
           </div>
 
-          <button onClick={handleSave} disabled={saving}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              width: "100%", height: 42, border: 0, borderRadius: 9,
-              color: "#fff", background: saving ? "var(--muted-2)" : "var(--accent)",
-              cursor: saving ? "not-allowed" : "pointer",
-              fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)"
+          {confirmingDelete ? (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setConfirmingDelete(false)} style={{
+                flex: 1, height: 42, border: "1px solid var(--line)", borderRadius: 9,
+                color: "var(--muted)", background: "var(--surface)", cursor: "pointer",
+                fontSize: 13, fontWeight: 600, fontFamily: "var(--font-body)"
+              }}>Cancelar</button>
+              <button onClick={handleDelete} disabled={saving} style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                height: 42, border: 0, borderRadius: 9,
+                color: "#fff", background: "#c94f4f", cursor: saving ? "not-allowed" : "pointer",
+                fontSize: 13, fontWeight: 600, fontFamily: "var(--font-body)"
+              }}>
+                <Trash2 size={15} /> {saving ? "Removendo..." : "Confirmar exclusão"}
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleSave} disabled={saving}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                width: "100%", height: 42, border: 0, borderRadius: 9,
+                color: "#fff", background: saving ? "var(--muted-2)" : "var(--accent)",
+                cursor: saving ? "not-allowed" : "pointer",
+                fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)"
+              }}>
+              <Save size={17} /> {saving ? "Salvando..." : "Salvar alterações"}
+            </button>
+          )}
+          {!confirmingDelete && (
+            <button onClick={() => setConfirmingDelete(true)} style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              width: "100%", height: 40, marginTop: 10, border: "1px solid rgba(201,79,79,.35)",
+              borderRadius: 9, color: "#d47d7d", background: "transparent", cursor: "pointer",
+              fontSize: 13, fontWeight: 550, fontFamily: "var(--font-body)"
             }}>
-            <Save size={17} /> {saving ? "Salvando..." : "Salvar alterações"}
-          </button>
+              <Trash2 size={15} /> Excluir atividade
+            </button>
+          )}
         </div>
       </div>
     </div>

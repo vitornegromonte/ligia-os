@@ -1,10 +1,11 @@
 import { useOutletContext, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Menu, Search, List, Columns3, Columns2, Circle, CheckCircle2, Clock, Package, Users, ArrowUpRight, Plus } from "lucide-react";
 import { showToast } from "../utils/toast.js";
 import { fetchProjectsWithMilestones } from "../services/projects.js";
 import { fetchProfiles } from "../services/profiles.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useRealtime } from "../hooks/useRealtime.js";
 import CreateProjectModal from "../components/CreateProjectModal.jsx";
 import CreateMilestoneModal from "../components/CreateMilestoneModal.jsx";
 import MilestoneDetail from "../components/MilestoneDetail.jsx";
@@ -52,6 +53,15 @@ export default function ProjectManagement() {
       setLoading(false);
     });
   }, []);
+
+  const refreshData = useCallback(() => {
+    fetchProjectsWithMilestones(profile?.id, profile?.role)
+      .then(setProjects)
+      .catch(e => console.warn("Realtime refresh error:", e.message));
+  }, [profile?.id, profile?.role]);
+
+  useRealtime("projects", refreshData);
+  useRealtime("milestones", refreshData);
 
   const allMilestones = projects.flatMap(p =>
     p.milestones.map(m => ({ ...m, projectId: p.id, projectName: p.name, projectColor: p.color }))
@@ -500,6 +510,12 @@ export default function ProjectManagement() {
             setProjects(prev => prev.map(proj => ({
               ...proj,
               milestones: proj.milestones.map(m => m.id === updated.id ? updated : m)
+            })));
+          }}
+          onDeleted={id => {
+            setProjects(prev => prev.map(proj => ({
+              ...proj,
+              milestones: proj.milestones.filter(m => m.id !== id)
             })));
           }} />
       )}

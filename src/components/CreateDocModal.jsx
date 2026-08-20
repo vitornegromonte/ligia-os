@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Plus, BookOpen, FlaskConical, FolderOpen } from "lucide-react";
-import { createGuide, createResearchDoc, createProjectDoc, fetchProjectDocs } from "../services/docs.js";
+import { createGuide, createResearchDoc, createProjectDoc, updateGuide, updateResearchDoc, updateProjectDoc, fetchProjectDocs } from "../services/docs.js";
 import { showToast } from "../utils/toast.js";
 import IconPicker from "./IconPicker.jsx";
 
@@ -9,12 +9,12 @@ const researchAreas = ["nlp", "cv", "ml", "geral"];
 const docCategories = ["dados", "técnico", "experimentos", "referências", "métricas", "geral"];
 
 const tabConfig = {
-  guias: { icon: BookOpen, label: "Guia", createFn: createGuide, },
-  pesquisa: { icon: FlaskConical, label: "Doc de Pesquisa", createFn: createResearchDoc, },
-  projetos: { icon: FolderOpen, label: "Doc de Projeto", createFn: createProjectDoc, },
+  guias: { icon: BookOpen, label: "Guia", createFn: createGuide, updateFn: updateGuide },
+  pesquisa: { icon: FlaskConical, label: "Doc de Pesquisa", createFn: createResearchDoc, updateFn: updateResearchDoc },
+  projetos: { icon: FolderOpen, label: "Doc de Projeto", createFn: createProjectDoc, updateFn: updateProjectDoc },
 };
 
-export default function CreateDocModal({ open, onClose, onCreated, defaultTab }) {
+export default function CreateDocModal({ open, onClose, onCreated, defaultTab, edit }) {
   const [tab, setTab] = useState(defaultTab || "guias");
   const [title, setTitle] = useState("");
   const [icon, setIcon] = useState("FileText");
@@ -28,6 +28,21 @@ export default function CreateDocModal({ open, onClose, onCreated, defaultTab })
   useEffect(() => {
     if (tab === "projetos") fetchProjectDocs().then(setProjects);
   }, [tab]);
+
+  useEffect(() => {
+    if (open && edit) {
+      setTab(edit.type || "guias");
+      setTitle(edit.title || "");
+      setIcon(edit.icon || "FileText");
+      setContent(edit.content || "");
+      setCategory(edit.category || "");
+      setArea(edit.area || "");
+      setProjectId(edit.project_id || "");
+    } else if (open) {
+      setTab(defaultTab || "guias");
+      setTitle(""); setIcon("FileText"); setCategory(""); setArea(""); setContent(""); setProjectId("");
+    }
+  }, [open, edit, defaultTab]);
 
   if (!open) return null;
 
@@ -49,8 +64,8 @@ export default function CreateDocModal({ open, onClose, onCreated, defaultTab })
         data.project_id = projectId;
         data.category = category;
       }
-      const result = await cfg.createFn(data);
-      showToast(`"${result.title}" criado`);
+      const result = edit ? await cfg.updateFn(edit.id, data) : await cfg.createFn(data);
+      showToast(edit ? `"${result.title}" atualizado` : `"${result.title}" criado`);
       onCreated(result);
       onClose();
       setTitle(""); setIcon("FileText"); setCategory(""); setArea(""); setContent(""); setProjectId("");

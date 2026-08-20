@@ -9,7 +9,7 @@ import {
 import { showToast } from "../utils/toast.js";
 import DocModal from "../components/DocModal.jsx";
 import CreateDocModal from "../components/CreateDocModal.jsx";
-import { fetchGuides, fetchResearchDocs, fetchProjectDocs } from "../services/docs.js";
+import { fetchGuides, fetchResearchDocs, fetchProjectDocs, deleteGuide, deleteResearchDoc, deleteProjectDoc } from "../services/docs.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const iconMap = {
@@ -40,6 +40,9 @@ export default function Documentation() {
   const [researchDocs, setResearchDocs] = useState([]);
   const [projectDocs, setProjectDocs] = useState([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editDoc, setEditDoc] = useState(null);
+  const [activeDoc, setActiveDoc] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -47,7 +50,7 @@ export default function Documentation() {
       fetchGuides().then(setGuides),
       fetchResearchDocs().then(setResearchDocs),
       fetchProjectDocs().then(setProjectDocs),
-    ]);
+    ]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [activeTab]);
@@ -62,10 +65,39 @@ export default function Documentation() {
 
   const currentCategories = activeTab === "guias" ? guideCategories : researchAreas;
 
-  function openDoc(title, content) {
-    setModalTitle(title);
-    setModalContent(content);
+  function openDoc(item, type) {
+    setModalTitle(item.title);
+    setModalContent(item.content);
+    setActiveDoc({ item, type });
     setModalOpen(true);
+  }
+
+  function handleEdit() {
+    if (!activeDoc) return;
+    const { item, type } = activeDoc;
+    setModalOpen(false);
+    setActiveDoc(null);
+    setEditDoc({
+      type,
+      id: item.id,
+      title: item.title,
+      icon: item.icon ? item.icon.charAt(0).toUpperCase() + item.icon.slice(1) : "FileText",
+      category: item.category || "",
+      area: item.area || "",
+      content: item.content || "",
+      project_id: item.project_id || "",
+    });
+    setCreateModalOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!activeDoc) return;
+    const { item, type } = activeDoc;
+    const deleteFn = type === "guias" ? deleteGuide : type === "pesquisa" ? deleteResearchDoc : deleteProjectDoc;
+    await deleteFn(item.id);
+    setModalOpen(false);
+    setActiveDoc(null);
+    refreshDocs();
   }
 
   const subtitles = {
@@ -74,7 +106,7 @@ export default function Documentation() {
     projetos: "Documentação técnica detalhada dos projetos em andamento: arquitetura, experimentos, dados e decisões de implementação."
   };
 
-  function renderCardGrid(items, label = "Ler") {
+  function renderCardGrid(items, label = "Ler", type) {
     return (
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18
@@ -108,7 +140,7 @@ export default function Documentation() {
                   <Clock size={12} /> {item.updated} <span>·</span> {item.readTime} de leitura
                 </div>
               )}
-              <button onClick={() => openDoc(item.title, item.content)}
+              <button onClick={() => openDoc(item, type)}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   marginTop: 16, padding: "9px 18px", border: 0,
@@ -175,16 +207,39 @@ export default function Documentation() {
       fetchGuides().then(setGuides),
       fetchResearchDocs().then(setResearchDocs),
       fetchProjectDocs().then(setProjectDocs),
-    ]);
+    ]).finally(() => setLoading(false));
+  }
+
+  function renderEmpty() {
+    return (
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: 10, padding: "72px 24px", textAlign: "center"
+      }}>
+        <div style={{
+          display: "grid", placeItems: "center", width: 56, height: 56,
+          borderRadius: 16, background: "var(--surface-2)", color: "var(--muted-2)"
+        }}>
+          <FileText size={24} />
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--text)" }}>Nenhum documento encontrado</p>
+        <p style={{ margin: 0, maxWidth: 360, fontSize: 12, lineHeight: 1.6, color: "var(--muted)" }}>
+          {activeTab === "projetos"
+            ? "Ainda não há documentação de projetos. Crie um projeto para começar."
+            : "Nada por aqui ainda. Ajuste o filtro ou crie um novo documento."}
+        </p>
+      </div>
+    );
   }
 
   return (
     <>
       <CreateDocModal
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => { setCreateModalOpen(false); setEditDoc(null); }}
         onCreated={refreshDocs}
         defaultTab={activeTab}
+        edit={editDoc}
       />
       <header style={{
         position: "sticky", top: 0, zIndex: 30, height: 66,
@@ -282,16 +337,31 @@ export default function Documentation() {
           </div>
         )}
 
-        {activeTab === "guias" && renderCardGrid(filteredGuides, "Ler guia")}
-        {activeTab === "pesquisa" && renderCardGrid(filteredResearch, "Abrir")}
-        {activeTab === "projetos" && renderProjectsTab()}
+        {activeTab === "guias" && (loading
+          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando guias…</p>
+          : filteredGuides.length === 0
+            ? renderEmpty()
+            : renderCardGrid(filteredGuides, "Ler guia", "guias"))}
+        {activeTab === "pesquisa" && (loading
+          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando documentos…</p>
+          : filteredResearch.length === 0
+            ? renderEmpty()
+            : renderCardGrid(filteredResearch, "Abrir", "pesquisa"))}
+        {activeTab === "projetos" && (loading
+          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando projetos…</p>
+          : projectDocs.length === 0
+            ? renderEmpty()
+            : renderProjectsTab())}
       </div>
 
       <DocModal
         open={modalOpen}
         title={modalTitle}
         content={modalContent}
-        onClose={() => setModalOpen(false)}
+        canEdit={profile?.role === "admin" || activeDoc?.type === "projetos"}
+        onClose={() => { setModalOpen(false); setActiveDoc(null); }}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
     </>
   );

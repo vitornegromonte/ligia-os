@@ -18,10 +18,16 @@ function mapProject(p, members = [], milestones = []) {
 }
 
 async function fetchMemberProjectIds(profileId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("project_members")
     .select("project_id")
     .eq("profile_id", profileId);
+
+  if (error) {
+    console.warn("Failed to fetch member project ids:", error.message);
+    return [];
+  }
+
   return (data || []).map(r => r.project_id);
 }
 
@@ -175,4 +181,109 @@ export async function updateMilestone(id, updates) {
 
   if (error) throw error;
   return { id: data.id, name: data.name, description: data.description || "", status: data.status, members: [] };
+}
+
+export async function deleteMilestone(id) {
+  if (!isConfigured()) {
+    for (const p of mockProjects) {
+      const idx = p.milestones.findIndex(ms => ms.id === id);
+      if (idx >= 0) {
+        p.milestones.splice(idx, 1);
+        return { id };
+      }
+    }
+    return null;
+  }
+
+  const { error: memError } = await supabase
+    .from("milestone_members")
+    .delete()
+    .eq("milestone_id", id);
+
+  if (memError) console.warn("Failed to remove milestone members:", memError.message);
+
+  const { error } = await supabase
+    .from("milestones")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+  return { id };
+}
+
+export async function deleteProject(id) {
+  if (!isConfigured()) {
+    const idx = mockProjects.findIndex(p => p.id === id);
+    if (idx >= 0) mockProjects.splice(idx, 1);
+    return { id };
+  }
+
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+  return { id };
+}
+
+export async function assignProjectMember(projectId, profileId) {
+  if (!isConfigured()) {
+    const proj = mockProjects.find(p => p.id === projectId);
+    if (proj && !proj.members.includes(profileId)) proj.members.push(profileId);
+    return { project_id: projectId, profile_id: profileId };
+  }
+
+  const { data, error } = await supabase
+    .from("project_members")
+    .insert({ project_id: projectId, profile_id: profileId })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function removeProjectMember(projectId, profileId) {
+  if (!isConfigured()) {
+    const proj = mockProjects.find(p => p.id === projectId);
+    if (proj) proj.members = (proj.members || []).filter(m => m !== profileId);
+    return { project_id: projectId, profile_id: profileId };
+  }
+
+  const { error } = await supabase
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("profile_id", profileId);
+
+  if (error) throw error;
+  return { project_id: projectId, profile_id: profileId };
+}
+
+export async function updateMilestoneMembers(milestoneId, memberIds) {
+  if (!isConfigured()) {
+    for (const p of mockProjects) {
+      const m = p.milestones.find(ms => ms.id === milestoneId);
+      if (m) m.members = memberIds;
+    }
+    return { milestone_id: milestoneId, profile_ids: memberIds };
+  }
+
+  const { error: delError } = await supabase
+    .from("milestone_members")
+    .delete()
+    .eq("milestone_id", milestoneId);
+
+  if (delError) throw delError;
+
+  if (memberIds.length > 0) {
+    const rows = memberIds.map(profile_id => ({ milestone_id: milestoneId, profile_id }));
+    const { error: insError } = await supabase
+      .from("milestone_members")
+      .insert(rows);
+    if (insError) throw insError;
+  }
+
+  return { milestone_id: milestoneId, profile_ids: memberIds };
 }

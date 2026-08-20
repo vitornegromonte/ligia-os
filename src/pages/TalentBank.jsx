@@ -1,14 +1,19 @@
 import { useOutletContext } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Users, Blocks, Search, LayoutGrid, List, UserPlus,
-  Building, Github, Award, Menu, FileDown, Mail, GraduationCap, Linkedin,
-  Bot, Globe, Cpu, Microscope,
+  Building, Github, Award, Menu, Mail, GraduationCap, Linkedin,
+  Bot,
   X,
-  CalendarDays, Bell, MoreHorizontal, BookOpen, ExternalLink
+  CalendarDays, MoreHorizontal, ExternalLink
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import { fetchProfiles, createProfile } from "../services/profiles.js";
+import { fetchProfiles, createProfile, updateRole } from "../services/profiles.js";
+import { fetchEvents } from "../services/events.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { useRealtime } from "../hooks/useRealtime.js";
+import { matchJob } from "../utils/ats.js";
+import { formatDate } from "../components/db/helpers.jsx";
 
 const roleOptions = [
   { value: "all", label: "Todas as áreas" },
@@ -16,6 +21,12 @@ const roleOptions = [
   { value: "CV", label: "CV" },
   { value: "NLP", label: "NLP" },
   { value: "ML", label: "ML" }
+];
+
+const accessRoleOptions = [
+  { value: "admin", label: "Admin" },
+  { value: "membro", label: "Membro" },
+  { value: "visitante", label: "Visitante" }
 ];
 
 const availabilityOptions = [
@@ -232,14 +243,19 @@ const s = {
 
 export default function TalentBank() {
   const { menuOpen, setMenuOpen } = useOutletContext();
+  const { profile: currentUser } = useAuth();
   const [people, setPeople] = useState([]);
+  const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [gridMode, setGridMode] = useState("grid");
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [selectedTags] = useState(["Python", "RAG", "MLOps"]);
+  const [atsOpen, setAtsOpen] = useState(false);
+  const [atsJob, setAtsJob] = useState("");
+  const [atsResults, setAtsResults] = useState(null);
+  const [atsBusy, setAtsBusy] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "", email: "", team: "", discipline: "NLP",
@@ -249,10 +265,18 @@ export default function TalentBank() {
   });
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, []);
-  useEffect(() => { document.title = "Ligia — Banco de Talentos"; }, []);
+  useEffect(() => { document.title = "Ligia — Membros"; }, []);
   useEffect(() => {
     fetchProfiles().then(setPeople).catch(e => console.warn("TalentBank load error:", e.message));
+    fetchEvents().then(setEvents).catch(e => console.warn("Agenda load error:", e.message));
   }, []);
+
+  const refreshPeople = useCallback(() => {
+    fetchProfiles().then(setPeople).catch(e => console.warn("Realtime refresh error:", e.message));
+  }, []);
+
+  useRealtime("profiles", refreshPeople);
+  useRealtime("events", () => fetchEvents().then(setEvents).catch(() => {}));
 
   const filtered = people.filter(person => {
     const query = search.toLowerCase().trim();
@@ -267,11 +291,41 @@ export default function TalentBank() {
   function openAddModal() { setAddModalOpen(true); }
   function closeAddModal() { setAddModalOpen(false); }
 
+  async function handleRoleChange(profileId, role) {
+    try {
+      await updateRole(profileId, role);
+      setPeople(prev => prev.map(p => p.id === profileId ? { ...p, role } : p));
+      setSelectedPerson(prev => prev && prev.id === profileId ? { ...prev, role } : prev);
+      showToast("Permissão atualizada");
+    } catch (err) {
+      showToast("Erro: " + err.message);
+    }
+  }
+
   function handleAddSubmit(e) {
     e.preventDefault();
     const name = formData.name.trim();
     closeAddModal();
-    showToast(`${name} adicionado ao pool de talentos`);
+    showToast(`${name} adicionado como membro`);
+  }
+
+  function upcomingFor(personId, limit = 4) {
+    const now = Date.now();
+    return (events || [])
+      .filter(e => (e.participants || []).map(String).includes(String(personId)) && new Date(e.starts_at).getTime() >= now)
+      .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
+      .slice(0, limit);
+  }
+
+  async function runAts(e) {
+    e.preventDefault();
+    if (!atsJob.trim()) return;
+    setAtsBusy(true);
+    setAtsResults(null);
+    setTimeout(() => {
+      setAtsResults(matchJob(people, atsJob));
+      setAtsBusy(false);
+    }, 1100);
   }
 
   return (
@@ -282,14 +336,11 @@ export default function TalentBank() {
           <Menu size={20} />
         </button>
         <div style={s.breadcrumbs}>
-          Ligia &nbsp;/&nbsp; <strong style={s.breadcrumbStrong}>Banco de Talentos</strong>
+          Ligia &nbsp;/&nbsp; <strong style={s.breadcrumbStrong}>Membros</strong>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
           <button style={s.iconBtn} onClick={() => setTimeout(() => document.getElementById("talentSearch")?.focus(), 300)}>
             <Search size={16} />
-          </button>
-          <button style={s.iconBtn} onClick={() => showToast("Você está em dia")}>
-            <Bell size={16} />
           </button>
         </div>
       </header>
@@ -300,16 +351,16 @@ export default function TalentBank() {
             <h1 style={{
                 margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
                 fontWeight: 500, letterSpacing: "-.03em"
-              }}><span className="gradient-text">Banco de Talentos.</span></h1>
+              }}><span className="gradient-text">Membros.</span></h1>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13, lineHeight: 1.7, maxWidth: 520 }}>
-                Perfis, especialidades, CVs, disponibilidade e contribuições em projetos internos.
+                Perfis, especialidades, agendas públicas e currículos dos membros da liga.
               </p>
             </div>
 
             <div style={s.toolbar}>
               <div style={s.searchWrap}>
                 <div style={s.searchIcon}><Search size={15} /></div>
-                <input id="talentSearch" type="search" placeholder="Buscar pessoas, habilidades ou projetos…"
+                <input id="talentSearch" type="search" placeholder="Buscar membros, habilidades ou projetos…"
                   value={search} onChange={e => setSearch(e.target.value)} style={s.searchInput} />
               </div>
               <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={s.select}>
@@ -318,7 +369,13 @@ export default function TalentBank() {
               <select value={availabilityFilter} onChange={e => setAvailabilityFilter(e.target.value)} style={s.select}>
                 {availabilityOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <div style={s.viewToggle}>
+              {["visitante", "admin"].includes(currentUser?.role) && (
+                <button onClick={() => { setAtsOpen(true); setAtsResults(null); setAtsJob(""); }}
+                  style={{ ...s.btn, marginLeft: "auto" }}>
+                  <Bot size={15} /> Buscar por vaga (ATS)
+                </button>
+              )}
+              <div style={["visitante", "admin"].includes(currentUser?.role) ? s.viewToggle : { ...s.viewToggle, marginLeft: "auto" }}>
                 <button onClick={() => setGridMode("grid")} style={s.toggleBtn(gridMode === "grid")} aria-label="Visualização em grade">
                   <LayoutGrid size={14} />
                 </button>
@@ -361,6 +418,17 @@ export default function TalentBank() {
                           <span key={skill} style={s.tag(i === 0)}>{skill}</span>
                         ))}
                         {person.skills.length > 3 && <span style={s.tag(false)}>+{person.skills.length - 3}</span>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, color: "var(--muted-2)" }}>
+                          <CalendarDays size={12} /> Agenda pública · {upcomingFor(person.id).length} evento{upcomingFor(person.id).length === 1 ? "" : "s"}
+                        </span>
+                        {person.calendar_url && (
+                          <a href={person.calendar_url} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
+                            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, color: "var(--accent)", textDecoration: "none" }}>
+                            Calendário <ExternalLink size={11} />
+                          </a>
+                        )}
                       </div>
                       <div style={s.cardFoot}>
                         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -405,7 +473,16 @@ export default function TalentBank() {
                         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <Building size={11} /> {person.affiliation}
                         </span>
-                        <span style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10, fontSize: 10 }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--muted-2)" }}>
+                            <CalendarDays size={12} /> {upcomingFor(person.id).length} evento{upcomingFor(person.id).length === 1 ? "" : "s"}
+                          </span>
+                          {person.calendar_url && (
+                            <a href={person.calendar_url} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
+                              style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--accent)", textDecoration: "none" }}>
+                              Agenda <ExternalLink size={11} />
+                            </a>
+                          )}
                           {person.github && <Github size={13} style={{ color: "var(--muted-2)" }} />}
                           {person.kaggle && <Award size={13} style={{ color: "var(--muted-2)" }} />}
                         </span>
@@ -435,7 +512,20 @@ export default function TalentBank() {
                   <h2 id="profileName" style={{ margin: "0 0 4px", fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500 }}>{selectedPerson.name}</h2>
                   <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>{selectedPerson.team} · {selectedPerson.affiliation}</p>
                 </div>
-                <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+                <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+                  {currentUser?.role === "admin" && selectedPerson.id !== currentUser.id && (
+                    <select value={selectedPerson.role || "visitante"}
+                      onChange={e => handleRoleChange(selectedPerson.id, e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        height: 38, padding: "0 10px", border: "1px solid var(--line)",
+                        borderRadius: 8, outline: "none", color: "var(--text)",
+                        background: "var(--surface-2)", cursor: "pointer",
+                        fontSize: 12, fontFamily: "var(--font-body)"
+                      }}>
+                      {accessRoleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  )}
                   <button style={s.btnPrimary} onClick={() => { if (selectedPerson.email) window.location.href = `mailto:${selectedPerson.email}`; else showToast("Email não disponível"); }}>
                     <Mail size={15} /> Contato
                   </button>
@@ -463,6 +553,32 @@ export default function TalentBank() {
                   <div style={{ marginBottom: 25 }}>
                     <h3 style={{ marginBottom: 11, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Interesses de pesquisa</h3>
                     <p style={{ color: "#c2bfb6", fontSize: 12, lineHeight: 1.7 }}>{selectedPerson.researchInterests || "—"}</p>
+                  </div>
+                  <div style={{ marginBottom: 25 }}>
+                    <h3 style={{ marginBottom: 11, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Agenda pública</h3>
+                    {selectedPerson.calendar_url && (
+                      <a href={selectedPerson.calendar_url} target="_blank" rel="noopener"
+                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", marginBottom: 10, borderRadius: 8, background: "var(--surface-2)", color: "var(--text)", textDecoration: "none", fontSize: 12 }}>
+                        <CalendarDays size={16} style={{ color: "var(--accent)" }} /> <span>Ver calendário completo</span>
+                      </a>
+                    )}
+                    {upcomingFor(selectedPerson.id).length === 0 ? (
+                      <p style={{ color: "var(--muted-2)", fontSize: 12 }}>Sem eventos públicos agendados.</p>
+                    ) : (
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {upcomingFor(selectedPerson.id).map(ev => (
+                          <div key={ev.id} style={{ padding: "11px 13px", borderRadius: 9, background: "var(--surface-2)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.title}</span>
+                              <span style={{ marginLeft: "auto", color: "var(--accent)", fontSize: 10, whiteSpace: "nowrap" }}>{formatDate(ev.starts_at)}</span>
+                            </div>
+                            {ev.location && (
+                              <div style={{ marginTop: 4, color: "var(--muted-2)", fontSize: 11 }}>{ev.location}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <aside>
@@ -624,9 +740,81 @@ export default function TalentBank() {
                   value={formData.researchInterests} onChange={e => setFormData({ ...formData, researchInterests: e.target.value })} />
               </div>
               <button type="submit" style={{ ...s.btnPrimary, width: "100%" }}>
-                <UserPlus size={15} /> Adicionar ao pool de talentos
+                <UserPlus size={15} /> Adicionar membro
               </button>
             </form>
+          </div>
+        </div>
+      </div>
+
+      <div style={s.modalBackdrop(atsOpen)} onClick={e => { if (e.target === e.currentTarget) setAtsOpen(false); }}>
+        <div style={{ ...s.modal, width: "min(640px, 100%)" }} role="dialog" aria-modal="true">
+          <div style={s.modalHeader}>
+            <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>
+              <Bot size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Buscador de candidatos (ATS)
+            </span>
+            <button style={s.iconBtn} onClick={() => setAtsOpen(false)}><X size={16} /></button>
+          </div>
+          <div style={{ padding: 26 }}>
+            <form onSubmit={runAts}>
+              <div style={s.formGroup}>
+                <label style={s.formLabel}>Descrição da vaga</label>
+                <textarea style={{ ...s.textarea, minHeight: 150 }} autoFocus
+                  placeholder={"Cole aqui a descrição da vaga, por exemplo:\n\n\"Estamos buscando um cientista de dados com experiência em Python, aprendizado de máquina e modelos de linguagem para atuar com NLP e RAG em sistemas de recomendação...\""}
+                  value={atsJob} onChange={e => setAtsJob(e.target.value)} />
+              </div>
+              <button type="submit" disabled={atsBusy || !atsJob.trim()} style={{ ...s.btnPrimary, width: "100%" }}>
+                <Bot size={15} /> {atsBusy ? "Analisando currículos…" : "Buscar candidatos"}
+              </button>
+            </form>
+
+            {atsBusy && (
+              <div style={{ padding: "34px 20px", textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
+                Analisando currículos contra os requisitos da vaga…
+              </div>
+            )}
+
+            {atsResults && atsResults.length === 0 && (
+              <div style={{ padding: "30px 20px", textAlign: "center", color: "var(--muted-2)", fontSize: 12 }}>
+                Nenhum membro encontrado para esta vaga.
+              </div>
+            )}
+
+            {atsResults && atsResults.length > 0 && (
+              <div style={{ marginTop: 20, display: "grid", gap: 8 }}>
+                {atsResults.slice(0, 8).map(({ person, score, matched, total }, i) => (
+                  <button key={person.id} onClick={() => { setAtsOpen(false); setSelectedPerson(person); }}
+                    style={{
+                      display: "grid", gridTemplateColumns: "34px 1fr auto", gap: 12, alignItems: "center",
+                      padding: "12px 14px", border: "1px solid var(--line-soft)", borderRadius: 11,
+                      background: "var(--surface-2)", cursor: "pointer", textAlign: "left",
+                      fontFamily: "var(--font-body)"
+                    }}>
+                    <div style={s.avatar(person.color)}>{person.initials}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <strong style={{ color: "var(--text)", fontSize: 13, fontWeight: 600 }}>{person.name}</strong>
+                        <span style={s.teamTag}>{person.team}</span>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                        {matched.slice(0, 5).map(m => (
+                          <span key={m} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 9999, color: "var(--accent)", background: "var(--accent-soft)" }}>{m}</span>
+                        ))}
+                        {matched.length > 5 && (
+                          <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 9999, color: "var(--muted-2)", background: "var(--surface-3)" }}>+{matched.length - 5}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", width: 90 }}>
+                      <div style={{ color: "var(--text)", fontSize: 17, fontWeight: 650, fontFamily: "var(--font-heading)" }}>{score}%</div>
+                      <div style={{ marginTop: 4, height: 4, borderRadius: 9999, background: "var(--surface-3)", overflow: "hidden" }}>
+                        <div style={{ width: `${score}%`, height: "100%", borderRadius: 9999, background: score >= 70 ? "#6da87c" : score >= 40 ? "#c4a358" : "var(--muted-2)" }} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

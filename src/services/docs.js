@@ -169,3 +169,116 @@ export async function createProjectDoc(data) {
   if (error) throw error;
   return created;
 }
+
+export async function updateGuide(id, data) {
+  if (!isConfigured()) {
+    const g = mockGuides.find(x => x.id === id);
+    if (g) Object.assign(g, data);
+    return g;
+  }
+
+  const { data: updated, error } = await supabase
+    .from("guides")
+    .update({
+      title: data.title,
+      icon: data.icon || "BookOpen",
+      category: data.category || "",
+      updated: data.updated || new Date().toLocaleDateString("pt-BR"),
+      read_time: data.readTime || "",
+      content: data.content || "",
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return { ...updated, readTime: updated.read_time, read_time: undefined };
+}
+
+export async function updateResearchDoc(id, data) {
+  if (!isConfigured()) {
+    const r = mockResearchDocs.find(x => x.id === id);
+    if (r) Object.assign(r, data);
+    return r;
+  }
+
+  const { data: updated, error } = await supabase
+    .from("research_docs")
+    .update({
+      title: data.title,
+      icon: data.icon || "Microscope",
+      area: data.area || "",
+      updated: data.updated || new Date().toLocaleDateString("pt-BR"),
+      read_time: data.readTime || "",
+      content: data.content || "",
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return { ...updated, readTime: updated.read_time, read_time: undefined };
+}
+
+export async function updateProjectDoc(id, data) {
+  if (!isConfigured()) {
+    for (const p of mockProjectDocs) {
+      const d = p.docs.find(x => x.id === id);
+      if (d) Object.assign(d, data);
+    }
+    return { id, ...data };
+  }
+
+  const { data: updated, error } = await supabase
+    .from("project_docs")
+    .update({
+      title: data.title,
+      category: data.category || "geral",
+      icon: data.icon || "FileText",
+      content: data.content || "",
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updated;
+}
+
+export async function deleteGuide(id) {
+  if (!isConfigured()) {
+    const idx = mockGuides.findIndex(x => x.id === id);
+    if (idx >= 0) mockGuides.splice(idx, 1);
+    return { id };
+  }
+
+  const { error } = await supabase.from("guides").delete().eq("id", id);
+  if (error) throw error;
+  return { id };
+}
+
+export async function deleteResearchDoc(id) {
+  if (!isConfigured()) {
+    const idx = mockResearchDocs.findIndex(x => x.id === id);
+    if (idx >= 0) mockResearchDocs.splice(idx, 1);
+    return { id };
+  }
+
+  const { error } = await supabase.from("research_docs").delete().eq("id", id);
+  if (error) throw error;
+  return { id };
+}
+
+export async function deleteProjectDoc(id) {
+  if (!isConfigured()) {
+    for (const p of mockProjectDocs) {
+      const idx = p.docs.findIndex(d => d.id === id);
+      if (idx >= 0) p.docs.splice(idx, 1);
+    }
+    return { id };
+  }
+
+  const { error } = await supabase.from("project_docs").delete().eq("id", id);
+  if (error) throw error;
+  return { id };
+}

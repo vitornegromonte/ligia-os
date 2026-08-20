@@ -4,11 +4,13 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [sent, setSent] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,6 +22,23 @@ export default function Login() {
     } catch (err) {
       setError(err.message === "Invalid login credentials"
         ? "Email ou senha inválidos."
+        : err.message
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleForgot(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      await resetPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError(err.message === "User not found"
+        ? "Nenhuma conta encontrada para este email."
         : err.message
       );
     } finally {
@@ -51,56 +70,108 @@ export default function Login() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div style={{
-              padding: "10px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
-              background: "rgba(199,107,96,.12)", border: "1px solid rgba(199,107,96,.25)",
-              color: "#c76b60", fontSize: 12
-            }}>{error}</div>
-          )}
+        {forgot ? (
+          <form onSubmit={handleForgot}>
+            {sent ? (
+              <div style={{
+                padding: "12px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
+                background: "rgba(109,168,124,.12)", border: "1px solid rgba(109,168,124,.25)",
+                color: "#6da87c", fontSize: 12, lineHeight: 1.6
+              }}>
+                Se um email válido foi informado, enviamos um link de redefinição. Confira sua caixa de entrada.
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{
+                    display: "block", marginBottom: 6, color: "var(--muted)",
+                    fontSize: 12, fontWeight: 600
+                  }}>Email</label>
+                  <input type="email" required autoFocus
+                    value={email} onChange={e => setEmail(e.target.value)}
+                    style={{
+                      width: "100%", height: 42, padding: "0 14px",
+                      border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                      outline: "none", color: "var(--text)", background: "var(--bg)",
+                      transition: "border var(--transition)"
+                    }} />
+                </div>
+                <button type="submit" disabled={submitting}
+                  style={{
+                    width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
+                    color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
+                    transition: "background var(--transition)"
+                  }}>
+                  {submitting ? "Enviando..." : "Enviar link de redefinição"}
+                </button>
+              </>
+            )}
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <div style={{
+                padding: "10px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
+                background: "rgba(199,107,96,.12)", border: "1px solid rgba(199,107,96,.25)",
+                color: "#c76b60", fontSize: 12
+              }}>{error}</div>
+            )}
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Email</label>
-            <input type="email" required autoFocus
-              value={email} onChange={e => setEmail(e.target.value)}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{
+                display: "block", marginBottom: 6, color: "var(--muted)",
+                fontSize: 12, fontWeight: 600
+              }}>Email</label>
+              <input type="email" required autoFocus
+                value={email} onChange={e => setEmail(e.target.value)}
+                style={{
+                  width: "100%", height: 42, padding: "0 14px",
+                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                  outline: "none", color: "var(--text)", background: "var(--bg)",
+                  transition: "border var(--transition)"
+                }} />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <label style={{
+                display: "block", marginBottom: 6, color: "var(--muted)",
+                fontSize: 12, fontWeight: 600
+              }}>Senha</label>
+              <input type="password" required
+                value={password} onChange={e => setPassword(e.target.value)}
+                style={{
+                  width: "100%", height: 42, padding: "0 14px",
+                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                  outline: "none", color: "var(--text)", background: "var(--bg)",
+                  transition: "border var(--transition)"
+                }} />
+            </div>
+
+            <button type="submit" disabled={submitting}
               style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
+                width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
+                color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
+                cursor: submitting ? "not-allowed" : "pointer",
+                fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
+                transition: "background var(--transition)"
+              }}>
+              {submitting ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+        )}
 
-          <div style={{ marginBottom: 24 }}>
-            <label style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Senha</label>
-            <input type="password" required
-              value={password} onChange={e => setPassword(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
-
-          <button type="submit" disabled={submitting}
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <button onClick={() => { setForgot(!forgot); setSent(false); setError(""); }}
             style={{
-              width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
-              color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
-              cursor: submitting ? "not-allowed" : "pointer",
-              fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
-              transition: "background var(--transition)"
+              border: 0, background: "none", color: "var(--muted)",
+              fontSize: 12, cursor: "pointer", textDecoration: "underline",
+              fontFamily: "var(--font-body)"
             }}>
-            {submitting ? "Entrando..." : "Entrar"}
+            {forgot ? "Voltar para entrar" : "Esqueci minha senha"}
           </button>
-        </form>
+        </div>
 
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <span style={{ color: "var(--muted)", fontSize: 12 }}>

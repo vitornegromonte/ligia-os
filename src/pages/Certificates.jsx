@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Users, CircleCheck, BookOpen, Search, Upload
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
+import { jsPDF } from "jspdf";
 
 const s = {
   topbar: {
@@ -127,7 +128,7 @@ const s = {
     color: "var(--muted)", fontSize: 12, minWidth: 80, textAlign: "center"
   },
   certSheet: {
-    position: "relative", width: "100%", aspectRatio: "1.414 / 1",
+    position: "relative", width: "100%", aspectRatio: "16 / 9",
     padding: "36px 44px", borderRadius: "var(--radius)",
     background: `
       radial-gradient(circle at 70% 30%, rgba(255,75,31,.06), transparent 50%),
@@ -152,8 +153,11 @@ export default function Certificates() {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [certHours, setCertHours] = useState("");
+  const [eventDesc, setEventDesc] = useState("");
+  const [coordinator, setCoordinator] = useState("");
+  const [president, setPresident] = useState("");
+  const [city, setCity] = useState("Recife");
   const [manualText, setManualText] = useState("");
-  const [fileLoaded, setFileLoaded] = useState(false);
   const [showingPreview, setShowingPreview] = useState(false);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, []);
@@ -182,7 +186,6 @@ export default function Certificates() {
     const parsed = hasHeader ? lines.slice(1) : lines;
     setManualText(parsed.join("\n"));
     setNames(parsed);
-    setFileLoaded(true);
     setShowingPreview(false);
     if (parsed.length > 0) {
       showToast(`${parsed.length} nome${parsed.length > 1 ? "s" : ""} carregado${parsed.length > 1 ? "s" : ""}`);
@@ -223,47 +226,75 @@ export default function Certificates() {
     setManualText("");
     setNames([]);
     setCurrentIndex(0);
-    setFileLoaded(false);
     setShowingPreview(false);
     showToast("Campos limpos");
   }
 
   function handlePrint() {
     if (names.length === 0) return;
-    window.print();
+    const data = certData();
+    const inner = names.map(name => buildCertHtml(name, data)).join("");
+    const fullHtml = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Certificados — ${data.eventTitle}</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        ${PRINT_STYLES}
+      </style>
+    </head><body>${inner}</body></html>`;
+    const win = window.open("", "_blank");
+    if (!win) {
+      showToast("Permita pop-ups para imprimir");
+      return;
+    }
+    win.document.write(fullHtml);
+    win.document.close();
+    setTimeout(() => {
+      const imgs = Array.from(win.document.images || []);
+      const wait = () => {
+        if (imgs.some(img => !img.complete)) { setTimeout(wait, 50); return; }
+        win.focus();
+        win.print();
+      };
+      wait();
+    }, 150);
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (names.length === 0) return;
-    const slug = eventName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "evento";
-    const dateText = eventDate.trim() || "Data do evento";
-    const hoursText = certHours.trim() || "Carga horária";
-    const logoPath = "/media/logo.svg";
-    const inner = names.map(name => `
-      <div style="width:297mm;height:210mm;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,#1a1a17,#141411);overflow:hidden;font-family:'Times New Roman',serif;padding:36px 44px;page-break-after:always;box-sizing:border-box">
-        <div style="position:absolute;inset:18px;border:1px solid rgba(255,75,31,.12);border-radius:10px;pointer-events:none"></div>
-        <div style="position:absolute;inset:24px;border:1px solid rgba(255,255,255,.04);border-radius:6px;pointer-events:none"></div>
-        <img src="${logoPath}" style="width:64px;margin-bottom:12px;opacity:.8" alt="Ligia">
-        <div style="color:#767368;font-size:10px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Certificado</div>
-        <div style="width:60px;height:2px;background:linear-gradient(135deg,#FF4B1F,#FF9068);border-radius:999px;margin-bottom:16px"></div>
-        <div style="font-size:22px;color:#a09d91;font-style:italic;margin-bottom:16px">\u2014 <strong style="color:#f2efe6;font-style:normal">${eventName.trim()}</strong></div>
-        <div style="font-size:42px;font-weight:600;color:#fff;letter-spacing:-.01em;line-height:1.15;margin-bottom:14px">${name}</div>
-        <div style="max-width:400px;color:#a09d91;font-size:11px;line-height:1.7;margin-bottom:18px">Certificamos que o(a) participante acima contribuiu com sua presen\u00e7a e engajamento neste evento promovido pela comunidade Ligia.</div>
-        <div style="display:flex;align-items:center;gap:24px;margin-top:4px">
-          <span style="color:#767368;font-size:10px;letter-spacing:.06em">${dateText}</span>
-          <svg width="60" height="24" viewBox="0 0 60 24" fill="none"><path d="M5 12h50M30 2v20" stroke="#FF4B1F" stroke-width=".5" vector-effect="non-scaling-stroke"/><circle cx="30" cy="12" r="3" fill="#FF4B1F" opacity=".4"/></svg>
-          <span style="color:#767368;font-size:10px;letter-spacing:.06em">${hoursText}</span>
-        </div>
-      </div>`).join("");
-    const fullHtml = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><style>body{margin:0;padding:0}@page{margin:0;size:A4 landscape}</style></head><body>${inner}</body></html>`;
-    const blob = new Blob([fullHtml], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `certificados-${slug}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Arquivo com ${names.length} certificado${names.length > 1 ? "s" : ""} baixado`);
+    showToast("Gerando PDF…");
+    try {
+      const slug = eventName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "evento";
+      const data = certData();
+      const logos = await loadLogos();
+
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [297, 167] });
+
+      for (let i = 0; i < names.length; i++) {
+        if (i > 0) pdf.addPage();
+        drawCertificate(pdf, names[i], data, logos);
+      }
+
+      pdf.save(`certificados-${slug}.pdf`);
+      showToast(`PDF com ${names.length} certificado${names.length > 1 ? "s" : ""} baixado`);
+    } catch (err) {
+      console.error(err);
+      showToast("Erro ao gerar PDF: " + err.message);
+    }
+  }
+
+  function certData() {
+    return {
+      eventTitle: eventName.trim() || "Nome do Evento",
+      eventDesc: eventDesc.trim(),
+      dateText: eventDate.trim() || "Data do evento",
+      hoursText: certHours.trim() || "Carga horária",
+      coordinator: coordinator.trim() || "Nome do(a) Coordenador(a)",
+      president: president.trim() || "Nome do(a) Presidente",
+      city: city.trim() || "Recife",
+    };
   }
 
   const currentName = names[currentIndex] || "";
@@ -309,8 +340,40 @@ export default function Certificates() {
             </div>
             <div>
               <label style={s.formLabel}>Carga horária</label>
-              <input type="text" placeholder="Ex: 4 horas" autoComplete="off"
+              <input type="text" placeholder="Ex: 20 horas" autoComplete="off"
                 value={certHours} onChange={e => setCertHours(e.target.value)}
+                style={s.input} />
+            </div>
+          </div>
+
+          <div style={s.formGroup}>
+            <label style={s.formLabel}>Descrição do evento</label>
+            <textarea placeholder="Ex: maratona de desenvolvimento de soluções em Inteligência Artificial para o setor jurídico…"
+              value={eventDesc} onChange={e => setEventDesc(e.target.value)}
+              style={s.textarea} />
+            <div style={s.hint}>Texto que aparece após o nome do evento. Ex: "maratona de desenvolvimento…".</div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 26 }}>
+            <div>
+              <label style={s.formLabel}>Coordenador(a)</label>
+              <input type="text" placeholder="Nome do(a) coordenador(a)" autoComplete="off"
+                value={coordinator} onChange={e => setCoordinator(e.target.value)}
+                style={s.input} />
+            </div>
+            <div>
+              <label style={s.formLabel}>Presidente da Ligia</label>
+              <input type="text" placeholder="Nome do(a) presidente" autoComplete="off"
+                value={president} onChange={e => setPresident(e.target.value)}
+                style={s.input} />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 26 }}>
+            <div>
+              <label style={s.formLabel}>Cidade</label>
+              <input type="text" placeholder="Ex: Recife" autoComplete="off"
+                value={city} onChange={e => setCity(e.target.value)}
                 style={s.input} />
             </div>
           </div>
@@ -333,7 +396,6 @@ export default function Certificates() {
             <label style={s.formLabel}>Ou edite manualmente</label>
             <textarea placeholder="Cole ou digite os nomes, um por linha..."
               value={manualText}
-              disabled={!fileLoaded && manualText.length === 0}
               onChange={e => handleManualEdit(e.target.value)}
               style={s.textarea} />
           </div>
@@ -388,68 +450,64 @@ export default function Certificates() {
               </button>
             </div>
 
-            <div style={s.certSheet}>
+            <div style={{ ...s.certSheet, background: "radial-gradient(circle at 88% -8%, rgba(255,75,31,.07) 0%, transparent 42%), radial-gradient(circle at 4% 108%, rgba(255,144,104,.09) 0%, transparent 45%), #FFFBF8", border: "1px solid #F0DED4", justifyContent: "space-between", alignItems: "stretch", textAlign: "left", padding: "20px 44px" }}>
               <div style={{
-                position: "absolute", inset: 18,
-                border: "1px solid rgba(255,75,31,.12)",
-                borderRadius: 10, pointerEvents: "none"
+                position: "absolute", top: 0, left: 0, right: 0, height: 12,
+                background: "linear-gradient(135deg, #FF4B1F, #FF9068)"
               }}></div>
               <div style={{
-                position: "absolute", inset: 24,
-                border: "1px solid rgba(255,255,255,.04)",
-                borderRadius: 6, pointerEvents: "none"
+                position: "absolute", bottom: 0, left: 0, right: 0, height: 12,
+                background: "linear-gradient(135deg, #FF4B1F, #FF9068)"
               }}></div>
-              <img src="/media/logo.svg"
-                alt="Ligia"
-                style={{ width: 54, height: "auto", marginBottom: 12, opacity: 0.8 }} />
-              <div style={{
-                color: "var(--muted-2)", fontSize: 9,
-                letterSpacing: ".18em", textTransform: "uppercase", marginBottom: 6
-              }}>Certificado</div>
-              <div style={{
-                width: 60, height: 2,
-                background: "linear-gradient(135deg, #FF4B1F, #FF9068)",
-                borderRadius: 999, marginBottom: 16
-              }}></div>
-              <div style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: "clamp(18px, 2.8vw, 32px)", fontStyle: "italic",
-                color: "var(--muted)", letterSpacing: ".02em", marginBottom: 16
-              }}>
-                &mdash; <strong style={{ color: "var(--text)", fontStyle: "normal" }}>{eventName.trim() || "Nome do Evento"}</strong>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <img src="/media/ligia-dark.png" alt="Ligia"
+                  style={{ height: 38, width: "auto" }} />
+                <img src="/media/logos.png" alt="Logos"
+                  style={{ height: 38, width: "auto" }} />
               </div>
-              <div style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 600,
-                color: "#fff", letterSpacing: "-.01em", lineHeight: 1.15,
-                marginBottom: 14
-              }}>{currentName}</div>
-              <div style={{
-                maxWidth: 400, color: "var(--muted)",
-                fontSize: "clamp(9px, 1.1vw, 12px)", lineHeight: 1.7,
-                marginBottom: 18
-              }}>
-                Certificamos que o(a) participante acima contribuiu com sua presença e engajamento neste evento promovido pela comunidade Ligia.
+
+              <div style={{ textAlign: "center" }}>
+                <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 36, fontWeight: 700, margin: "0 0 5px", letterSpacing: "-.03em", color: "transparent", background: "linear-gradient(135deg,#FF4B1F,#FF9068)", WebkitBackgroundClip: "text", backgroundClip: "text" }}>
+                  Certificado
+                </h2>
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".4em", color: "#241914" }}>
+                  de Participação
+                </div>
+                <div style={{ width: 80, height: 3, background: "linear-gradient(135deg,#FF4B1F,#FF9068)", borderRadius: 999, margin: "13px auto" }}></div>
+                <p style={{ margin: 0, fontSize: 13.5, color: "#7A6A61" }}>
+                  Certificamos para os devidos fins que
+                </p>
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 40, fontWeight: 700, color: "#241914", margin: "10px 0 8px", letterSpacing: "-.02em" }}>
+                  {currentName}
+                </div>
+                <p style={{ margin: "0 auto", maxWidth: 620, fontSize: 12.5, color: "#7A6A61", lineHeight: 1.65 }}>
+                  participou ativamente do <strong style={{ color: "#241914" }}>{eventName.trim() || "Nome do Evento"}</strong>
+                  {eventDesc.trim() ? `, ${eventDesc.trim()}` : ""}.
+                </p>
+                <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 14, flexWrap: "wrap" }}>
+                  {[["Data", certDateDisplay], ["Carga horária", certHoursDisplay]].map(([label, value]) => (
+                    <span key={label} style={{ display: "inline-flex", alignItems: "baseline", gap: 7, border: "1.5px solid #F0DED4", borderRadius: 999, padding: "5px 17px", fontSize: 11.5, color: "#241914", background: "#FFF3EE" }}>
+                      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 9.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".15em", color: "#FF4B1F" }}>{label}</span>
+                      <span>{value}</span>
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div style={{
-                display: "flex", alignItems: "center", gap: 24, marginTop: 4
-              }}>
-                <span style={{
-                  color: "var(--muted-2)", fontSize: "clamp(8px, .9vw, 10px)",
-                  letterSpacing: ".06em"
-                }}>{certDateDisplay}</span>
-                <svg viewBox="0 0 60 24" fill="none"
-                  style={{
-                    width: "clamp(40px, 5vw, 60px)", height: "auto",
-                    color: "var(--accent)", opacity: 0.3
-                  }}>
-                  <path d="M5 12h50M30 2v20" stroke="currentColor" strokeWidth=".5" vectorEffect="non-scaling-stroke" />
-                  <circle cx="30" cy="12" r="3" fill="currentColor" opacity=".4" />
-                </svg>
-                <span style={{
-                  color: "var(--muted-2)", fontSize: "clamp(8px, .9vw, 10px)",
-                  letterSpacing: ".06em"
-                }}>{certHoursDisplay}</span>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 24 }}>
+                  {[["Coordenação Institucional", coordinator.trim() || "Nome do(a) Coordenador(a)"], ["Presidente da Ligia", president.trim() || "Nome do(a) Presidente"]].map(([role, who]) => (
+                    <div key={role} style={{ textAlign: "center", width: 180 }}>
+                      <div style={{ width: "100%", height: 1, background: "#241914", marginBottom: 7 }}></div>
+                      <div style={{ fontWeight: 600, fontSize: 12.5, color: "#241914" }}>{who}</div>
+                      <div style={{ fontSize: 10.5, color: "#7A6A61", marginTop: 2 }}>{role}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: "#7A6A61", textAlign: "right", lineHeight: 1.5 }}>
+                  {city.trim() || "Recife"}, {certDateDisplay}
+                </div>
               </div>
             </div>
 
@@ -460,7 +518,7 @@ export default function Certificates() {
               </button>
               <button onClick={handleDownload}
                 style={{ ...s.btn, ...s.btnGhost }}>
-                <Download size={17} /> Baixar HTML
+                <Download size={17} /> Baixar PDF
               </button>
             </div>
           </div>
@@ -468,4 +526,253 @@ export default function Certificates() {
       </div>
     </>
   );
+}
+
+const PRINT_STYLES = `
+:root {
+  --ligia-orange-1: #FF4B1F;
+  --ligia-orange-2: #FF9068;
+  --ligia-gradient: linear-gradient(135deg, var(--ligia-orange-1), var(--ligia-orange-2));
+  --text-dark: #241914;
+  --text-muted: #7A6A61;
+  --bg-light: #FFFBF8;
+  --surface-2: #FFF3EE;
+  --border: #F0DED4;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Sora', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { background: #fff; font-family: var(--font-body); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+@page { margin: 0; size: A4 landscape; }
+
+.certificate-wrapper {
+  width: 297mm;
+  height: 167mm;
+  background:
+    radial-gradient(circle at 88% -8%, rgba(255,75,31,.07) 0%, transparent 42%),
+    radial-gradient(circle at 4% 108%, rgba(255,144,104,.09) 0%, transparent 45%),
+    var(--bg-light);
+  position: relative;
+  overflow: hidden;
+  padding: 9mm 24mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  page-break-after: always;
+}
+.certificate-wrapper::before,
+.certificate-wrapper::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3mm;
+  background: var(--ligia-gradient);
+}
+.certificate-wrapper::before { top: 0; }
+.certificate-wrapper::after { bottom: 0; }
+
+.header { display: flex; justify-content: space-between; align-items: flex-start; }
+.logo { height: 11.6mm; width: auto; }
+.logo-logos { height: 11.6mm; width: auto; }
+
+.content { text-align: center; margin: auto 0; }
+.title { font-family: var(--font-heading); font-size: 11mm; font-weight: 700; color: transparent; background: var(--ligia-gradient); -webkit-background-clip: text; background-clip: text; margin-bottom: 1.5mm; letter-spacing: -0.03em; }
+.subtitle { font-family: var(--font-heading); font-size: 4.6mm; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4em; color: var(--text-dark); }
+.divider { width: 42mm; height: 0.9mm; background: var(--ligia-gradient); border-radius: 999; margin: 5mm auto; }
+.label { font-size: 4.3mm; color: var(--text-muted); font-weight: 400; }
+.participant-name { font-family: var(--font-heading); font-size: 11.5mm; font-weight: 700; color: var(--text-dark); margin: 4.5mm 0 3.5mm; letter-spacing: -0.02em; }
+.description { font-size: 4.4mm; color: var(--text-muted); line-height: 1.65; max-width: 205mm; margin: 0 auto; }
+.event-name { font-weight: 600; color: var(--text-dark); }
+.meta { display: flex; justify-content: center; gap: 7mm; margin-top: 6mm; }
+.chip { display: inline-flex; align-items: baseline; gap: 2.5mm; border: 0.5mm solid var(--border); border-radius: 999; padding: 2.2mm 6mm; font-size: 3.6mm; color: var(--text-dark); background: var(--surface-2); }
+.chip-label { font-family: var(--font-heading); font-size: 3mm; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ligia-orange-1); }
+
+.footer { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1mm; }
+.signatures { display: flex; gap: 14mm; }
+.signature-block { text-align: center; width: 56mm; }
+.signature-line { width: 100%; height: 0.3mm; background-color: var(--text-dark); margin-bottom: 2.5mm; }
+.signature-name { font-weight: 600; font-size: 4mm; color: var(--text-dark); }
+.signature-role { font-size: 3mm; color: var(--text-muted); margin-top: 0.8mm; }
+.city-date { font-size: 3.4mm; color: var(--text-muted); text-align: right; line-height: 1.5; }
+`;
+
+function buildCertHtml(name, data) {
+  const desc = `participou ativamente do <span class="event-name">${data.eventTitle}</span>` +
+    (data.eventDesc ? `, ${data.eventDesc}` : "") + ".";
+  return `
+  <div class="certificate-wrapper">
+    <header class="header">
+      <img class="logo" src="/media/ligia-dark.png" alt="Ligia">
+      <img class="logo-logos" src="/media/logos.png" alt="Logos">
+    </header>
+    <main class="content">
+      <h1 class="title">Certificado</h1>
+      <div class="subtitle">de Participação</div>
+      <div class="divider"></div>
+      <p class="label">Certificamos para os devidos fins que</p>
+      <div class="participant-name">${name}</div>
+      <p class="description">${desc}</p>
+      <div class="meta">
+        <span class="chip"><span class="chip-label">Data</span> ${data.dateText}</span>
+        <span class="chip"><span class="chip-label">Carga horária</span> ${data.hoursText}</span>
+      </div>
+    </main>
+    <footer class="footer">
+      <div class="signatures">
+        <div class="signature-block">
+          <div class="signature-line"></div>
+          <div class="signature-name">${data.coordinator}</div>
+          <div class="signature-role">Coordenação Institucional</div>
+        </div>
+        <div class="signature-block">
+          <div class="signature-line"></div>
+          <div class="signature-name">${data.president}</div>
+          <div class="signature-role">Presidente da Ligia</div>
+        </div>
+      </div>
+      <div class="city-date">
+        ${data.city}, ${data.dateText}
+      </div>
+    </footer>
+  </div>`;
+}
+
+function rasterize(src, w, h) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL("image/png"));
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function loadLogos() {
+  const [ligia, logos] = await Promise.all([
+    rasterize("/media/ligia-dark.png", 384, 127),
+    rasterize("/media/logos.png", 5610, 1255)
+  ]);
+  return { ligia, logos };
+}
+
+function drawGradientBar(pdf, x, y, w, h, c1, c2) {
+  const steps = 80;
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps;
+    pdf.setFillColor(
+      Math.round(c1[0] + (c2[0] - c1[0]) * t),
+      Math.round(c1[1] + (c2[1] - c1[1]) * t),
+      Math.round(c1[2] + (c2[2] - c1[2]) * t)
+    );
+    pdf.rect(x + (i * w) / steps, y, w / steps + 0.1, h, "F");
+  }
+}
+
+function drawCertificate(pdf, name, data, logos) {
+  const W = 297, H = 167, cx = W / 2;
+  const ORANGE = [255, 75, 31];
+  const ORANGE2 = [255, 144, 104];
+  const DARK = [36, 25, 20];
+  const MUTED = [122, 106, 97];
+  const CHIP_BG = [255, 243, 238];
+  const CHIP_BORDER = [240, 222, 212];
+
+  pdf.setFillColor(255, 251, 248);
+  pdf.rect(0, 0, W, H, "F");
+
+  pdf.setFillColor(255, 243, 238);
+  pdf.circle(268, 14, 48, "F");
+  pdf.circle(18, 156, 60, "F");
+  pdf.setDrawColor(255, 214, 200);
+  pdf.setLineWidth(0.8);
+  pdf.circle(282, 2, 38, "S");
+
+  drawGradientBar(pdf, 0, 0, W, 3, ORANGE, ORANGE2);
+  drawGradientBar(pdf, 0, H - 3, W, 3, ORANGE, ORANGE2);
+
+  if (logos) {
+    if (logos.ligia) pdf.addImage(logos.ligia, "PNG", 30, 24.4, 35.09, 11.6);
+    if (logos.logos) pdf.addImage(logos.logos, "PNG", W - 30 - 51.85, 24.4, 51.85, 11.6);
+  }
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(28);
+  pdf.setTextColor(ORANGE[0], ORANGE[1], ORANGE[2]);
+  pdf.text("Certificado", cx, 68, { align: "center" });
+
+  pdf.setFontSize(11);
+  pdf.setTextColor(DARK[0], DARK[1], DARK[2]);
+  pdf.text("DE PARTICIPAÇÃO", cx, 76, { align: "center", charSpace: 2 });
+
+  drawGradientBar(pdf, cx - 20, 80.5, 40, 1.1, ORANGE, ORANGE2);
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10.5);
+  pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+  pdf.text("Certificamos para os devidos fins que", cx, 88, { align: "center" });
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(26);
+  pdf.setTextColor(DARK[0], DARK[1], DARK[2]);
+  pdf.text(pdf.splitTextToSize(name, 220), cx, 106, { align: "center" });
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+  const desc = `participou ativamente do ${data.eventTitle}` +
+    (data.eventDesc ? `, ${data.eventDesc}` : "") + ".";
+  pdf.text(pdf.splitTextToSize(desc, 185), cx, 118, { align: "center" });
+
+  const chipW = 54, chipH = 12, chipY = 128, gap = 10;
+  const chips = [
+    { label: "DATA", value: data.dateText },
+    { label: "CARGA HORÁRIA", value: data.hoursText }
+  ];
+  chips.forEach((c, i) => {
+    const x = cx - chipW - gap / 2 + i * (chipW + gap);
+    pdf.setFillColor(CHIP_BG[0], CHIP_BG[1], CHIP_BG[2]);
+    pdf.roundedRect(x, chipY, chipW, chipH, 4, 4, "F");
+    pdf.setDrawColor(CHIP_BORDER[0], CHIP_BORDER[1], CHIP_BORDER[2]);
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(x, chipY, chipW, chipH, 4, 4, "S");
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(6.5);
+    pdf.setTextColor(ORANGE[0], ORANGE[1], ORANGE[2]);
+    pdf.text(c.label, cx + (i * 2 - 1) * (chipW + gap) / 2, chipY + 4.5, { align: "center" });
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
+    pdf.setTextColor(DARK[0], DARK[1], DARK[2]);
+    pdf.text(pdf.splitTextToSize(c.value, chipW - 6), cx + (i * 2 - 1) * (chipW + gap) / 2, chipY + 9, { align: "center" });
+  });
+
+  const fy = 150;
+  pdf.setDrawColor(DARK[0], DARK[1], DARK[2]);
+  pdf.setLineWidth(0.3);
+  pdf.line(36, fy - 2, 92, fy - 2);
+  pdf.line(108, fy - 2, 164, fy - 2);
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10);
+  pdf.setTextColor(DARK[0], DARK[1], DARK[2]);
+  pdf.text(pdf.splitTextToSize(data.coordinator, 56), 64, fy + 5, { align: "center" });
+  pdf.text(pdf.splitTextToSize(data.president, 56), 136, fy + 5, { align: "center" });
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+  pdf.text("Coordenação Institucional", 64, fy + 11.5, { align: "center" });
+  pdf.text("Presidente da Ligia", 136, fy + 11.5, { align: "center" });
+
+  pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+  pdf.text(`${data.city}, ${data.dateText}`, W - 30, fy + 3, { align: "right" });
 }

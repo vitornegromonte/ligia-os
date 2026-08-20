@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Menu, Users, Activity, CircleGauge, BrainCircuit, Award,
   GraduationCap, Github, Linkedin, Building, BookOpen,
@@ -9,6 +9,7 @@ import {
 import { showToast } from "../utils/toast.js";
 import { fetchProfiles } from "../services/profiles.js";
 import { fetchProjectsWithMilestones } from "../services/projects.js";
+import { useRealtime } from "../hooks/useRealtime.js";
 
 const teamColors = {
   NLP: { bar: "#6b8eb3", bg: "rgba(107,142,179,.15)" },
@@ -38,6 +39,20 @@ export default function Dashboard() {
       setLoading(false);
     });
   }, []);
+
+  const refreshData = useCallback(() => {
+    Promise.all([
+      fetchProfiles(),
+      fetchProjectsWithMilestones(),
+    ]).then(([p, proj]) => {
+      setPeople(p);
+      setProjects(proj);
+    }).catch(e => console.warn("Realtime refresh error:", e.message));
+  }, []);
+
+  useRealtime("profiles", refreshData);
+  useRealtime("projects", refreshData);
+  useRealtime("milestones", refreshData);
 
   const stats = useMemo(() => {
     const total = people.length;
