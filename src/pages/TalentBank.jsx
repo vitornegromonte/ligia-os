@@ -41,8 +41,8 @@ const s = {
     position: "sticky", top: 0, zIndex: 30, height: 66,
     display: "flex", alignItems: "center", gap: 18,
     padding: "0 clamp(20px, 4vw, 52px)",
-    borderBottom: "1px solid rgba(52,51,45,.72)",
-    background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+    borderBottom: "1px solid rgba(55,48,37,.72)",
+    background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
   },
   mobileMenu: {
     display: "none", padding: 6, border: 0, background: "none",
@@ -201,10 +201,10 @@ const s = {
   skills: { display: "flex", flexWrap: "wrap", gap: 6, minHeight: 26 },
   tag: (accent) => ({
     display: "inline-flex", alignItems: "center", padding: "4px 8px",
-    border: `1px solid ${accent ? "var(--accent-border)" : "#34332d"}`,
+    border: `1px solid ${accent ? "var(--accent-border)" : "var(--line)"}`,
     borderRadius: 9999, fontSize: 10, whiteSpace: "nowrap",
-    color: accent ? "#fff" : "#aaa79e",
-    background: accent ? "var(--accent-soft)" : "#22221e"
+    color: accent ? "#fff" : "var(--muted)",
+    background: accent ? "var(--accent-soft)" : "var(--surface-2)"
   }),
   cardFoot: {
     display: "flex", alignItems: "center", marginTop: 18,
@@ -226,18 +226,18 @@ const s = {
   }),
   modal: {
     width: "min(720px, 100%)", maxHeight: "90vh", overflowY: "auto",
-    border: "1px solid #37362f", borderRadius: 18,
-    background: "#181815", boxShadow: "var(--shadow)"
+    border: "1px solid var(--line)", borderRadius: "var(--radius-lg)",
+    background: "var(--surface)", boxShadow: "var(--shadow)"
   },
   smallModal: {
     width: "min(480px, 100%)", maxHeight: "90vh", overflowY: "auto",
-    border: "1px solid #37362f", borderRadius: 18,
-    background: "#181815", boxShadow: "var(--shadow)"
+    border: "1px solid var(--line)", borderRadius: "var(--radius-lg)",
+    background: "var(--surface)", boxShadow: "var(--shadow)"
   },
   modalHeader: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "15px 20px", borderBottom: "1px solid var(--line-soft)",
-    background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
+    background: "rgba(24,21,18,.92)", backdropFilter: "blur(12px)"
   },
 };
 
@@ -348,10 +348,12 @@ export default function TalentBank() {
       <div style={s.content}>
         <section>
           <div style={{ marginBottom: 36 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Navegação</div>
             <h1 style={{
                 margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
                 fontWeight: 500, letterSpacing: "-.03em"
               }}><span className="gradient-text">Membros.</span></h1>
+              <div className="gradient-bar" style={{ width: 64, marginBottom: 14 }} />
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13, lineHeight: 1.7, maxWidth: 520 }}>
                 Perfis, especialidades, agendas públicas e currículos dos membros da liga.
               </p>

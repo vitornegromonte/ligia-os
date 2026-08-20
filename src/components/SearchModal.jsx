@@ -63,7 +63,7 @@ export default function SearchModal({ open, onClose }) {
     }}>
       <div style={{
         width: "min(620px, 100%)",
-        border: "1px solid #37362f", borderRadius: 18, background: "#181815",
+        border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", background: "var(--surface)",
         boxShadow: "var(--shadow)", overflow: "hidden"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderBottom: "1px solid var(--line-soft)" }}>

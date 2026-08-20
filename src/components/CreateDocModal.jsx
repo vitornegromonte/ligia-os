@@ -90,13 +90,13 @@ export default function CreateDocModal({ open, onClose, onCreated, defaultTab, e
     }}>
       <div style={{
         width: "min(580px, 100%)", maxHeight: "90vh", overflowY: "auto",
-        border: "1px solid #37362f", borderRadius: 18,
-        background: "#181815", boxShadow: "var(--shadow)"
+        border: "1px solid var(--line)", borderRadius: "var(--radius-lg)",
+        background: "var(--surface)", boxShadow: "var(--shadow)"
       }}>
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "15px 20px", borderBottom: "1px solid var(--line-soft)",
-          background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
+          background: "rgba(24,21,18,.92)", backdropFilter: "blur(12px)"
         }}>
           <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>
             Nova documentação

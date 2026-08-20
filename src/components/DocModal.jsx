@@ -37,8 +37,8 @@ export default function DocModal({ open, title, content, onClose, canEdit, onEdi
       }}>
       <div style={{
         width: "min(760px, 100%)", maxHeight: "min(860px, 92vh)",
-        overflowY: "auto", border: "1px solid #37362f",
-        borderRadius: 18, background: "#181815",
+        overflowY: "auto", border: "1px solid var(--line)",
+        borderRadius: "var(--radius-lg)", background: "var(--surface)",
         boxShadow: "var(--shadow)"
       }}>
         <div style={{
@@ -46,7 +46,7 @@ export default function DocModal({ open, title, content, onClose, canEdit, onEdi
           display: "flex", alignItems: "center", justifyContent: "space-between",
           gap: 12, padding: "15px 20px",
           borderBottom: "1px solid var(--line-soft)",
-          background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
+          background: "rgba(24,21,18,.92)", backdropFilter: "blur(12px)"
         }}>
           <div style={{
             color: "var(--muted-2)", fontSize: 11, textTransform: "uppercase",

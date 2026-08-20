@@ -160,8 +160,8 @@ export default function Notas() {
         position: "sticky", top: 0, zIndex: 30, height: 66,
         display: "flex", alignItems: "center", gap: 18,
         padding: "0 clamp(20px, 4vw, 52px)",
-        borderBottom: "1px solid rgba(52,51,45,.72)",
-        background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+        borderBottom: "1px solid rgba(55,48,37,.72)",
+        background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
       }}>
         <button className="mobile-menu" onClick={() => setMenuOpen(true)} aria-label="Abrir navegação"
           style={{ display: "none", padding: 6, border: 0, background: "none", cursor: "pointer", color: "var(--text)" }}>
@@ -184,9 +184,11 @@ export default function Notas() {
 
       <div style={{ padding: "36px clamp(20px, 4vw, 52px) 72px" }}>
         <div style={{ marginBottom: 28 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>Dia a dia</div>
           <h1 style={{ margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)", fontWeight: 500, letterSpacing: "-.03em" }}>
             <span className="gradient-text">Notas.</span>
           </h1>
+          <div className="gradient-bar" style={{ width: 64, marginBottom: 14 }} />
           <p style={{ maxWidth: 560, color: "var(--muted)", fontSize: 13, lineHeight: 1.7, margin: 0 }}>
             Notas rápidas e de reunião em markdown. Mencione alguém com @Nome.
           </p>
@@ -226,7 +228,7 @@ export default function Notas() {
         }}>
           <form onSubmit={saveNote} style={{
             width: "min(720px, 100%)", maxHeight: "90vh", overflowY: "auto",
-            border: "1px solid #37362f", borderRadius: 18, background: "#181815", boxShadow: "var(--shadow)"
+            border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", background: "var(--surface)", boxShadow: "var(--shadow)"
           }}>
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,

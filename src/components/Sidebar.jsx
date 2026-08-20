@@ -49,11 +49,12 @@ export default function Sidebar({ open, onClose }) {
         width: "var(--sidebar-width)", display: "flex",
         flexDirection: "column",
         borderRight: "1px solid var(--line-soft)",
-        background: "rgba(20,20,17,.92)",
+        background: "rgba(20,18,14,.92)",
         backdropFilter: "blur(18px)",
         transform: open ? "translateX(0)" : undefined,
         transition: "transform .25s ease"
       }}>
+        <div className="gradient-bar" style={{ width: "100%", height: 2, flex: "0 0 auto" }} />
         <NavLink to="/dashboard" className="brand" style={{
           display: "flex", alignItems: "center", gap: 12,
           height: 78, padding: "0 22px", textDecoration: "none", color: "inherit"

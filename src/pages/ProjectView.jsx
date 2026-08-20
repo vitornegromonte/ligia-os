@@ -126,8 +126,8 @@ export default function ProjectView() {
         position: "sticky", top: 0, zIndex: 30, height: 66,
         display: "flex", alignItems: "center", gap: 18,
         padding: "0 clamp(20px, 4vw, 52px)",
-        borderBottom: "1px solid rgba(52,51,45,.72)",
-        background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+        borderBottom: "1px solid rgba(55,48,37,.72)",
+        background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
       }}>
         <button className="mobile-menu" onClick={() => setMenuOpen(true)}
           aria-label="Abrir navegação" style={{
@@ -274,7 +274,7 @@ export default function ProjectView() {
                       }}>
                       <div style={{
                         width: 26, height: 26, borderRadius: 7, display: "grid", placeItems: "center",
-                        background: p.color || "#b7c2d2", color: "#0f0f0d",
+                        background: p.color || "#b7c2d2", color: "#1d1710",
                         fontSize: 9, fontWeight: 700, fontFamily: "var(--font-heading)", flexShrink: 0
                       }}>{p.initials || p.name?.slice(0, 2).toUpperCase() || "??"}</div>
                       <span style={{ fontSize: 12, color: "var(--text)" }}>{p.name}</span>
@@ -296,7 +296,7 @@ export default function ProjectView() {
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 7, display: "grid", placeItems: "center",
-                    background: p.color || "#b7c2d2", color: "#0f0f0d",
+                    background: p.color || "#b7c2d2", color: "#1d1710",
                     fontSize: 9, fontWeight: 700, fontFamily: "var(--font-heading)"
                   }}>{p.initials || p.name?.slice(0, 2).toUpperCase() || "??"}</div>
                   <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 550 }}>{p.name}</span>

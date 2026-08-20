@@ -61,7 +61,7 @@ export function avatarCircle(person, size = 24) {
     <div key={person?.id || "anon"} title={person?.name}
       style={{
         width: size, height: size, borderRadius: 6, display: "grid", placeItems: "center",
-        background: person?.color || "#b7c2d2", color: "#0f0f0d",
+        background: person?.color || "#b7c2d2", color: "#1d1710",
         fontSize: Math.round(size * 0.38), fontWeight: 700,
         fontFamily: "var(--font-heading)", flexShrink: 0
       }}>

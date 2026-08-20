@@ -57,13 +57,13 @@ export default function MilestoneDetail({ milestone, profiles, onClose, onUpdate
     }}>
       <div style={{
         width: "min(520px, 100%)", maxHeight: "90vh", overflowY: "auto",
-        border: "1px solid #37362f", borderRadius: 18,
-        background: "#181815", boxShadow: "var(--shadow)"
+        border: "1px solid var(--line)", borderRadius: "var(--radius-lg)",
+        background: "var(--surface)", boxShadow: "var(--shadow)"
       }}>
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "15px 20px", borderBottom: "1px solid var(--line-soft)",
-          background: "rgba(24,24,21,.92)", backdropFilter: "blur(12px)"
+          background: "rgba(24,21,18,.92)", backdropFilter: "blur(12px)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <StatusIcon size={15} style={{ color: current.color }} />
@@ -132,7 +132,7 @@ export default function MilestoneDetail({ milestone, profiles, onClose, onUpdate
                   }}>
                     <div style={{
                       width: 24, height: 24, borderRadius: 6, display: "grid", placeItems: "center",
-                      background: p?.color || "#b7c2d2", color: "#0f0f0d",
+                      background: p?.color || "#b7c2d2", color: "#1d1710",
                       fontSize: 9, fontWeight: 700, fontFamily: "var(--font-heading)"
                     }}>
                       {p?.initials || p?.name?.slice(0, 2).toUpperCase() || "??"}

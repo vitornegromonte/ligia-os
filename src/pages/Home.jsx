@@ -64,8 +64,8 @@ export default function Home() {
         position: "sticky", top: 0, zIndex: 30, height: 66,
         display: "flex", alignItems: "center", gap: 18,
         padding: "0 clamp(20px, 4vw, 52px)",
-        borderBottom: "1px solid rgba(52,51,45,.72)",
-        background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+        borderBottom: "1px solid rgba(55,48,37,.72)",
+        background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
       }}>
         <button className="mobile-menu" onClick={() => setMenuOpen(true)}
           aria-label="Abrir navegação" style={{
@@ -102,6 +102,7 @@ export default function Home() {
           }}>
             <span className="gradient-text">Ligia OS</span>
           </h1>
+          <div className="gradient-bar" style={{ width: 72, marginBottom: 16 }} />
           <p style={{
             maxWidth: 540, color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px"
           }}>

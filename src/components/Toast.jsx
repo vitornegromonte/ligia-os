@@ -26,7 +26,7 @@ export default function Toast({ message, visible, onClose, type }) {
       position: "fixed", bottom: 28, left: "50%", zIndex: 200,
       display: "flex", alignItems: "center", gap: 9,
       padding: "12px 22px", borderRadius: 9999,
-      background: "#272722", color: "var(--text)", fontSize: 12,
+      background: "var(--surface-3)", color: "var(--text)", fontSize: 12,
       transform: `translateX(-50%) translateY(${visible ? "0" : "16px"})`,
       opacity: visible ? 1 : 0,
       visibility: visible ? "visible" : "hidden",

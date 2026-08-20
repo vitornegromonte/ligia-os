@@ -12,8 +12,8 @@ const s = {
     position: "sticky", top: 0, zIndex: 30, height: 66,
     display: "flex", alignItems: "center", gap: 18,
     padding: "0 clamp(20px, 4vw, 52px)",
-    borderBottom: "1px solid rgba(52,51,45,.72)",
-    background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+    borderBottom: "1px solid rgba(55,48,37,.72)",
+    background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
   },
   mobileMenu: {
     display: "none", padding: 6, border: 0, background: "none",
@@ -133,7 +133,7 @@ const s = {
     background: `
       radial-gradient(circle at 70% 30%, rgba(255,75,31,.06), transparent 50%),
       radial-gradient(circle at 30% 70%, rgba(255,75,31,.04), transparent 50%),
-      linear-gradient(160deg, #1a1a17, #141411)
+      linear-gradient(160deg, #1d1a15, #14120e)
     `,
     border: "1px solid var(--line)",
     overflow: "hidden", display: "flex", flexDirection: "column",
@@ -319,7 +319,9 @@ export default function Certificates() {
 
       <div style={s.content}>
         <div style={{ marginBottom: 40 }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>Ferramentas</div>
           <h1 style={s.h1}><span className="gradient-text">Certificados.</span></h1>
+          <div className="gradient-bar" style={{ width: 64, marginBottom: 14 }} />
           <p style={s.desc}>Importe uma lista de nomes, defina o evento e a data, e gere certificados personalizados para todos os participantes. Pronto para impressão.</p>
         </div>
 

@@ -91,7 +91,7 @@ export default function ProjectManagement() {
               style={{
                 width: 22, height: 22, borderRadius: "50%",
                 display: "grid", placeItems: "center",
-                background: p.color || "#b7c2d2", color: "#0f0f0d",
+                background: p.color || "#b7c2d2", color: "#1d1710",
                 fontSize: 9, fontWeight: 700,
                 fontFamily: "var(--font-heading)"
               }}>
@@ -109,8 +109,8 @@ export default function ProjectManagement() {
         position: "sticky", top: 0, zIndex: 30, height: 66,
         display: "flex", alignItems: "center", gap: 18,
         padding: "0 clamp(20px, 4vw, 52px)",
-        borderBottom: "1px solid rgba(52,51,45,.72)",
-        background: "rgba(15,15,13,.82)", backdropFilter: "blur(18px)"
+        borderBottom: "1px solid rgba(55,48,37,.72)",
+        background: "rgba(15,14,12,.82)", backdropFilter: "blur(18px)"
       }}>
         <button className="mobile-menu" onClick={() => setMenuOpen(true)}
           aria-label="Abrir navegação" style={{
@@ -158,10 +158,12 @@ export default function ProjectManagement() {
         ) : (
         <>
           <div style={{ marginBottom: 28 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Navegação</div>
             <h1 style={{
             margin: "0 0 10px", fontSize: "clamp(28px, 4vw, 36px)",
             fontWeight: 500, letterSpacing: "-.03em"
           }}><span className="gradient-text">Projetos de Pesquisa.</span></h1>
+          <div className="gradient-bar" style={{ width: 64, marginBottom: 14 }} />
           <p style={{
             maxWidth: 560, color: "var(--muted)", fontSize: 13, lineHeight: 1.7, margin: 0
           }}>Acompanhe o progresso dos projetos em andamento, seus marcos e responsáveis.</p>
