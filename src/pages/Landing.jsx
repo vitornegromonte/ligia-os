@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
+const NeuralHero = lazy(() => import("../components/NeuralHero.jsx"));
 import {
   ArrowRight, Menu, X, Github, Linkedin,
   GraduationCap, Mail, MapPin, Sparkles,
@@ -467,15 +468,40 @@ export default function Landing() {
         )}
       </header>
 
-      {/* HERO */}
+      {/* HERO — rede neural (animejs) com blur para suavizar */}
       <section style={{
         position: "relative", overflow: "hidden",
-        background: `
-          radial-gradient(circle at 70% -10%, rgba(255,75,31,.14), transparent 38%),
-          radial-gradient(circle at 15% 90%, rgba(255,144,104,.07), transparent 40%),
-          var(--bg)`
+        background: "var(--bg)",
+        isolation: "isolate",
+        minHeight: "clamp(520px, 72vh, 760px)",
+        display: "grid", placeItems: "center"
       }}>
-        <div style={{ maxWidth: L.maxW, margin: "0 auto", padding: L.heroPad, textAlign: "center" }}>
+        {/* Camada 1: rede animada — leve, rAF + pausa fora da viewport */}
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 0.92 }}>
+          <Suspense fallback={null}>
+            <NeuralHero />
+          </Suspense>
+        </div>
+        {/* Camada 2: blur leve + véu — suaviza sem pesar GPU */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, zIndex: 1,
+          backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+          background: `
+            radial-gradient(circle at 50% -8%, rgba(15,14,12,0.32) 0%, transparent 44%),
+            linear-gradient(180deg, rgba(15,14,12,0.12) 0%, rgba(15,14,12,0.46) 58%, rgba(15,14,12,0.70) 100%),
+            radial-gradient(circle at 70% -10%, rgba(255,75,31,.09), transparent 38%),
+            radial-gradient(circle at 15% 90%, rgba(255,144,104,.05), transparent 40%)
+          `
+        }} />
+        {/* Camada 3: grade sutil */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, zIndex: 1, opacity: 0.032,
+          backgroundImage: "linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 94%)",
+          WebkitMaskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 94%)"
+        }} />
+        <div style={{ maxWidth: L.maxW, margin: "0 auto", padding: L.heroPad, textAlign: "center", position: "relative", zIndex: 2, width: "100%" }}>
           <div className="eyebrow hero-enter" style={{ marginBottom: 18, color: "var(--accent)", "--delay": "0ms" }}>
             Liga Acadêmica de Inteligência Artificial
           </div>
