@@ -83,7 +83,7 @@ const s = {
     padding: "12px 26px", border: 0, borderRadius: "var(--radius-sm)",
     cursor: "pointer", fontSize: 13, fontWeight: 550,
     fontFamily: "var(--font-body)",
-    transition: "all 180ms ease"
+    transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), border-color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
   },
   btnPrimary: {
     color: "#fff", background: "var(--accent)"

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, GraduationCap, Github, Linkedin, Award, ExternalLink, CalendarDays, FileText } from "lucide-react";
+import { X, GraduationCap, Github, Linkedin, Award, ExternalLink, CalendarDays, FileText, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { updateProfile } from "../services/profiles.js";
 import { showToast } from "../utils/toast.js";
@@ -13,23 +13,48 @@ export default function ProfileEdit({ open, onClose }) {
 
   if (!open || !profile) return null;
 
-  const f = form ?? { ...profile, skills_string: (profile.skills || []).join(", ") };
+  const f = form ?? {
+    ...profile,
+    skills_string: (profile.skills || []).join(", "),
+    research_interests: profile.researchInterests || profile.research_interests || "",
+    avatar_url: profile.avatar_url || "",
+  };
 
   function handleChange(key, value) {
-    setForm({ ...(form || { ...profile, skills_string: (profile.skills || []).join(", ") }), [key]: value });
+    setForm({
+      ...(form || {
+        ...profile,
+        skills_string: (profile.skills || []).join(", "),
+        research_interests: profile.researchInterests || profile.research_interests || "",
+        avatar_url: profile.avatar_url || "",
+      }),
+      [key]: value,
+    });
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form };
+      const payload = { ...(form || {}) };
       if (payload.skills_string !== undefined) {
         payload.skills = payload.skills_string.split(",").map(s => s.trim()).filter(Boolean);
         delete payload.skills_string;
       }
+      if (payload.avatar_url !== undefined) {
+        payload.avatar_url = String(payload.avatar_url).trim();
+      }
+      // Garante que interesses vão como research_interests (coluna do banco)
+      if (payload.researchInterests !== undefined && payload.research_interests === undefined) {
+        payload.research_interests = payload.researchInterests;
+        delete payload.researchInterests;
+      }
       const updated = await updateProfile(profile.id, payload);
-      setProfile(updated);
+      // updateProfile pode retornar linha bruta; mapeia para shape do contexto
+      const normalized = updated?.research_interests !== undefined
+        ? { ...updated, researchInterests: updated.research_interests }
+        : updated;
+      setProfile(normalized || { ...profile, ...payload });
       setForm(null);
       showToast("Perfil atualizado");
       onClose();
@@ -60,21 +85,53 @@ export default function ProfileEdit({ open, onClose }) {
           <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>
             Editar perfil
           </span>
-          <button onClick={onClose} style={{
+          <button aria-label="Fechar" onClick={onClose} style={{
             width: 35, height: 35, display: "grid", placeItems: "center",
             border: "1px solid var(--line)", borderRadius: 9,
             color: "var(--muted)", background: "var(--surface)",
             cursor: "pointer"
           }}>
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 
         <form onSubmit={handleSave} style={{ padding: 24 }}>
           <div style={{ display: "grid", gap: 16, marginBottom: 24 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Nome</label>
-              <input value={f.name} onChange={e => handleChange("name", e.target.value)}
+              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Foto de perfil</label>
+              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: "50%", overflow: "hidden",
+                  border: "1px solid var(--line-soft)", background: "var(--surface-2)",
+                  display: "grid", placeItems: "center", flex: "0 0 auto"
+                }}>
+                  {f.avatar_url ? (
+                    <img src={f.avatar_url} alt="Prévia" width="64" height="64" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={e => { e.currentTarget.style.display = "none"; }} />
+                  ) : (
+                    <span style={{ color: "#17140f", background: profile.color || "#e7c8a6", width: "100%", height: "100%", display: "grid", placeItems: "center", fontWeight: 750, fontSize: 16, fontFamily: "var(--font-heading)" }}>
+                      {profile.initials || profile.name?.slice(0, 2).toUpperCase() || "??"}
+                    </span>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <ImageIcon size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                    <input id="profile-avatar" name="avatar_url" type="url" autoComplete="photo" spellCheck={false} value={f.avatar_url || ""} onChange={e => handleChange("avatar_url", e.target.value)}
+                      placeholder="https://exemplo.com/foto.jpg…"
+                      style={{
+                        flex: 1, height: 42, padding: "0 14px",
+                        border: "1px solid var(--line)", borderRadius: 9,
+                        outline: "none", color: "var(--text)", background: "var(--surface)"
+                      }} />
+                  </div>
+                  <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 6 }}>Cole a URL da imagem. Deixe em branco para usar iniciais.</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="profile-name" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Nome</label>
+              <input id="profile-name" name="name" autoComplete="name" value={f.name} onChange={e => handleChange("name", e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
                   border: "1px solid var(--line)", borderRadius: 9,
@@ -82,8 +139,8 @@ export default function ProfileEdit({ open, onClose }) {
                 }} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Email</label>
-              <input value={f.email} disabled
+              <label htmlFor="profile-email" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Email</label>
+              <input id="profile-email" name="email" autoComplete="email" spellCheck={false} value={f.email} disabled
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
                   border: "1px solid var(--line)", borderRadius: 9,
@@ -93,8 +150,8 @@ export default function ProfileEdit({ open, onClose }) {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
-                <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Equipe</label>
-                <select value={f.team || ""} onChange={e => handleChange("team", e.target.value)}
+                <label htmlFor="profile-team" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Equipe</label>
+                <select id="profile-team" name="team" value={f.team || ""} onChange={e => handleChange("team", e.target.value)}
                   style={{
                     width: "100%", height: 42, padding: "0 14px",
                     border: "1px solid var(--line)", borderRadius: 9,
@@ -105,8 +162,8 @@ export default function ProfileEdit({ open, onClose }) {
                 </select>
               </div>
               <div>
-                <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Vínculo</label>
-                <input value={f.affiliation || ""} onChange={e => handleChange("affiliation", e.target.value)}
+                <label htmlFor="profile-affiliation" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Vínculo</label>
+                <input id="profile-affiliation" name="affiliation" autoComplete="organization" value={f.affiliation || ""} onChange={e => handleChange("affiliation", e.target.value)}
                   placeholder="CIn-UFPE"
                   style={{
                     width: "100%", height: 42, padding: "0 14px",
@@ -116,8 +173,8 @@ export default function ProfileEdit({ open, onClose }) {
               </div>
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Bio</label>
-              <textarea value={f.bio || ""} onChange={e => handleChange("bio", e.target.value)}
+              <label htmlFor="profile-bio" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Bio</label>
+              <textarea id="profile-bio" name="bio" value={f.bio || ""} onChange={e => handleChange("bio", e.target.value)}
                 rows={3} placeholder="Fale um pouco sobre você"
                 style={{
                   width: "100%", padding: "11px 14px", resize: "vertical",
@@ -127,8 +184,8 @@ export default function ProfileEdit({ open, onClose }) {
                 }} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Habilidades (separadas por vírgula)</label>
-              <input value={f.skills_string || ""} onChange={e => handleChange("skills_string", e.target.value)}
+              <label htmlFor="profile-skills" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Habilidades (separadas por vírgula)</label>
+              <input id="profile-skills" name="skills" autoComplete="off" value={f.skills_string || ""} onChange={e => handleChange("skills_string", e.target.value)}
                 placeholder="Python, PyTorch, NLP"
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
@@ -137,8 +194,8 @@ export default function ProfileEdit({ open, onClose }) {
                 }} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Interesses de pesquisa</label>
-              <textarea value={f.research_interests || ""} onChange={e => handleChange("research_interests", e.target.value)}
+              <label htmlFor="profile-research" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Interesses de pesquisa</label>
+              <textarea id="profile-research" name="research_interests" value={f.research_interests || ""} onChange={e => handleChange("research_interests", e.target.value)}
                 rows={2} placeholder="Modelos de linguagem, análise de sentimentos…"
                 style={{
                   width: "100%", padding: "11px 14px", resize: "vertical",
@@ -151,9 +208,9 @@ export default function ProfileEdit({ open, onClose }) {
               <label style={{ display: "block", marginBottom: 8, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Redes acadêmicas</label>
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <GraduationCap size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.lattes || ""} onChange={e => handleChange("lattes", e.target.value)}
-                    placeholder="http://lattes.cnpq.br/..."
+                  <GraduationCap aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-lattes" name="lattes" type="url" autoComplete="url" spellCheck={false} value={f.lattes || ""} onChange={e => handleChange("lattes", e.target.value)}
+                    placeholder="http://lattes.cnpq.br/…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -161,9 +218,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Github size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.github || ""} onChange={e => handleChange("github", e.target.value)}
-                    placeholder="https://github.com/usuario"
+                  <Github aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-github" name="github" type="url" autoComplete="url" spellCheck={false} value={f.github || ""} onChange={e => handleChange("github", e.target.value)}
+                    placeholder="https://github.com/usuario…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -171,9 +228,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Linkedin size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.linkedin || ""} onChange={e => handleChange("linkedin", e.target.value)}
-                    placeholder="https://linkedin.com/in/usuario"
+                  <Linkedin aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-linkedin" name="linkedin" type="url" autoComplete="url" spellCheck={false} value={f.linkedin || ""} onChange={e => handleChange("linkedin", e.target.value)}
+                    placeholder="https://linkedin.com/in/usuario…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -181,9 +238,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Award size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.kaggle || ""} onChange={e => handleChange("kaggle", e.target.value)}
-                    placeholder="https://kaggle.com/usuario"
+                  <Award aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-kaggle" name="kaggle" type="url" autoComplete="url" spellCheck={false} value={f.kaggle || ""} onChange={e => handleChange("kaggle", e.target.value)}
+                    placeholder="https://kaggle.com/usuario…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -191,9 +248,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <ExternalLink size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.cv || ""} onChange={e => handleChange("cv", e.target.value)}
-                    placeholder="Link do CV (Google Drive, Dropbox…)"
+                  <ExternalLink aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-cv" name="cv" type="url" autoComplete="url" spellCheck={false} value={f.cv || ""} onChange={e => handleChange("cv", e.target.value)}
+                    placeholder="Link do CV (Google Drive, Dropbox…)…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -201,9 +258,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <CalendarDays size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.calendar_url || ""} onChange={e => handleChange("calendar_url", e.target.value)}
-                    placeholder="Link da agenda pública (Google Calendar…)"
+                  <CalendarDays aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-calendar" name="calendar_url" type="url" autoComplete="url" spellCheck={false} value={f.calendar_url || ""} onChange={e => handleChange("calendar_url", e.target.value)}
+                    placeholder="Link da agenda pública (Google Calendar…)…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,
@@ -211,9 +268,9 @@ export default function ProfileEdit({ open, onClose }) {
                     }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <FileText size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <input value={f.resume_text || ""} onChange={e => handleChange("resume_text", e.target.value)}
-                    placeholder="Texto integral do currículo (para o buscador de vagas)"
+                  <FileText aria-hidden="true" size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                  <input id="profile-resume" name="resume_text" autoComplete="off" value={f.resume_text || ""} onChange={e => handleChange("resume_text", e.target.value)}
+                    placeholder="Texto integral do currículo (para o buscador de vagas)…"
                     style={{
                       flex: 1, height: 42, padding: "0 14px",
                       border: "1px solid var(--line)", borderRadius: 9,

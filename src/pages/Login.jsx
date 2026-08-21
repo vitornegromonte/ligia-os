@@ -59,7 +59,7 @@ export default function Login() {
         background: "var(--surface)"
       }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src="/media/logo.svg" alt="Ligia"
+          <img src="/media/logo.svg" alt="Ligia" width="36" height="36"
             style={{ height: 36, width: "auto", marginBottom: 16 }} />
           <h1 style={{
             margin: 0, fontFamily: "var(--font-heading)", fontSize: 22,
@@ -83,11 +83,11 @@ export default function Login() {
             ) : (
               <>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{
+                  <label htmlFor="login-email" style={{
                     display: "block", marginBottom: 6, color: "var(--muted)",
                     fontSize: 12, fontWeight: 600
                   }}>Email</label>
-                  <input type="email" required autoFocus
+                  <input id="login-email" name="email" autoComplete="email" spellCheck={false} type="email" required autoFocus
                     value={email} onChange={e => setEmail(e.target.value)}
                     style={{
                       width: "100%", height: 42, padding: "0 14px",
@@ -112,7 +112,7 @@ export default function Login() {
         ) : (
           <form onSubmit={handleSubmit}>
             {error && (
-              <div style={{
+              <div role="alert" aria-live="polite" style={{
                 padding: "10px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
                 background: "rgba(199,107,96,.12)", border: "1px solid rgba(199,107,96,.25)",
                 color: "#c76b60", fontSize: 12
@@ -135,11 +135,11 @@ export default function Login() {
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label style={{
+              <label htmlFor="login-password" style={{
                 display: "block", marginBottom: 6, color: "var(--muted)",
                 fontSize: 12, fontWeight: 600
               }}>Senha</label>
-              <input type="password" required
+              <input id="login-password" name="password" autoComplete="current-password" type="password" required
                 value={password} onChange={e => setPassword(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",

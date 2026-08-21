@@ -206,7 +206,7 @@ export default function Notas() {
         </form>
 
         {loading ? (
-          <div style={{ padding: "80px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>Carregando…</div>
+          <div style={{ padding: "40px 20px" }}><div className="skeleton" style={{ height: 200, borderRadius: "var(--radius)" }} /></div>
         ) : (
           <DbView
             config={config}

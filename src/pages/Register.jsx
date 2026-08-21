@@ -12,6 +12,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [team, setTeam] = useState("");
   const [affiliation, setAffiliation] = useState("");
+  const [avatar_url, setAvatarUrl] = useState("");
   const [lattes, setLattes] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -25,7 +26,7 @@ export default function Register() {
     setError("");
     setSubmitting(true);
     try {
-      await signUp(email, password, { name, team, affiliation, lattes, github, linkedin, kaggle });
+      await signUp(email, password, { name, team, affiliation, avatar_url, lattes, github, linkedin, kaggle });
       setSuccess(true);
     } catch (err) {
       setError(err.message);
@@ -88,7 +89,7 @@ export default function Register() {
         background: "var(--surface)"
       }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src="/media/logo.svg" alt="Ligia"
+          <img src="/media/logo.svg" alt="Ligia" width="36" height="36"
             style={{ height: 36, width: "auto", marginBottom: 16 }} />
           <h1 style={{
             margin: 0, fontFamily: "var(--font-heading)", fontSize: 22,
@@ -109,11 +110,11 @@ export default function Register() {
           )}
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="register-name" style={{
               display: "block", marginBottom: 6, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Nome completo</label>
-            <input type="text" required autoFocus
+            <input id="register-name" name="name" autoComplete="name" type="text" required autoFocus
               value={name} onChange={e => setName(e.target.value)}
               style={{
                 width: "100%", height: 42, padding: "0 14px",
@@ -124,11 +125,11 @@ export default function Register() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="register-email" style={{
               display: "block", marginBottom: 6, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Email</label>
-            <input type="email" required
+            <input id="register-email" name="email" autoComplete="email" spellCheck={false} type="email" required
               value={email} onChange={e => setEmail(e.target.value)}
               style={{
                 width: "100%", height: 42, padding: "0 14px",
@@ -139,11 +140,11 @@ export default function Register() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="register-password" style={{
               display: "block", marginBottom: 6, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Senha</label>
-            <input type="password" required minLength={6}
+            <input id="register-password" name="password" autoComplete="new-password" type="password" required minLength={6}
               value={password} onChange={e => setPassword(e.target.value)}
               style={{
                 width: "100%", height: 42, padding: "0 14px",
@@ -154,11 +155,11 @@ export default function Register() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="register-team" style={{
               display: "block", marginBottom: 6, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Equipe</label>
-            <select value={team} onChange={e => setTeam(e.target.value)}
+            <select id="register-team" name="team" autoComplete="off" value={team} onChange={e => setTeam(e.target.value)}
               style={{
                 width: "100%", height: 42, padding: "0 14px",
                 border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
@@ -171,11 +172,11 @@ export default function Register() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{
+            <label htmlFor="register-affiliation" style={{
               display: "block", marginBottom: 6, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Vínculo institucional</label>
-            <input type="text" placeholder="CIn-UFPE"
+            <input id="register-affiliation" name="affiliation" autoComplete="organization" type="text" placeholder="CIn-UFPE"
               value={affiliation} onChange={e => setAffiliation(e.target.value)}
               style={{
                 width: "100%", height: 42, padding: "0 14px",
@@ -185,13 +186,35 @@ export default function Register() {
               }} />
           </div>
 
+          <div style={{ marginBottom: 16 }}>
+            <label htmlFor="register-avatar" style={{
+              display: "block", marginBottom: 6, color: "var(--muted)",
+              fontSize: 12, fontWeight: 600
+            }}>Foto de perfil (URL, opcional)</label>
+            <input id="register-avatar" name="avatar_url" autoComplete="photo" spellCheck={false} type="url" placeholder="https://exemplo.com/foto.jpg…"
+              value={avatar_url} onChange={e => setAvatarUrl(e.target.value)}
+              style={{
+                width: "100%", height: 42, padding: "0 14px",
+                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                outline: "none", color: "var(--text)", background: "var(--bg)",
+                transition: "border var(--transition)"
+              }} />
+            {avatar_url.trim() && (
+              <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
+                <img src={avatar_url} alt="Prévia" onError={e => e.currentTarget.style.display = "none"}
+                  style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--line-soft)" }} />
+                <span style={{ color: "var(--muted-2)", fontSize: 11 }}>Prévia</span>
+              </div>
+            )}
+          </div>
+
           <div style={{ marginBottom: 20 }}>
             <label style={{
               display: "block", marginBottom: 8, color: "var(--muted)",
               fontSize: 12, fontWeight: 600
             }}>Redes acadêmicas (opcional)</label>
             <div style={{ display: "grid", gap: 10 }}>
-              <input type="url" placeholder="Lattes — http://lattes.cnpq.br/..."
+              <input id="register-lattes" name="lattes" autoComplete="url" spellCheck={false} type="url" placeholder="Lattes — http://lattes.cnpq.br/…"
                 value={lattes} onChange={e => setLattes(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
@@ -199,7 +222,7 @@ export default function Register() {
                   outline: "none", color: "var(--text)", background: "var(--bg)",
                   transition: "border var(--transition)"
                 }} />
-              <input type="url" placeholder="GitHub — https://github.com/usuario"
+              <input id="register-github" name="github" autoComplete="url" spellCheck={false} type="url" placeholder="GitHub — https://github.com/usuario…"
                 value={github} onChange={e => setGithub(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
@@ -207,7 +230,7 @@ export default function Register() {
                   outline: "none", color: "var(--text)", background: "var(--bg)",
                   transition: "border var(--transition)"
                 }} />
-              <input type="url" placeholder="LinkedIn — https://linkedin.com/in/usuario"
+              <input id="register-linkedin" name="linkedin" autoComplete="url" spellCheck={false} type="url" placeholder="LinkedIn — https://linkedin.com/in/usuario…"
                 value={linkedin} onChange={e => setLinkedin(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
@@ -215,7 +238,7 @@ export default function Register() {
                   outline: "none", color: "var(--text)", background: "var(--bg)",
                   transition: "border var(--transition)"
                 }} />
-              <input type="url" placeholder="Kaggle — https://kaggle.com/usuario"
+              <input id="register-kaggle" name="kaggle" autoComplete="url" spellCheck={false} type="url" placeholder="Kaggle — https://kaggle.com/usuario…"
                 value={kaggle} onChange={e => setKaggle(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",

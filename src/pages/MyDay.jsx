@@ -241,8 +241,9 @@ export default function MyDay() {
         </form>
 
         {loading ? (
-          <div style={{ padding: "80px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
-            Carregando…
+          <div style={{ padding: "40px 20px", display: "grid", gap: 12 }}>
+            <div className="skeleton" style={{ height: 120, borderRadius: "var(--radius)" }} />
+            <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           </div>
         ) : (
           <DbView

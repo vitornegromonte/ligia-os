@@ -32,12 +32,12 @@ function mapProfile(p) {
   };
 }
 
-export async function fetchProfiles() {
-  if (!isConfigured()) return mockPeople;
+export async function fetchProfiles({ limit } = {}) {
+  if (!isConfigured()) return limit ? mockPeople.slice(0, limit) : mockPeople;
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*");
+  let query = supabase.from("profiles").select("*");
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
 
   if (error) {
     console.warn("Failed to fetch profiles, falling back to mock:", error.message);
@@ -94,6 +94,9 @@ export async function createProfile(profile) {
       cv: profile.cv,
       bio: profile.bio,
       history: profile.history || [],
+      avatar_url: profile.avatar_url || "",
+      category: profile.category || "membro",
+      director_role: profile.director_role || "",
       calendar_url: profile.calendar_url || "",
       resume_text: profile.resume_text || "",
     })

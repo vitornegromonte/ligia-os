@@ -6,12 +6,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   if (loading) {
     return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        height: "100vh", color: "var(--muted)", fontSize: 14
-      }}>
-        Carregando...
-      </div>
+      <div style={{ minHeight: "100vh", background: "var(--bg)" }} />
     );
   }
 

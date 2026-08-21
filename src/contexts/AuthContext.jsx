@@ -46,6 +46,9 @@ export function AuthProvider({ children }) {
               name: user.user_metadata?.name || user.email?.split("@")[0] || "Usuário",
               email: user.email,
               role: "visitante",
+              avatar_url: user.user_metadata?.avatar_url || null,
+              team: user.user_metadata?.team || null,
+              affiliation: user.user_metadata?.affiliation || null,
             })
             .select()
             .single();

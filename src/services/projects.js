@@ -12,6 +12,8 @@ function mapProject(p, members = [], milestones = []) {
     color: p.color || "#6b8eb3",
     progress: p.progress || 0,
     deadline: p.deadline || "",
+    team: p.team || "",
+    image_url: p.image_url || "",
     members,
     milestones,
   };
@@ -127,6 +129,8 @@ export async function createProject(data) {
       icon: data.icon || "sparkles",
       color: data.color || "#6b8eb3",
       deadline: data.deadline || null,
+      team: data.team || "",
+      image_url: data.image_url || "",
       progress: 0,
     })
     .select()

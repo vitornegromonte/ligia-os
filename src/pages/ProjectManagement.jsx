@@ -152,8 +152,9 @@ export default function ProjectManagement() {
 
       <div style={{ padding: "36px clamp(20px, 4vw, 52px) 72px" }}>
         {loading ? (
-          <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--muted)", fontSize: 13 }}>
-            Carregando dados...
+          <div style={{ padding: "40px 20px", display: "grid", gap: 12 }}>
+            <div className="skeleton" style={{ height: 120, borderRadius: "var(--radius)" }} />
+            <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           </div>
         ) : (
         <>
@@ -183,7 +184,7 @@ export default function ProjectManagement() {
                 background: view === "timeline" ? "var(--surface-3)" : "transparent",
                 color: view === "timeline" ? "var(--text)" : "var(--muted)",
                 cursor: "pointer", fontSize: 12, fontWeight: 550,
-                fontFamily: "var(--font-body)", transition: "all var(--transition)"
+                fontFamily: "var(--font-body)", transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
               }}>
               <List size={16} /> Timeline
             </button>
@@ -194,7 +195,7 @@ export default function ProjectManagement() {
                 background: view === "board" ? "var(--surface-3)" : "transparent",
                 color: view === "board" ? "var(--text)" : "var(--muted)",
                 cursor: "pointer", fontSize: 12, fontWeight: 550,
-                fontFamily: "var(--font-body)", transition: "all var(--transition)"
+                fontFamily: "var(--font-body)", transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
               }}>
               <Columns3 size={16} /> Board
             </button>
@@ -205,7 +206,7 @@ export default function ProjectManagement() {
                 background: view === "swimlane" ? "var(--surface-3)" : "transparent",
                 color: view === "swimlane" ? "var(--text)" : "var(--muted)",
                 cursor: "pointer", fontSize: 12, fontWeight: 550,
-                fontFamily: "var(--font-body)", transition: "all var(--transition)"
+                fontFamily: "var(--font-body)", transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
               }}>
               <Columns2 size={16} /> Por projeto
             </button>

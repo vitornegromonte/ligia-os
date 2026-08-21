@@ -22,11 +22,8 @@ const Notas = lazy(() => import("./pages/Notas.jsx"));
 
 const fallback = (
   <div style={{
-    minHeight: "100vh", display: "grid", placeItems: "center",
-    background: "var(--bg)", color: "var(--muted)", fontSize: 13
-  }}>
-    Carregando...
-  </div>
+    minHeight: "100vh", background: "var(--bg)"
+  }} />
 );
 
 export default function App() {

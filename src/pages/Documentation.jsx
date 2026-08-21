@@ -340,17 +340,17 @@ export default function Documentation() {
         )}
 
         {activeTab === "guias" && (loading
-          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando guias…</p>
+          ? <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           : filteredGuides.length === 0
             ? renderEmpty()
             : renderCardGrid(filteredGuides, "Ler guia", "guias"))}
         {activeTab === "pesquisa" && (loading
-          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando documentos…</p>
+          ? <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           : filteredResearch.length === 0
             ? renderEmpty()
             : renderCardGrid(filteredResearch, "Abrir", "pesquisa"))}
         {activeTab === "projetos" && (loading
-          ? <p style={{ color: "var(--muted)", fontSize: 12 }}>Carregando projetos…</p>
+          ? <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           : projectDocs.length === 0
             ? renderEmpty()
             : renderProjectsTab())}

@@ -12,6 +12,8 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
   const [icon, setIcon] = useState("Sparkles");
   const [color, setColor] = useState(palette[0]);
   const [deadline, setDeadline] = useState("");
+  const [team, setTeam] = useState("");
+  const [image_url, setImageUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   if (!open) return null;
@@ -26,12 +28,14 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
         description: description.trim(),
         icon: icon.toLowerCase(),
         color,
+        team: team.trim(),
+        image_url: image_url.trim(),
         deadline,
       });
       showToast(`Projeto "${p.name}" criado`);
       onCreated(p);
       onClose();
-      setName(""); setDescription(""); setIcon("Sparkles"); setColor(palette[0]); setDeadline("");
+      setName(""); setDescription(""); setIcon("Sparkles"); setColor(palette[0]); setTeam(""); setImageUrl(""); setDeadline("");
     } catch (err) {
       showToast("Erro: " + err.message);
     } finally {
@@ -43,7 +47,7 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{
       position: "fixed", inset: 0, zIndex: 100,
       display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 20, background: "rgba(5,5,4,.72)", backdropFilter: "blur(9px)",
+      padding: 20, background: "rgba(5,5,4,.72)", backdropFilter: "blur(9px)", overscrollBehavior: "contain",
     }}>
       <div style={{
         width: "min(500px, 100%)", maxHeight: "90vh", overflowY: "auto",
@@ -58,30 +62,30 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
           <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>
             Novo projeto
           </span>
-          <button onClick={onClose} style={{
+          <button aria-label="Fechar" onClick={onClose} style={{
             width: 35, height: 35, display: "grid", placeItems: "center",
             border: "1px solid var(--line)", borderRadius: 9,
             color: "var(--muted)", background: "var(--surface)", cursor: "pointer"
-          }}><X size={16} /></button>
+          }}><X size={16} aria-hidden="true" /></button>
         </div>
         <form onSubmit={handleSubmit} style={{ padding: 24 }}>
           <div style={{ display: "grid", gap: 16 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Nome</label>
-              <input required autoFocus value={name} onChange={e => setName(e.target.value)}
+              <label htmlFor="project-name" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Nome</label>
+              <input id="project-name" name="name" autoComplete="off" required autoFocus value={name} onChange={e => setName(e.target.value)}
                 style={{ width: "100%", height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)" }} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Descrição</label>
-              <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
+              <label htmlFor="project-description" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Descrição</label>
+              <textarea id="project-description" name="description" value={description} onChange={e => setDescription(e.target.value)} rows={3}
                 style={{ width: "100%", padding: "11px 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)", fontFamily: "var(--font-body)", fontSize: 13, resize: "vertical" }} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Ícone</label>
+              <label id="project-icon-label" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Ícone</label>
               <IconPicker value={icon} onChange={setIcon} />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Cor</label>
+              <label id="project-color-label" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Cor</label>
               <div style={{ display: "flex", gap: 8 }}>
                 {palette.map(c => (
                   <button key={c} type="button" onClick={() => setColor(c)}
@@ -93,8 +97,31 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
               </div>
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Prazo</label>
-              <input value={deadline} onChange={e => setDeadline(e.target.value)} placeholder="Dezembro 2025"
+              <label htmlFor="project-team" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Time</label>
+              <select id="project-team" name="team" value={team} onChange={e => setTeam(e.target.value)}
+                style={{ width: "100%", height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)" }}>
+                <option value="">Selecione o time</option>
+                <option value="NLP">NLP</option>
+                <option value="ML">ML</option>
+                <option value="CV">CV</option>
+                <option value="Comunicação">Comunicação</option>
+                <option value="Geral">Geral</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="project-image" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Imagem de capa (URL)</label>
+              <input id="project-image" name="image_url" type="url" autoComplete="url" inputMode="url" spellCheck={false} placeholder="https://exemplo.com/capa.jpg…" value={image_url} onChange={e => setImageUrl(e.target.value)} placeholder="https://exemplo.com/capa.jpg"
+                style={{ width: "100%", height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)" }} />
+              {image_url.trim() && (
+                <div style={{ marginTop: 8, borderRadius: 9, overflow: "hidden", border: "1px solid var(--line-soft)", height: 120 }}>
+                  <img src={image_url} alt="Prévia" width="400" height="120" onError={e => e.currentTarget.style.display = "none"}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+              )}
+            </div>
+            <div>
+              <label htmlFor="project-deadline" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Prazo</label>
+              <input id="project-deadline" name="deadline" autoComplete="off" value={deadline} onChange={e => setDeadline(e.target.value)} placeholder="Dezembro 2025"
                 style={{ width: "100%", height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)" }} />
             </div>
           </div>
@@ -106,7 +133,7 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
               cursor: saving ? "not-allowed" : "pointer",
               fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)"
             }}>
-            <Plus size={18} /> {saving ? "Criando..." : "Criar projeto"}
+            <Plus size={18} aria-hidden="true" /> {saving ? "Criando..." : "Criar projeto"}
           </button>
         </form>
       </div>

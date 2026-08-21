@@ -197,7 +197,7 @@ const s = {
     border: "1px solid var(--line)", borderRadius: 9,
     color: "var(--text)", background: "var(--surface-2)",
     fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13,
-    cursor: "pointer", whiteSpace: "nowrap", transition: "all var(--transition)"
+    cursor: "pointer", whiteSpace: "nowrap", transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), border-color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
   },
   btnPrimary: {
     minHeight: 39, display: "inline-flex", alignItems: "center",
@@ -205,13 +205,13 @@ const s = {
     border: "1px solid var(--ligia-orange-1)", borderRadius: 9,
     color: "#fff", background: "var(--ligia-orange-1)",
     fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 13,
-    cursor: "pointer", whiteSpace: "nowrap", transition: "all var(--transition)"
+    cursor: "pointer", whiteSpace: "nowrap", transition: "transform 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), border-color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 180ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
   },
   iconBtn: {
     width: 35, height: 35, display: "grid", placeItems: "center",
     border: "1px solid var(--line)", borderRadius: 9,
     color: "var(--muted)", background: "var(--surface)",
-    cursor: "pointer", transition: "all var(--transition)"
+    cursor: "pointer", transition: "transform 160ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), background 160ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), border-color 160ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), color 160ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))"
   },
   skills: { display: "flex", flexWrap: "wrap", gap: 6, minHeight: 26 },
   tag: (accent) => ({
@@ -275,6 +275,7 @@ export default function TalentBank() {
   const [formData, setFormData] = useState({
     name: "", email: "", team: "", discipline: "NLP",
     skills: "", affiliation: "", availability: "Disponível",
+    avatar_url: "",
     lattes: "", github: "", linkedin: "", kaggle: "",
     bio: "", researchInterests: ""
   });
@@ -310,7 +311,7 @@ export default function TalentBank() {
     if (person.avatar_url) {
       return (
         <div style={{ position: "relative", width: size, height: size, flex: "0 0 auto", borderRadius: radius, background: "var(--surface-2)", overflow: "hidden", ...style }}>
-          <img src={person.avatar_url} alt={person.name} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={person.avatar_url} alt={person.name} width="46" height="46" loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       );
     }
@@ -342,11 +343,38 @@ export default function TalentBank() {
     }
   }
 
-  function handleAddSubmit(e) {
+  async function handleAddSubmit(e) {
     e.preventDefault();
     const name = formData.name.trim();
+    if (!name) return;
+    const payload = {
+      name,
+      email: formData.email.trim(),
+      team: formData.team.trim(),
+      discipline: formData.discipline,
+      skills: formData.skills.split(",").map(s => s.trim()).filter(Boolean),
+      affiliation: formData.affiliation.trim(),
+      capacity: formData.availability,
+      avatar_url: formData.avatar_url.trim(),
+      bio: formData.bio.trim(),
+      researchInterests: formData.researchInterests.trim(),
+      lattes: formData.lattes.trim(),
+      github: formData.github.trim(),
+      linkedin: formData.linkedin.trim(),
+      kaggle: formData.kaggle.trim(),
+      color: "#b7c2d2",
+      history: [],
+    };
+    try {
+      const created = await createProfile({ id: `mock-${Date.now()}`, ...payload });
+      setPeople(prev => [...prev, created]);
+      showToast(`${name} adicionado como membro`);
+    } catch (err) {
+      showToast("Erro: " + err.message);
+      return;
+    }
+    setFormData({ name: "", email: "", team: "", discipline: "NLP", skills: "", affiliation: "", availability: "Disponível", avatar_url: "", lattes: "", github: "", linkedin: "", kaggle: "", bio: "", researchInterests: "" });
     closeAddModal();
-    showToast(`${name} adicionado como membro`);
   }
 
   function upcomingFor(personId, limit = 4) {
@@ -380,7 +408,7 @@ export default function TalentBank() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
           <button style={s.iconBtn} onClick={() => setTimeout(() => document.getElementById("talentSearch")?.focus(), 300)}>
-            <Search size={16} />
+            <Search size={16} aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -401,20 +429,20 @@ export default function TalentBank() {
 
             <div style={s.toolbar}>
               <div style={s.searchWrap}>
-                <div style={s.searchIcon}><Search size={15} /></div>
-                <input id="talentSearch" type="search" placeholder="Buscar membros, habilidades ou projetos…"
+                <div style={s.searchIcon} aria-hidden="true"><Search size={15} aria-hidden="true" /></div>
+                <input id="talentSearch" type="search" placeholder="Buscar membros, habilidades ou projetos…" aria-label="Buscar membros"
                   value={search} onChange={e => setSearch(e.target.value)} style={s.searchInput} />
               </div>
-              <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={s.select}>
+              <select aria-label="Filtrar por área" value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={s.select}>
                 {roleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <select value={availabilityFilter} onChange={e => setAvailabilityFilter(e.target.value)} style={s.select}>
+              <select aria-label="Filtrar por disponibilidade" value={availabilityFilter} onChange={e => setAvailabilityFilter(e.target.value)} style={s.select}>
                 {availabilityOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               {["visitante", "admin"].includes(currentUser?.role) && (
                 <button onClick={() => { setAtsOpen(true); setAtsResults(null); setAtsJob(""); }}
                   style={{ ...s.btn, marginLeft: "auto" }}>
-                  <Bot size={15} /> Buscar por vaga (ATS)
+                  <Bot size={15} aria-hidden="true" /> Buscar por vaga (ATS)
                 </button>
               )}
               <div style={["visitante", "admin"].includes(currentUser?.role) ? s.viewToggle : { ...s.viewToggle, marginLeft: "auto" }}>
@@ -435,7 +463,7 @@ export default function TalentBank() {
                   <span>Tente ajustar sua busca ou filtros.</span>
                 </div>
               ) : filtered.map(person => (
-                <article key={person.id} onClick={() => openProfile(person)} style={gridMode === "grid" ? s.card : s.cardList}>
+                <button type="button" key={person.id} onClick={() => openProfile(person)} aria-label={`Ver perfil de ${person.name}`} style={{ ...(gridMode === "grid" ? s.card : s.cardList), width: "100%", textAlign: "left" }}>
                   {gridMode === "grid" ? (
                     <>
                       <div style={s.cardHead}>
@@ -444,8 +472,8 @@ export default function TalentBank() {
                           <h3 style={s.personName}>{person.name}</h3>
                           <span style={s.teamTag}>{person.team}</span>
                         </div>
-                        <button onClick={e => { e.stopPropagation(); showToast("Ações do membro disponíveis"); }} style={{ width: 28, height: 28, display: "grid", flex: "0 0 auto", marginLeft: "auto", placeItems: "center", border: 0, borderRadius: 7, color: "var(--muted)", background: "transparent", cursor: "pointer" }}>
-                          <MoreHorizontal size={15} />
+                        <button aria-label="Ações do membro" onClick={e => { e.stopPropagation(); showToast("Ações do membro disponíveis"); }} style={{ width: 28, height: 28, display: "grid", flex: "0 0 auto", marginLeft: "auto", placeItems: "center", border: 0, borderRadius: 7, color: "var(--muted)", background: "transparent", cursor: "pointer" }}>
+                          <MoreHorizontal size={15} aria-hidden="true" />
                         </button>
                       </div>
                       <div style={s.projectLine}>
@@ -527,7 +555,7 @@ export default function TalentBank() {
                       </div>
                     </>
                   )}
-                </article>
+                </button>
               ))}
             </div>
           </section>
@@ -539,7 +567,7 @@ export default function TalentBank() {
           <div style={s.modal} role="dialog" aria-modal="true">
             <div style={s.modalHeader}>
               <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>Perfil do membro</span>
-              <button style={s.iconBtn} onClick={closeProfile}><X size={16} /></button>
+              <button aria-label="Fechar" style={s.iconBtn} onClick={closeProfile}><X size={16} aria-hidden="true" /></button>
             </div>
             <div style={{ padding: 26 }}>
               <div style={{ display: "flex", gap: 18, alignItems: "center", marginBottom: 28 }}>
@@ -736,7 +764,7 @@ export default function TalentBank() {
         <div style={s.smallModal} role="dialog" aria-modal="true">
           <div style={s.modalHeader}>
             <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>Adicionar um membro</span>
-            <button style={s.iconBtn} onClick={closeAddModal}><X size={16} /></button>
+            <button aria-label="Fechar" style={s.iconBtn} onClick={closeAddModal}><X size={16} aria-hidden="true" /></button>
           </div>
           <div style={{ padding: 26 }}>
             <form onSubmit={handleAddSubmit}>
@@ -815,6 +843,18 @@ export default function TalentBank() {
                 </div>
               </div>
               <div style={s.formGroup}>
+                <label style={s.formLabel}>Foto de perfil (URL)</label>
+                <input style={s.field} placeholder="https://exemplo.com/foto.jpg"
+                  value={formData.avatar_url} onChange={e => setFormData({ ...formData, avatar_url: e.target.value })} />
+                {formData.avatar_url.trim() && (
+                  <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                    <img src={formData.avatar_url} alt="Prévia" onError={e => e.currentTarget.style.display = "none"}
+                      style={{ width: 36, height: 36, borderRadius: 9, objectFit: "cover", border: "1px solid var(--line-soft)" }} />
+                    <span style={{ color: "var(--muted-2)", fontSize: 11 }}>Prévia</span>
+                  </div>
+                )}
+              </div>
+              <div style={s.formGroup}>
                 <label style={s.formLabel}>Perfil resumido</label>
                 <textarea style={s.textarea} placeholder="Formação, interesses e foco atual…"
                   value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
@@ -838,7 +878,7 @@ export default function TalentBank() {
             <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>
               <Bot size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Buscador de candidatos (ATS)
             </span>
-            <button style={s.iconBtn} onClick={() => setAtsOpen(false)}><X size={16} /></button>
+            <button aria-label="Fechar" style={s.iconBtn} onClick={() => setAtsOpen(false)}><X size={16} aria-hidden="true" /></button>
           </div>
           <div style={{ padding: 26 }}>
             <form onSubmit={runAts}>

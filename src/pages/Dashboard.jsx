@@ -158,8 +158,9 @@ export default function Dashboard() {
 
       <div style={c.page}>
         {loading ? (
-          <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--muted)", fontSize: 13 }}>
-            Carregando dados...
+          <div style={{ padding: "40px 20px", display: "grid", gap: 12 }}>
+            <div className="skeleton" style={{ height: 120, borderRadius: "var(--radius)" }} />
+            <div className="skeleton" style={{ height: 80, borderRadius: "var(--radius)" }} />
           </div>
         ) : (
         <>
