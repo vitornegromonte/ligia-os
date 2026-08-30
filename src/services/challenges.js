@@ -67,8 +67,7 @@ export async function submitToJudge(slug, code) {
     }
     throw new Error(text || `Judge ${res.status}`);
   } catch (e) {
-    // Fallback Gradio ZeroGPU: POST /gradio_api/call/judge
-    // Gradio 6: POST /gradio_api/call/judge com {data:[task_id, code]}
+    // Fallback Gradio ZeroGPU: POST /gradio_api/call/judge — retorna SSE, não JSON puro
     try {
       const r1 = await fetch(`${base}/gradio_api/call/judge`, {
         method: "POST",
@@ -77,27 +76,49 @@ export async function submitToJudge(slug, code) {
       });
       if (!r1.ok) throw new Error(await r1.text());
       const { event_id } = await r1.json();
-      // Poll por até ~24s (ZeroGPU cold start ~6s + execução)
       for (let i = 0; i < 30; i++) {
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 900));
         const r2 = await fetch(`${base}/gradio_api/call/judge/${event_id}`);
-        if (!r2.ok) continue;
-        const j = await r2.json();
-        if (j.event === "complete" || j.event === "error") {
-          const raw = j.data?.[0];
-          if (!raw) throw new Error("Resposta vazia do juiz");
-          try {
-            const parsed = JSON.parse(raw);
-            return parsed;
-          } catch {
-            // Se não for JSON, retorna como erro
-            return { success: false, passed: 0, total: 0, error: String(raw), tests: [] };
+        const text = await r2.text();
+        // Gradio retorna SSE: "event: complete\ndata: [...]"
+        let event = null;
+        let raw = null;
+        for (const line of text.split("\n")) {
+          if (line.startsWith("event: ")) event = line.slice(7).trim();
+          if (line.startsWith("data: ")) {
+            try { raw = JSON.parse(line.slice(6)); } catch { raw = line.slice(6); }
           }
         }
+        // Caso já venha JSON direto (algumas versões)
+        if (!event) {
+          try {
+            const j = JSON.parse(text);
+            if (j.event) { event = j.event; raw = j.data?.[0] ?? j.data; }
+          } catch {}
+        }
+        if (event === "complete" || event === "error") {
+          const dataStr = Array.isArray(raw) ? raw[0] : raw;
+          if (!dataStr) throw new Error("Resposta vazia do juiz");
+          try {
+            const parsed = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
+            // Trata quota excedida de forma amigável
+            if (!parsed.success && String(parsed.error || "").includes("ZeroGPU")) {
+              throw new Error("ZeroGPU em alta demanda — faça login no HF (https://huggingface.co/login) ou tente em 2min, ou use o Colab ao lado");
+            }
+            return parsed;
+          } catch (parseErr) {
+            if (String(dataStr).includes("ZeroGPU")) throw new Error("ZeroGPU quota excedida — autentique no HF ou aguarde");
+            return { success: false, passed: 0, total: 0, error: String(dataStr), tests: [] };
+          }
+        }
+        if (event === "error" && raw) {
+          const msg = Array.isArray(raw) ? raw[0] : String(raw);
+          if (msg.includes("ZeroGPU")) throw new Error("ZeroGPU quota excedida — faça login no HF");
+          throw new Error(msg);
+        }
       }
-      throw new Error("Timeout aguardando ZeroGPU (tente novamente)");
+      throw new Error("Timeout aguardando ZeroGPU (tente novamente ou use Colab)");
     } catch (gradioErr) {
-      // Se gradio também falhar, propaga erro original
       throw gradioErr.message ? gradioErr : e;
     }
   }
