@@ -1,16 +1,11 @@
-import { useMemo } from "react";
-import { marked } from "marked";
-
-marked.setOptions({
-  breaks: true,
-  gfm: true
-});
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 export default function MarkdownViewer({ content }) {
-  const html = useMemo(() => {
-    if (!content) return "";
-    return marked.parse(content);
-  }, [content]);
+  if (!content) return null;
 
   return (
     <div className="markdown-body" style={{
@@ -38,8 +33,12 @@ export default function MarkdownViewer({ content }) {
         .markdown-body th { background: var(--surface-2); color: var(--text); font-weight: 600; }
         .markdown-body td { color: #d4d1c8; }
         .markdown-body img { max-width: 100%; border-radius: var(--radius-sm); }
+        .markdown-body .katex { font-size: 1.05em; }
+        .markdown-body .katex-display { margin: 14px 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
       `}</style>
-      <div dangerouslySetInnerHTML={{ __html: html }} />
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }

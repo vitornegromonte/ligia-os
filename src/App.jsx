@@ -19,6 +19,8 @@ const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const MyDay = lazy(() => import("./pages/MyDay.jsx"));
 const Agenda = lazy(() => import("./pages/Agenda.jsx"));
 const Notas = lazy(() => import("./pages/Notas.jsx"));
+const Practice = lazy(() => import("./pages/Practice.jsx"));
+const PracticeDetail = lazy(() => import("./pages/PracticeDetail.jsx"));
 
 const fallback = (
   <div style={{
@@ -52,6 +54,8 @@ export default function App() {
             <Route path="/projetos" element={<ProjectManagement />} />
             <Route path="/projetos/:projectId" element={<ProjectView />} />
             <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
+            <Route path="/pratica" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><Practice /></ProtectedRoute>} />
+            <Route path="/pratica/:slug" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><PracticeDetail /></ProtectedRoute>} />
           </Route>
         </Routes>
       </Suspense>

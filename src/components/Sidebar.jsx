@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
-  Sun, CalendarDays, StickyNote, Globe
+  Sun, CalendarDays, StickyNote, Globe, Code2
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ProfileEdit from "./ProfileEdit.jsx";
@@ -30,6 +30,13 @@ const navGroups = [
     label: "Ferramentas",
     items: [
       { to: "/certificados", icon: Award, label: "Certificados" },
+    ]
+  },
+  {
+    label: "Aprender",
+    roles: ["membro", "admin"],
+    items: [
+      { to: "/pratica", icon: Code2, label: "Prática Torch" },
     ]
   },
   {
@@ -75,7 +82,7 @@ export default function Sidebar({ open, onClose }) {
           }}>Ligia&thinsp;<span style={{ color: "var(--muted)", fontWeight: 450 }}>OS</span></div>
         </NavLink>
 
-        {navGroups.map(group => (
+        {navGroups.filter(g => !g.roles || g.roles.includes(profile?.role)).map(group => (
           <div key={group.label}>
             <div className="nav-label" style={{
               padding: "12px 22px 7px", color: "var(--muted-2)",
