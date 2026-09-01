@@ -15,7 +15,6 @@ export default function PracticeDetail() {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState("");
-  const [tab, setTab] = useState("editor"); // editor | hf
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -120,32 +119,35 @@ export default function PracticeDetail() {
       </header>
 
       <div style={{ padding: "20px clamp(20px, 4vw, 52px) 32px" }}>
+        <Link to="/pratica" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--muted)", fontSize: 12, textDecoration: "none" }}>
+          <ArrowLeft size={14} aria-hidden="true" /> Voltar para Prática
+        </Link>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(420px, 0.95fr)", gap: 18, alignItems: "start" }}>
           {/* Esquerda: enunciado */}
           <div style={{ display: "grid", gap: 14 }}>
-            <div style={{ padding: 20, borderRadius: "var(--radius)", border: "1px solid var(--line-soft)", background: "var(--surface)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 9, background: "var(--accent-soft)", color: "var(--accent)" }}>
-                  <FlaskConical size={18} aria-hidden="true" />
+            <div style={{ borderRadius: "var(--radius)", border: "1px solid var(--line-soft)", background: "var(--surface)", overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: "1px solid var(--line-soft)", background: "#252526" }}>
+                <div style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 8, background: "var(--accent-soft)", color: "var(--accent)" }}>
+                  <FlaskConical size={14} aria-hidden="true" />
                 </div>
                 <div>
-                  <h1 style={{ margin: 0, fontSize: 16, fontWeight: 650, lineHeight: 1.2 }}>{task.title}</h1>
-                  <code style={{ fontSize: 11, color: "var(--accent)" }}>{task.function_name}</code>
+                  <h1 style={{ margin: 0, fontSize: 13, fontWeight: 650, lineHeight: 1.2 }}>{task.title}</h1>
+                  <code style={{ fontSize: 10, color: "var(--accent)" }}>{task.function_name}</code>
                 </div>
               </div>
-              <div style={{ marginTop: 4 }}>
+              <div style={{ padding: 16 }}>
                 <MarkdownViewer content={task.description || "Sem descrição — verifique o Hugging Face."} />
+                {task.hint && (
+                  <details style={{ marginTop: 14, padding: 12, borderRadius: 9, background: "var(--surface-2)", border: "1px solid var(--line-soft)" }}>
+                    <summary style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                      <Lightbulb size={14} color="var(--accent)" aria-hidden="true" /> Dica
+                    </summary>
+                    <div style={{ margin: "10px 0 0" }}>
+                      <MarkdownViewer content={task.hint} />
+                    </div>
+                  </details>
+                )}
               </div>
-              {task.hint && (
-                <details style={{ marginTop: 12, padding: 12, borderRadius: 9, background: "var(--surface-2)", border: "1px solid var(--line-soft)" }}>
-                  <summary style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <Lightbulb size={14} color="var(--accent)" aria-hidden="true" /> Dica
-                  </summary>
-                  <div style={{ margin: "10px 0 0" }}>
-                    <MarkdownViewer content={task.hint} />
-                  </div>
-                </details>
-              )}
             </div>
 
             {history.length > 0 && (
@@ -167,72 +169,57 @@ export default function PracticeDetail() {
             )}
           </div>
 
-          {/* Direita: editor + juiz */}
+          {/* Direita: editor */}
           <div style={{ position: "sticky", top: 78, display: "grid", gap: 12 }}>
-            <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 9999, background: "var(--surface-2)", border: "1px solid var(--line-soft)", width: "fit-content" }}>
-              <button onClick={() => setTab("editor")} style={{ padding: "6px 14px", borderRadius: 9999, border: 0, cursor: "pointer", fontSize: 11, fontWeight: 600, background: tab === "editor" ? "var(--accent)" : "transparent", color: tab === "editor" ? "#fff" : "var(--muted)" }}>Editor</button>
-              <button onClick={() => setTab("hf")} style={{ padding: "6px 14px", borderRadius: 9999, border: 0, cursor: "pointer", fontSize: 11, fontWeight: 600, background: tab === "hf" ? "var(--accent)" : "transparent", color: tab === "hf" ? "#fff" : "var(--muted)" }}>HF Space</button>
-            </div>
-
-            {tab === "editor" ? (
-              <div style={{ borderRadius: "var(--radius)", overflow: "hidden", border: "1px solid var(--line-soft)", background: "#1e1e1e" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderBottom: "1px solid #2d2d2d", background: "#252526" }}>
-                  <span style={{ fontSize: 11, color: "#cccccc", flex: 1 }}>{task.slug}.py</span>
-                  <button onClick={copyCode} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, border: "1px solid #3c3c3c", background: "#2d2d2d", color: "#cccccc", fontSize: 11, cursor: "pointer" }}>
-                    {copied ? <Check size={12} color="#6da87c" /> : <Copy size={12} />} Copiar
-                  </button>
-                  <button onClick={handleReset} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, border: "1px solid var(--line)", background: "transparent", color: "var(--muted)", fontSize: 11, cursor: "pointer" }}>
-                    <RotateCcw size={12} /> Reset
-                  </button>
-                  <button onClick={handleRun} disabled={isSubmitting} style={{
-                    display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: 0,
-                    background: isSubmitting ? "var(--muted-2)" : "var(--accent)", color: "#fff", fontSize: 12, fontWeight: 600, cursor: isSubmitting ? "not-allowed" : "pointer"
-                  }}>
-                    <Play size={14} aria-hidden="true" /> {isSubmitting ? "Executando…" : "Run Tests"}
-                  </button>
-                </div>
-                <Editor
-                  height="min(56vh, 420px)"
-                  language="python"
-                  value={code}
-                  onChange={v => setCode(v || "")}
-                  theme="vs-dark"
-                  options={{ fontSize: 12, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 12, bottom: 12 }, fontFamily: "JetBrains Mono, monospace" }}
-                />
-                {result && (
-                  <div style={{ padding: 12, borderTop: "1px solid #2d2d2d", background: "#1e1e1e", maxHeight: 220, overflowY: "auto" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: result.success ? "#6da87c" : "#c76b60" }}>
-                        {result.success ? "✅ Accepted" : "❌ Wrong Answer"} — {result.passed}/{result.total} em {Math.round(result.total_time_ms || 0)}ms
-                      </span>
-                      {result.stdout && <span style={{ fontSize: 10, color: "var(--muted-2)" }}>stdout abaixo</span>}
-                    </div>
-                    {(result.tests || []).map((t, i) => (
-                      <div key={i} style={{ padding: "8px 10px", marginBottom: 6, borderRadius: 8, background: t.passed ? "rgba(109,168,124,.10)" : "rgba(199,107,96,.10)", border: `1px solid ${t.passed ? "rgba(109,168,124,.2)" : "rgba(199,107,96,.2)"}` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600, color: t.passed ? "#6da87c" : "#c76b60" }}>
-                          {t.passed ? "✓" : "✗"} {t.name} <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--muted-2)" }}>{Math.round(t.time_ms || 0)}ms</span>
-                        </div>
-                        {!t.passed && t.error_msg && <pre style={{ margin: "6px 0 0", fontSize: 10, color: "#e0b4b4", whiteSpace: "pre-wrap" }}>{t.error_msg}</pre>}
-                        {t.stdout && <pre style={{ margin: "6px 0 0", fontSize: 10, color: "#a0a0a0", whiteSpace: "pre-wrap" }}>{t.stdout}</pre>}
-                      </div>
-                    ))}
-                    {result.error && <pre style={{ fontSize: 11, color: "#c76b60", whiteSpace: "pre-wrap" }}>{result.error}</pre>}
-                    {result.stderr && <pre style={{ fontSize: 10, color: "#a0a0a0", whiteSpace: "pre-wrap" }}>{result.stderr}</pre>}
+            <div style={{ borderRadius: "var(--radius)", overflow: "hidden", border: "1px solid var(--line-soft)", background: "#1e1e1e" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderBottom: "1px solid #2d2d2d", background: "#252526" }}>
+                <span style={{ fontSize: 11, color: "#cccccc", flex: 1 }}>{task.slug}.py</span>
+                <button onClick={copyCode} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, border: "1px solid #3c3c3c", background: "#2d2d2d", color: "#cccccc", fontSize: 11, cursor: "pointer" }}>
+                  {copied ? <Check size={12} color="#6da87c" /> : <Copy size={12} />} Copiar
+                </button>
+                <button onClick={handleReset} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, border: "1px solid var(--line)", background: "transparent", color: "var(--muted)", fontSize: 11, cursor: "pointer" }}>
+                  <RotateCcw size={12} /> Reset
+                </button>
+                <button onClick={handleRun} disabled={isSubmitting} style={{
+                  display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: 0,
+                  background: isSubmitting ? "var(--muted-2)" : "var(--accent)", color: "#fff", fontSize: 12, fontWeight: 600, cursor: isSubmitting ? "not-allowed" : "pointer"
+                }}>
+                  <Play size={14} aria-hidden="true" /> {isSubmitting ? "Executando…" : "Run Tests"}
+                </button>
+              </div>
+              <Editor
+                height="min(56vh, 420px)"
+                language="python"
+                value={code}
+                onChange={v => setCode(v || "")}
+                theme="vs-dark"
+                options={{ fontSize: 12, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 12, bottom: 12 }, fontFamily: "JetBrains Mono, monospace" }}
+              />
+              {result && (
+                <div style={{ padding: 12, borderTop: "1px solid #2d2d2d", background: "#1e1e1e", maxHeight: 220, overflowY: "auto" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: result.success ? "#6da87c" : "#c76b60" }}>
+                      {result.success ? "✅ Accepted" : "❌ Wrong Answer"} — {result.passed}/{result.total} em {Math.round(result.total_time_ms || 0)}ms
+                    </span>
+                    {result.stdout && <span style={{ fontSize: 10, color: "var(--muted-2)" }}>stdout abaixo</span>}
                   </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ borderRadius: "var(--radius)", overflow: "hidden", border: "1px solid var(--line-soft)", background: "#1e1e1e", height: "min(72vh, 720px)" }}>
-                <iframe title={`TorchCode - ${task.title}`} src={HF_URL} style={{ width: "100%", height: "100%", border: 0, background: "#1e1e1e" }} allow="clipboard-read; clipboard-write; cross-origin-isolated" loading="lazy" referrerPolicy="no-referrer" />
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href={colabUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9, background: "#F9AB00", color: "#202124", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
-                <img src="https://colab.research.google.com/img/colab_favicon_256px.png" alt="" width="14" height="14" /> Abrir no Colab
-              </a>
-              <span style={{ fontSize: 10, color: "var(--muted-2)", alignSelf: "center" }}>ou HF Space ao lado</span>
+                  {(result.tests || []).map((t, i) => (
+                    <div key={i} style={{ padding: "8px 10px", marginBottom: 6, borderRadius: 8, background: t.passed ? "rgba(109,168,124,.10)" : "rgba(199,107,96,.10)", border: `1px solid ${t.passed ? "rgba(109,168,124,.2)" : "rgba(199,107,96,.2)"}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600, color: t.passed ? "#6da87c" : "#c76b60" }}>
+                        {t.passed ? "✓" : "✗"} {t.name} <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--muted-2)" }}>{Math.round(t.time_ms || 0)}ms</span>
+                      </div>
+                      {!t.passed && t.error_msg && <pre style={{ margin: "6px 0 0", fontSize: 10, color: "#e0b4b4", whiteSpace: "pre-wrap" }}>{t.error_msg}</pre>}
+                      {t.stdout && <pre style={{ margin: "6px 0 0", fontSize: 10, color: "#a0a0a0", whiteSpace: "pre-wrap" }}>{t.stdout}</pre>}
+                    </div>
+                  ))}
+                  {result.error && <pre style={{ fontSize: 11, color: "#c76b60", whiteSpace: "pre-wrap" }}>{result.error}</pre>}
+                  {result.stderr && <pre style={{ fontSize: 10, color: "#a0a0a0", whiteSpace: "pre-wrap" }}>{result.stderr}</pre>}
+                </div>
+              )}
             </div>
+            <a href={colabUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9, background: "#F9AB00", color: "#202124", fontSize: 11, fontWeight: 600, textDecoration: "none", width: "fit-content" }}>
+              <img src="https://colab.research.google.com/img/colab_favicon_256px.png" alt="" width="14" height="14" /> Abrir no Colab
+            </a>
           </div>
         </div>
 
