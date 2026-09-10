@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import QuestionCard from "@/components/pretest/QuestionCard";
-import type { OpcaoRenderizavel } from "@/components/pretest/QuestionCard";
+import QuestionCard from "@/aprender/QuestionCard";
+import type { OpcaoRenderizavel } from "@/aprender/QuestionCard";
 
 /**
  * Mecanismo de opção exclusiva no QuestionCard (pergunta multi):

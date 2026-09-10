@@ -81,6 +81,14 @@ describe("praticas — consultas", () => {
     }
   });
 
+  it("dentro da mesma dificuldade, mantém a ordem autorada", () => {
+    // As sete tarefas de multi-head-attention são Medium/Hard, e a lista em
+    // praticas.json começa em `mha` de propósito. Desempate alfabético
+    // colocaria flash_attention na frente.
+    const hard = tarefasDoConceito("multi-head-attention").filter((t) => t.difficulty === "Hard");
+    expect(hard[0].slug).toBe("mha");
+  });
+
   it("a porta de entrada de pytorch começa no Easy", () => {
     const ts = tarefasDoConceito("pytorch");
     expect(ts.length).toBeGreaterThan(0);

@@ -23,14 +23,17 @@ export type TopbarProps = {
  * convenção é cumprida por construção.
  */
 export function Topbar({ crumb, actions }: TopbarProps) {
-  const { setMenuOpen } = useOutletContext<ShellContext>();
+  // Fora de um <Outlet> o contexto é null. Destructuring direto quebraria a
+  // página inteira — e uma barra sem hambúrguer funcional é degradação
+  // aceitável, tela branca não é.
+  const shell = useOutletContext<ShellContext | null>();
 
   return (
     <header className="lg-topbar">
       <button
         type="button"
         className="mobile-menu"
-        onClick={() => setMenuOpen(true)}
+        onClick={() => shell?.setMenuOpen?.(true)}
         aria-label="Abrir navegação"
       >
         <Menu size={20} aria-hidden />

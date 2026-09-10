@@ -174,3 +174,80 @@ PostgreSQL (`libpg-query`), e `test/migrations.test.ts` trava os invariantes
 de segurança (nada em `auth.users`, FK correta, RLS em todas, views com
 `security_invoker`). O que **não** dá para verificar sem o dump: se as colunas
 e funções referenciadas existem.
+
+## Fase 3 — a trilha dentro do ligia-os
+
+Rotas novas, todas dentro do `Layout` e **sem gate de papel**:
+
+| Rota | Página |
+|---|---|
+| `/aprender` | Trilha — skill tree, progresso, banner do nivelamento |
+| `/aprender/nivelamento` | Wizard + resultado (matriz, estrelas, dispensa) |
+| `/aprender/c/:conceptId` | **Hub da lição** |
+| `/aprender/styleguide` | Referência viva do design system |
+
+O grupo "Aprender" da sidebar perdeu o `roles: ["membro","admin"]` e ganhou o
+item "Trilha".
+
+### O hub da lição
+
+É o centro da integração. Numa tela só: cabeçalho com módulo e estado,
+pré-requisitos pendentes como links, **a aula embutida** (vídeo + markdown),
+os materiais, a prática de recuperação e as tarefas de código mapeadas com
+estado resolvido. O aluno não sai do sistema para praticar.
+
+**O `SidePanel` foi descartado** (269 linhas). Ele era um preview lateral do
+conceito; o hub faz tudo o que ele fazia e mais. Manter os dois seria duas
+telas para a mesma coisa.
+
+**A conclusão continua sendo declaração do aluno.** É sobre ela que o modelo
+de pré-requisito e desbloqueio inteiro é construído, e marcar automaticamente
+seria paternalista. O que a evidência (loop dominado + código resolvido) muda
+é o convite, não a permissão.
+
+### Correções
+
+**O shell tinha um terceiro bug, e é do ligia-os.** `.app-shell` era um grid
+de duas colunas, mas `.sidebar` é `position: fixed` — está fora de fluxo e
+**não ocupa** a coluna reservada. Quem a ocupava era o primeiro filho em fluxo
+da página. Medido na `Notas` do próprio repo: o `<header>` sticky renderizava
+com **244px de largura, escondido atrás da sidebar**. As páginas só não
+pareciam quebradas porque devolvem um fragmento, e o corpo caía na segunda
+coluna por acidente. Uma página com wrapper único — como as nossas — tinha o
+conteúdo inteiro espremido nos 244px.
+
+O deslocamento virou `padding-left: var(--sidebar-width)`. Agora qualquer
+estrutura de página se posiciona certo, e os topbars do Vitor aparecem.
+
+Outras duas:
+
+- `MODULE_HEX` era o terceiro lugar onde as cores de módulo viviam. Agora há
+  `corDoModulo()`, que devolve `var(--mN)` — um lugar só.
+- O `<style>` de `MarkdownViewer` era reinjetado a cada instância montada.
+  Virou `src/styles/markdown.css`.
+
+### Eventos
+
+`node_status_changed` e `loop_completed` estavam declarados em `lib/events.ts`
+desde o início e **nunca eram emitidos** — daí o export do aluno reportar
+`at: null` em toda linha de progresso. Agora saem de `setNodeStatus` e
+`saveLoopResult`. Nunca de `replaceLoopResults`, que aplica merge e
+inventaria prática que não aconteceu.
+
+### Ordenação das tarefas de código
+
+Descoberto na verificação visual: dentro da mesma dificuldade a ordem era
+alfabética, então `flash_attention` vinha antes de `mha` — exatamente o que a
+ordenação existia para evitar. A ordem escrita em `praticas.json` é intenção
+didática, e `sort` é estável desde ES2019, então basta comparar dificuldade.
+
+### Verificação
+
+345 testes em 31 arquivos. A verificação visual da área autenticada usou um
+harness temporário (`preview.html` + `src/preview.jsx`, já removidos) que
+montava as páginas sem `ProtectedRoute` — não temos sessão do Supabase para
+navegar o app de verdade.
+
+Confirmado no browser: estado ativo da sidebar visível, drawer mobile abrindo
+e fechando, topbar em largura cheia, trilha com os 29 conceitos e estados
+derivados, hub com as sete tarefas de `multi-head-attention` na ordem certa.

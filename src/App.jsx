@@ -22,6 +22,9 @@ const Notas = lazy(() => import("./pages/Notas.jsx"));
 const Practice = lazy(() => import("./pages/Practice.jsx"));
 const PracticeDetail = lazy(() => import("./pages/PracticeDetail.jsx"));
 const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
+const Trilha = lazy(() => import("./aprender/Trilha.jsx"));
+const Nivelamento = lazy(() => import("./aprender/Nivelamento.jsx"));
+const Licao = lazy(() => import("./aprender/Licao.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 const fallback = (
@@ -58,6 +61,11 @@ export default function App() {
             <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
             <Route path="/pratica" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><Practice /></ProtectedRoute>} />
             <Route path="/pratica/:slug" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><PracticeDetail /></ProtectedRoute>} />
+            {/* Área de aprendizado: acesso geral. Qualquer papel entra —
+                visitante, membro ou admin —, porque estudar não é privilégio. */}
+            <Route path="/aprender" element={<Trilha />} />
+            <Route path="/aprender/nivelamento" element={<Nivelamento />} />
+            <Route path="/aprender/c/:conceptId" element={<Licao />} />
             <Route path="/aprender/styleguide" element={<Styleguide />} />
             {/* Catch-all: antes um endereço desconhecido renderizava tela em branco. */}
             <Route path="*" element={<NotFound />} />

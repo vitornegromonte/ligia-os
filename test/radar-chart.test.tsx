@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { RadarChart } from "@/components/ui/RadarChart";
+import { RadarChart } from "@/ui/RadarChart";
 
 /** 6 eixos genéricos — prova que o componente não depende das 5 dimensões da matriz. */
 const AXES = [

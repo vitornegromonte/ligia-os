@@ -23,6 +23,17 @@ describe("shell.css — regressões que já custaram caro", () => {
     expect(shell).toMatch(/\.sidebar\.is-open\s*\{\s*transform:\s*translateX\(0\)/);
   });
 
+  it("desloca o conteúdo por padding, não por coluna de grid", () => {
+    // A sidebar é `position: fixed` e portanto NÃO ocupa a coluna que o grid
+    // reservava — quem a ocupava era o primeiro filho em fluxo da página.
+    // Nas páginas existentes isso espremia o <header> sticky em 244px,
+    // escondido atrás da própria sidebar; numa página com wrapper único, o
+    // conteúdo INTEIRO ia para lá.
+    const regra = shell.match(/\.app-shell\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(regra).toContain("padding-left: var(--sidebar-width)");
+    expect(regra).not.toContain("grid-template-columns");
+  });
+
   it("não usa !important no transform da sidebar", () => {
     // A regra original era `transform: translateX(-100%) !important`, que
     // vencia o translateX(0) inline aplicado ao abrir — o hambúrguer pintava

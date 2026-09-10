@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar.jsx";
+import SyncEstado from "../aprender/SyncEstado.tsx";
 import Toast from "./Toast.jsx";
 import SearchModal from "./SearchModal.jsx";
 import { toastState } from "../utils/toast.js";
@@ -33,6 +34,8 @@ export default function Layout() {
 
   return (
     <div className="app-shell">
+      {/* Sincroniza o estado da trilha com o Postgres. Não renderiza nada. */}
+      <SyncEstado />
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <Outlet context={{ menuOpen, setMenuOpen }} />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

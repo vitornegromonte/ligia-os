@@ -102,18 +102,23 @@ export function lacunas(
   };
 }
 
-/** Tarefas de um conceito, já ordenadas por dificuldade crescente. */
+/**
+ * Tarefas de um conceito, ordenadas por dificuldade crescente.
+ *
+ * Dentro da mesma dificuldade vale a ordem escrita em praticas.json, que é
+ * intenção didática: em `multi-head-attention` as sete tarefas são quase
+ * todas Hard, e a lista começa em `mha` de propósito. Desempatar por título
+ * jogaria `flash_attention` na frente — exatamente o que a ordenação existe
+ * para evitar. `Array.prototype.sort` é estável desde ES2019, então basta
+ * comparar a dificuldade.
+ */
 export function tarefasDoConceito(conceptId: string): TarefaCodigo[] {
   const entrada = PRATICAS.mapeamento[conceptId];
   if (!entrada) return [];
   return entrada.tasks
     .map((slug) => PORSLUG.get(slug))
     .filter((t): t is TarefaCodigo => t !== undefined)
-    .sort(
-      (a, b) =>
-        PESO_DIFICULDADE[a.difficulty] - PESO_DIFICULDADE[b.difficulty] ||
-        a.title.localeCompare(b.title),
-    );
+    .sort((a, b) => PESO_DIFICULDADE[a.difficulty] - PESO_DIFICULDADE[b.difficulty]);
 }
 
 /** Conceitos que praticam uma tarefa — uma task pode servir a mais de um. */

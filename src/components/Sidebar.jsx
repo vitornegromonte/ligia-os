@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
-  Sun, CalendarDays, StickyNote, Globe, Code2
+  Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ProfileEdit from "./ProfileEdit.jsx";
@@ -33,9 +33,10 @@ const navGroups = [
     ]
   },
   {
+    // Sem `roles`: a área de aprendizado é aberta a todos os papéis.
     label: "Aprender",
-    roles: ["membro", "admin"],
     items: [
+      { to: "/aprender", icon: Waypoints, label: "Trilha" },
       { to: "/pratica", icon: Code2, label: "Prática Torch" },
     ]
   },

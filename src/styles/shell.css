@@ -8,10 +8,17 @@
    inline não consegue expressar :hover, :focus-visible nem media query.
    ============================================================= */
 
+/* O deslocamento da sidebar é PADDING, não coluna de grid.
+   Antes era `grid-template-columns: var(--sidebar-width) minmax(0,1fr)`. Mas
+   `.sidebar` é `position: fixed`, logo está fora de fluxo e NÃO ocupa a
+   primeira coluna — quem ocupava era o primeiro filho em fluxo da página.
+   Nas páginas existentes esse filho é o `<header>` sticky, que por isso
+   renderizava com 244px, escondido atrás da própria sidebar. Uma página que
+   devolvesse um único wrapper teria o conteúdo INTEIRO espremido nesses
+   244px. Com padding, qualquer estrutura de página se posiciona certo. */
 .app-shell {
-  display: grid;
-  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
+  padding-left: var(--sidebar-width);
 }
 
 .sidebar {
@@ -106,7 +113,7 @@
 }
 
 @media (max-width: 900px) {
-  .app-shell { display: block; }
+  .app-shell { padding-left: 0; }
 
   /* CORREÇÃO: antes era `transform: translateX(-100%) !important`, que vencia
      o `translateX(0)` inline (sem !important) aplicado pelo Sidebar quando

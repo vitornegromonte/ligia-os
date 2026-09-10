@@ -1,4 +1,5 @@
 import type { UserStatus, UserState } from "./status";
+import { logEvent } from "./events";
 
 /**
  * Persistência do progresso por membro. Na F3 (sem auth) é localStorage anônimo;
@@ -29,8 +30,14 @@ export function setNodeStatus(
   value: UserState | null,
 ): UserStatus {
   const next = { ...prev };
+  const anterior = prev[id] ?? null;
   if (value == null) delete next[id];
   else next[id] = value;
   saveUserStatus(next);
+  // O tipo `node_status_changed` existia em lib/events.ts desde o início e
+  // nunca era emitido — por isso o export de progresso reportava `at: null`.
+  if (anterior !== value) {
+    logEvent("node_status_changed", id, { de: anterior, para: value });
+  }
   return next;
 }

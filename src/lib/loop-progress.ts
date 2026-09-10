@@ -4,6 +4,8 @@
  * "fez/não fez") pra "concluído" significar aprendizagem — e habilitar a futura
  * revisão espaçada. Espelha o padrão de lib/progress.ts.
  */
+import { logEvent } from "./events";
+
 const STORAGE_KEY = "ligia-loop:results:v1";
 
 export type LoopResult = {
@@ -50,6 +52,15 @@ export function saveLoopResult(conceptId: string, score: LoopScore, total: numbe
     total,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  // Mesmo caso de node_status_changed: o tipo existia e nunca era emitido.
+  // Só é registrado aqui, na conclusão explícita — nunca em replaceLoopResults,
+  // que aplica um merge e inventaria prática que não aconteceu.
+  logEvent("loop_completed", conceptId, {
+    dominio: dominou ? "dominado" : "praticado",
+    streak,
+    ...score,
+    total,
+  });
 }
 
 /**
