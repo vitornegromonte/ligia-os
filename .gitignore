@@ -34,7 +34,10 @@ pnpm-debug.log*
 *.sln
 *.swp
 
-*.sql
+# SQL: o schema é versionado em supabase/migrations e supabase/seed.
+# Só dumps locais e ad-hoc ficam de fora.
+/supabase/dumps/
+*.local.sql
 
 # Operating System files
 .DS_Store

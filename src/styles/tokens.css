@@ -1,0 +1,96 @@
+/* =============================================================
+   Tokens — fonte única de verdade do design system da Ligia.
+
+   Regras que este arquivo obedece (ver style.md):
+   - Só `--ligia-orange-1`, `--ligia-orange-2` e o gradiente são OFICIAIS.
+     Os hex são fixos e não se reinterpretam.
+   - Neutros são cinzas quentes, nunca azulados.
+   - Semânticas são dessaturadas de propósito: o laranja precisa continuar
+     sendo a cor mais saturada da tela.
+   ============================================================= */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Marca (oficial, não alterar) --- */
+  --ligia-orange-1: #FF4B1F;
+  --ligia-orange-2: #FF9068;
+  --ligia-gradient: linear-gradient(135deg, #FF4B1F, #FF9068);
+
+  /* --- Tipografia --- */
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Sora', sans-serif;
+  /* Antes existia em dois lugares divergentes: 'SF Mono' no Notas e
+     'JetBrains Mono' no editor Monaco. Agora é uma stack só. */
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* --- Neutros --- */
+  --bg: #0f0e0c;
+  --sidebar: #14120e;
+  --surface: #181512;
+  --surface-2: #1f1b16;
+  --surface-3: #272119;
+  --line: #373025;
+  --line-soft: #2c261f;
+  --hairline: #3a3329;
+  --text: #f2ede1;
+  --muted: #a89b8a;
+  --muted-2: #7c7162;
+  --muted-3: #5c5447;
+
+  /* Translúcidos: antes eram literais rgba() repetidos em ~10 arquivos,
+     gêmeos dos neutros acima e livres para divergir deles. */
+  --bg-translucent: rgba(15, 14, 12, .82);
+  --sidebar-translucent: rgba(20, 18, 14, .92);
+  --line-translucent: rgba(55, 48, 37, .72);
+  --overlay: rgba(5, 5, 4, .72);
+
+  /* --- Acento --- */
+  --accent: var(--ligia-orange-1);
+  --accent-hover: var(--ligia-orange-2);
+  --accent-soft: rgba(255, 75, 31, 0.12);
+  --accent-border: rgba(255, 75, 31, 0.32);
+
+  /* --- Semânticas (dessaturadas por contrato) --- */
+  --success: #6da87c;
+  --info: #6b8eb3;
+  --warning: #c4a358;
+  --danger: #c76b60;
+
+  --success-soft: rgba(109, 168, 124, .14);
+  --info-soft: rgba(107, 142, 179, .14);
+  --warning-soft: rgba(196, 163, 88, .14);
+  --danger-soft: rgba(199, 107, 96, .12);
+  --danger-border: rgba(199, 107, 96, .25);
+
+  /* Aliases legados: as páginas antigas usam --green/--blue/--yellow.
+     Mantidos para não quebrar nada; código novo usa as semânticas acima. */
+  --green: var(--success);
+  --blue: var(--info);
+  --yellow: var(--warning);
+
+  /* Revisão pendente (agendamento Leitner da trilha). */
+  --review: #a8842f;
+  --review-bg: #3a3320;
+
+  /* --- Módulos da trilha (M0..M5) ---
+     Codificação categórica, não acento de marca. Na plataforma antiga eram
+     seis hues vivos (#8b5cf6, #2563eb, #0891b2, #059669, #d97706, #dc2626);
+     foram retonados para o mesmo registro quente e dessaturado das
+     semânticas, porque seis acentos saturados competiriam com o laranja —
+     exatamente o que style.md §4.2 proíbe. */
+  --m0: #9d84ab; /* mauve     — Math Refresher   */
+  --m1: #6b8eb3; /* azul      — ML Clássico      */
+  --m2: #5f9ea0; /* teal      — DL Básico        */
+  --m3: #6da87c; /* verde     — DL Aplicado      */
+  --m4: #c4a358; /* âmbar     — Transformers     */
+  --m5: #c76b60; /* terracota — Capstone         */
+
+  /* --- Forma e movimento --- */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 20px 60px rgba(0, 0, 0, .18);
+  --sidebar-width: 244px;
+  --transition: 180ms ease;
+}

@@ -53,27 +53,10 @@ export default function Sidebar({ open, onClose }) {
   return (
     <>
       <ProfileEdit open={profileEditOpen} onClose={() => setProfileEditOpen(false)} />
-      {open && <div className="mobile-overlay" onClick={onClose} style={{
-        position: "fixed", inset: 0, zIndex: 35,
-        background: "rgba(0,0,0,.55)",
-        overscrollBehavior: "contain"
-      }} />}
-      <aside aria-label="Navegação principal" className="sidebar" style={{
-        position: "fixed", inset: "0 auto 0 0", zIndex: 40,
-        width: "var(--sidebar-width)", display: "flex",
-        flexDirection: "column",
-        borderRight: "1px solid var(--line-soft)",
-        background: "rgba(20,18,14,.92)",
-        backdropFilter: "blur(18px)",
-        overscrollBehavior: "contain",
-        transform: open ? "translateX(0)" : undefined,
-        transition: "transform .25s ease"
-      }}>
+      {open && <div className="mobile-overlay" onClick={onClose} />}
+      <aside aria-label="Navegação principal" className={`sidebar${open ? " is-open" : ""}`}>
         <div className="gradient-bar" style={{ width: "100%", height: 2, flex: "0 0 auto" }} />
-        <NavLink to="/dashboard" className="brand" style={{
-          display: "flex", alignItems: "center", gap: 12,
-          height: 78, padding: "0 22px", textDecoration: "none", color: "inherit"
-        }}>
+        <NavLink to="/dashboard" className="brand">
           <img src="/media/logo.svg" alt="Ligia" width="32" height="32"
             style={{ height: 32, width: "auto", flex: "0 0 auto" }} />
           <div style={{
@@ -84,24 +67,12 @@ export default function Sidebar({ open, onClose }) {
 
         {navGroups.filter(g => !g.roles || g.roles.includes(profile?.role)).map(group => (
           <div key={group.label}>
-            <div className="nav-label" style={{
-              padding: "12px 22px 7px", color: "var(--muted-2)",
-              fontSize: 10, fontWeight: 700, letterSpacing: ".12em",
-              textTransform: "uppercase", fontFamily: "var(--font-body)"
-            }}>{group.label}</div>
-            <nav className="nav" style={{ padding: "0 10px" }}>
+            <div className="nav-label">{group.label}</div>
+            <nav className="nav">
               {group.items.map(item => (
                 <NavLink key={item.to} to={item.to} end={item.to === "/"}
                   onClick={onClose}
-                  className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: 11,
-                    margin: "2px 0", padding: "10px 12px", border: 0,
-                    borderRadius: 9, background: "transparent", cursor: "pointer",
-                    textAlign: "left", fontFamily: "var(--font-body)",
-                    textDecoration: "none", color: "var(--muted)",
-                    transition: "color var(--transition), background var(--transition)"
-                  }}>
+                  className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
                   {item.label}
                 </NavLink>

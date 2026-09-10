@@ -32,11 +32,7 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="app-shell" style={{
-      display: "grid",
-      gridTemplateColumns: "var(--sidebar-width) minmax(0, 1fr)",
-      minHeight: "100vh"
-    }}>
+    <div className="app-shell">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <Outlet context={{ menuOpen, setMenuOpen }} />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

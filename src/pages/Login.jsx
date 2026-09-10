@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // ProtectedRoute guarda em state.from a página que o usuário tentou abrir.
+  const destino = location.state?.from?.pathname || "/inicio";
   const { signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +21,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await signIn(email, password);
-      navigate("/inicio");
+      navigate(destino, { replace: true });
     } catch (err) {
       setError(err.message === "Invalid login credentials"
         ? "Email ou senha inválidos."

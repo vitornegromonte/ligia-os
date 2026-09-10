@@ -234,13 +234,4 @@ export default function PracticeDetail() {
       `}</style>
     </>
   );
-
-  async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      showToast("Código copiado");
-      setTimeout(() => setCopied(false), 1500);
-    } catch { showToast("Copie manualmente"); }
-  }
 }

@@ -1,0 +1,237 @@
+/* =============================================================
+   Primitivas de UI (.lg-*).
+
+   Codificam os padrões que já existiam repetidos por inline style em ~17
+   páginas — botão primário, iconBtn, input, card, modal, topbar, empty
+   state. Os valores vêm dessas páginas, então o pixel não muda: o que muda
+   é haver um lugar só para mudá-lo, e :hover/:focus passarem a existir.
+   ============================================================= */
+
+/* ---------- Button ---------- */
+.lg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+}
+.lg-btn--md { height: 42px; padding: 0 18px; font-size: 14px; }
+.lg-btn--sm { height: 36px; padding: 0 14px; font-size: 12px; }
+
+.lg-btn--primary { background: var(--accent); color: #fff; }
+.lg-btn--primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+.lg-btn--secondary { background: transparent; border-color: var(--line); color: var(--muted); }
+.lg-btn--secondary:hover:not(:disabled) { border-color: var(--accent-border); color: var(--text); }
+
+.lg-btn--ghost { background: transparent; color: var(--muted); }
+.lg-btn--ghost:hover:not(:disabled) { background: rgba(255,255,255,.04); color: var(--text); }
+
+.lg-btn--danger { background: var(--danger); color: #fff; }
+.lg-btn--danger:hover:not(:disabled) { filter: brightness(1.08); }
+
+.lg-btn:disabled, .lg-btn[aria-disabled="true"] {
+  background: var(--muted-3);
+  border-color: transparent;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.lg-btn--secondary:disabled, .lg-btn--ghost:disabled {
+  background: transparent;
+  color: var(--muted-3);
+}
+
+/* ---------- IconButton ---------- */
+.lg-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.lg-icon-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent-border); }
+.lg-icon-btn--bare { width: 32px; height: 32px; border: 0; background: none; }
+.lg-icon-btn:disabled { color: var(--muted-3); cursor: not-allowed; }
+
+/* ---------- Card ---------- */
+.lg-card {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.lg-card--md { padding: 22px; }
+.lg-card--sm { padding: 16px; }
+.lg-card--interactive {
+  cursor: pointer;
+  transition: border-color var(--transition), transform var(--transition);
+}
+/* Este hover existia como `transition` declarada em Practice.jsx sem
+   nenhuma regra que o disparasse. Agora dispara. */
+.lg-card--interactive:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+.lg-card--interactive:focus-visible { outline: 2px solid var(--accent-border); outline-offset: 2px; }
+
+/* ---------- Field / Input ---------- */
+.lg-field { display: block; }
+.lg-field__label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.lg-field__hint { margin: 6px 0 0; color: var(--muted-2); font-size: 11px; line-height: 1.5; }
+.lg-field__error { margin: 6px 0 0; color: var(--danger); font-size: 11px; line-height: 1.5; }
+
+.lg-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  transition: border-color var(--transition);
+}
+.lg-input:hover { border-color: var(--hairline); }
+.lg-input:focus { border-color: var(--accent-border); }
+.lg-input--sm { height: 36px; font-size: 12px; }
+.lg-input--invalid { border-color: var(--danger-border); }
+textarea.lg-input { height: auto; min-height: 96px; padding: 12px 14px; line-height: 1.6; resize: vertical; }
+
+/* ---------- Chip ---------- */
+.lg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+.lg-chip:hover { color: var(--text); }
+.lg-chip--selected {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.lg-chip--static { cursor: default; }
+
+/* ---------- Alert ---------- */
+.lg-alert {
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.lg-alert--error { background: var(--danger-soft); border-color: var(--danger-border); color: var(--danger); }
+.lg-alert--success { background: var(--success-soft); border-color: rgba(109,168,124,.25); color: var(--success); }
+.lg-alert--info { background: var(--info-soft); border-color: rgba(107,142,179,.25); color: var(--info); }
+.lg-alert--warning { background: var(--warning-soft); border-color: rgba(196,163,88,.25); color: var(--warning); }
+
+/* ---------- Topbar ---------- */
+.lg-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 clamp(20px, 4vw, 52px);
+  border-bottom: 1px solid var(--line-translucent);
+  background: var(--bg-translucent);
+  backdrop-filter: blur(18px);
+}
+.lg-topbar__crumb { color: var(--muted); font-size: 13px; }
+.lg-topbar__crumb strong { color: var(--text); font-weight: 550; font-family: var(--font-heading); }
+.lg-topbar__actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* ---------- Page ---------- */
+.lg-page { padding: 36px clamp(20px, 4vw, 52px) 72px; }
+.lg-page-header { margin-bottom: 28px; }
+.lg-page-header__eyebrow { margin-bottom: 8px; }
+.lg-page-header__title {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -.03em;
+}
+.lg-page-header__bar { width: 64px; margin-bottom: 14px; }
+.lg-page-header__lede {
+  max-width: 560px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ---------- EmptyState ---------- */
+.lg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 72px 24px;
+  border: 1px dashed var(--line-soft);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.lg-empty__title { margin: 0; color: var(--text); font-size: 13px; }
+.lg-empty__text { margin: 0; max-width: 340px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+/* ---------- Modal ---------- */
+.lg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay);
+  backdrop-filter: blur(9px);
+}
+.lg-modal {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.lg-modal--wide { width: min(720px, 100%); }
+.lg-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 0;
+}
+.lg-modal__title { margin: 0; font-size: 16px; font-weight: 600; }
+.lg-modal__body { padding: 16px 20px 20px; }
+.lg-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 20px 20px;
+}

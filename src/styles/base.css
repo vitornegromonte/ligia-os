@@ -1,0 +1,90 @@
+/* Resets, tipografia e comportamentos globais.
+   Movido de index.css sem mudança de comportamento. */
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; color-scheme: dark; }
+
+html, body {
+  /* Safe area para aparelhos com notch */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 78% -10%, rgba(255,75,31,.08), transparent 31%),
+    radial-gradient(circle at 20% 80%, rgba(255,144,104,.05), transparent 31%),
+    var(--bg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -.02em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+h1, h2 { text-wrap: pretty; }
+
+button, input, select, textarea { font: inherit; }
+
+button { color: inherit; }
+
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: rgba(255,75,31,0.18);
+  touch-action: manipulation;
+}
+
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: rgba(255,75,31,.35);
+  color: #fff;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+}
+
+a { color: inherit; text-decoration: none; }
+
+select {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.landing-stats, [data-tabular] {
+  font-variant-numeric: tabular-nums;
+}
+
+[role="dialog"], .modal, [aria-modal="true"] {
+  overscroll-behavior: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

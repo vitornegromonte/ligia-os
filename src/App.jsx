@@ -21,6 +21,8 @@ const Agenda = lazy(() => import("./pages/Agenda.jsx"));
 const Notas = lazy(() => import("./pages/Notas.jsx"));
 const Practice = lazy(() => import("./pages/Practice.jsx"));
 const PracticeDetail = lazy(() => import("./pages/PracticeDetail.jsx"));
+const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
+const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 const fallback = (
   <div style={{
@@ -56,6 +58,9 @@ export default function App() {
             <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
             <Route path="/pratica" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><Practice /></ProtectedRoute>} />
             <Route path="/pratica/:slug" element={<ProtectedRoute allowedRoles={["membro", "admin"]}><PracticeDetail /></ProtectedRoute>} />
+            <Route path="/aprender/styleguide" element={<Styleguide />} />
+            {/* Catch-all: antes um endereço desconhecido renderizava tela em branco. */}
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Suspense>
