@@ -6,6 +6,33 @@ A plataforma de ensino "Trilha LigIA" (Next.js) está sendo absorvida por este
 repositório. O ligia-os é a base; a área de aprendizado passa a ser a trilha,
 e a prática com o judge acontece dentro das lições.
 
+## Estado atual
+
+As seis fases do plano estão implementadas na branch. `npm run verify` passa:
+typecheck, lint sem erros, **378 testes** em 34 arquivos, build, e a varredura
+que prova que o gabarito não está no bundle. Playwright: 4 testes públicos
+passam, 7 aguardam credenciais de um usuário de teste.
+
+**O que falta para isso ir ao ar** (tudo bloqueado no dono do Supabase):
+
+1. `supabase db dump --schema-only` → `migrations/0000_baseline.sql`. Sem ele
+   não dá para saber se `profiles` tem `NOT NULL` sem default, nem como
+   `is_admin()` está definida.
+2. Aplicar `0100`–`0103` num branch do Supabase e, **primeiro teste depois**,
+   criar uma conta nova para confirmar que o cadastro não quebrou.
+3. Aval na `0102`, que altera policies do ligia-os: hoje `challenges` exige
+   `is_member_or_admin()`, então um `visitante` não lê o catálogo — e o acesso
+   geral da área de aprendizado seria falso.
+4. `supabase secrets set GEMINI_API_KEY=...` e `JUDGE_URL=...`, e deploy das
+   três Edge Functions.
+5. Um usuário de teste, para os 7 e2e com sessão saírem do estado pulado.
+
+**Fora de escopo por decisão**: o retrofit das outras páginas do Vitor para as
+primitivas de `src/ui/`. Ele é o que mais gera conflito numa branch longa, e o
+plano o adiou para uma PR seguinte ao merge. Já foram retrofitados os que
+carregavam bug: `Sidebar`, `Layout`, `ProtectedRoute`, `Login` e
+`MarkdownViewer`.
+
 ## Onde o código novo mora
 
 Todo código da integração fica em diretórios novos, para manter a superfície
