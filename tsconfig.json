@@ -23,11 +23,14 @@
        supabase/functions/_shared/ serem importáveis pelo Deno E pelo Vitest. */
     "allowImportingTsExtensions": true,
 
-    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
+    "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] }
   },
-  "include": ["src", "test", "e2e", "scripts", "supabase/functions/_shared"],
-  // Parqueados: exercitam componentes que só chegam na Fase 3.
-  "exclude": ["test/_fase3"]
+  "include": ["src", "test", "e2e", "scripts"],
+  // test/_fase3: parqueados até os componentes chegarem.
+  // supabase/functions: runtime Deno (jsr:, Deno.serve, import attributes).
+  // Os módulos de _shared que os testes importam seguem checados por
+  // transitividade — `exclude` não vale para arquivo alcançado por import.
+  "exclude": ["test/_fase3", "supabase/functions"]
 }

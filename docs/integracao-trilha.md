@@ -251,3 +251,57 @@ navegar o app de verdade.
 Confirmado no browser: estado ativo da sidebar visível, drawer mobile abrindo
 e fechando, topbar em largura cheia, trilha com os 29 conceitos e estados
 derivados, hub com as sete tarefas de `multi-head-attention` na ordem certa.
+
+## Fase 4 — prática conceitual
+
+As duas rotas `/api/loop/*` do Next.js viraram Edge Functions do Supabase:
+`loop-avaliar` (corrige contra a rubrica) e `loop-perguntar` (tutor do
+conceito). A rota nova no cliente é `/aprender/c/:conceptId/praticar`.
+
+### O que mudou em relação ao original
+
+**Elas eram abertas.** Qualquer um podia chamar `/api/loop/avaliar`, e o
+único freio era um limitador em memória por IP — que em serverless é ficção:
+cada instância tem o próprio balde, e o teto real vira instâncias × limite.
+Agora exigem sessão e o limite é por usuário, numa linha do Postgres
+(`consume_rate_limit`). **Falha fechada**: se a RPC der erro, nega. A
+alternativa é uma conta ilimitada de Gemini quando o banco oscila.
+
+**Streaming.** `supabase.functions.invoke()` bufferiza a resposta inteira, o
+que mataria o feedback token a token. O cliente usa `fetch` direto em
+`/functions/v1/<função>` com o `access_token` no Authorization
+(`src/aprender/edge.ts`).
+
+**`streamResponsePrimed` sobreviveu**: puxa o primeiro chunk antes de devolver
+a `Response`, para que um 429 preguiçoso do provedor vire status HTTP de
+verdade em vez de um 200 com corpo vazio — indistinguível de sucesso.
+
+### O contrato, e a regra que não se negocia
+
+Resposta em `text/plain` streaming: primeira linha é `acertei`, `parcial` ou
+`errei`; o resto é feedback em markdown. O parser mora em
+`_shared/verdict.ts`, importado pelos dois lados — a Edge Function produz o
+formato, o cliente o consome.
+
+Quando o veredito **não** é reconhecido (stream vazio, resposta fora do
+formato, rede caiu), o cliente trata como falha e cai na auto-avaliação contra
+a rubrica. Ele nunca assume `parcial`: um veredito fantasma contaminaria o
+agendamento de revisão e a matriz de competências. Há quatro testes só sobre
+esse caminho.
+
+### Fronteira entre cliente e servidor
+
+`buildGradingPrompt` ficou em `loop-grading.ts` (servidor); `parseGrading`
+mudou para `verdict.ts`, que é o módulo de contrato. Assim o cliente importa o
+parser sem arrastar o prompt para o bundle.
+
+`_shared/env.ts` lê variável de ambiente nos dois runtimes — `Deno.env` nas
+funções, `process.env` no Vitest —, para que a camada de LLM e suas três
+suítes continuem rodando sem duplicação.
+
+Os entry points (`Deno.serve`, `jsr:`, import attributes) ficam fora do `tsc`
+do app via `exclude`; os módulos de `_shared` que os testes importam seguem
+type-checked por transitividade, porque `exclude` não vale para arquivo
+alcançado por import.
+
+357 testes em 32 arquivos.

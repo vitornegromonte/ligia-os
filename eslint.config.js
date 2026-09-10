@@ -60,6 +60,12 @@ export default [
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // Edge Functions rodam em Deno.
+  {
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: { globals: { Deno: "readonly" } },
+  },
+
   {
     files: ["test/**/*.{ts,tsx}"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },

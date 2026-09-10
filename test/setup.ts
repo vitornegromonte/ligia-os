@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
-// jsdom não implementa scrollTo, e as páginas chamam no mount. Sem o stub,
-// cada render polui a saída dos testes com "Not implemented".
+// jsdom não implementa estas duas, e as páginas as chamam em efeitos de foco.
+// Sem os stubs, o efeito LANÇA e derruba a árvore — o que aparece como falhas
+// sem relação nenhuma com o que o teste checa.
 window.scrollTo = () => {};
+Element.prototype.scrollIntoView = () => {};

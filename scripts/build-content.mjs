@@ -28,6 +28,7 @@ const p = (...partes) => join(raiz, ...partes);
 const DIR_LOOPS = p("content", "loops");
 const DIR_AULAS = p("content", "aulas");
 const TORCH_TASKS = p("src", "data", "torch_tasks.json");
+const CONCEITOS = p("src", "content", "concepts.json");
 const SAIDA_CLIENTE = p("src", "content", "generated");
 const SAIDA_SERVIDOR = p("supabase", "functions", "_shared", "generated");
 
@@ -98,11 +99,19 @@ function main() {
 
   const indice = indiceDeTarefas();
 
+  // Rótulos dos conceitos para o lado servidor: a Edge Function do tutor
+  // precisa do nome do conceito no prompt, e não pode importar de src/.
+  const conceitos = JSON.parse(readFileSync(CONCEITOS, "utf8")).concepts.map((c) => ({
+    id: c.id,
+    label: c.label,
+  }));
+
   const escritos = [
     escrever(join(SAIDA_CLIENTE, "loops.public.json"), publicos),
     escrever(join(SAIDA_CLIENTE, "aulas.json"), aulas),
     escrever(join(SAIDA_CLIENTE, "torch-tasks.index.json"), indice),
     escrever(join(SAIDA_SERVIDOR, "loops.full.json"), loops),
+    escrever(join(SAIDA_SERVIDOR, "conceitos.json"), conceitos),
   ];
 
   // Trava de sanidade: se `contexto` sobreviveu ao artefato público, o build

@@ -240,3 +240,125 @@
   background: var(--bg-translucent);
   backdrop-filter: blur(18px);
 }
+
+/* ---------- Prática de recuperação ---------- */
+.pr-orientacao {
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.pr-checagem {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.pr-checagem__contador {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.pr-checagem__pergunta {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  outline: none;
+}
+
+.pr-resposta {
+  width: 100%;
+  min-height: 104px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  outline: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.pr-resposta:focus { border-color: var(--accent-border); }
+.pr-resposta[readonly] { opacity: .9; }
+
+/* Veredito. As três cores são as semânticas da casa, dessaturadas. */
+.pr-veredito {
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+.pr-veredito__titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+.pr-veredito--acertei { border-color: color-mix(in srgb, var(--success) 45%, var(--line)); color: var(--success); }
+.pr-veredito--parcial { border-color: color-mix(in srgb, var(--warning) 45%, var(--line)); color: var(--warning); }
+.pr-veredito--errei   { border-color: color-mix(in srgb, var(--danger) 45%, var(--line));  color: var(--danger); }
+.pr-veredito--neutro  { border-color: var(--line-soft); color: var(--muted); }
+
+/* Botões de auto-avaliação, quando não há correção ao vivo. */
+.pr-autoaval {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.pr-autoaval--acertei { border-color: color-mix(in srgb, var(--success) 45%, var(--line)); color: var(--success); }
+.pr-autoaval--parcial { border-color: color-mix(in srgb, var(--warning) 45%, var(--line)); color: var(--warning); }
+.pr-autoaval--errei   { border-color: color-mix(in srgb, var(--danger) 45%, var(--line));  color: var(--danger); }
+.pr-autoaval:hover { background: rgba(255, 255, 255, .04); }
+
+.pr-rubrica {
+  padding: 14px;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  font-size: 14px;
+}
+.pr-rubrica__titulo {
+  margin: 0 0 4px;
+  color: var(--accent-hover);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+
+.pr-girar { animation: pr-girar 1s linear infinite; }
+@keyframes pr-girar { to { transform: rotate(360deg); } }
+
+.pr-chat-balao {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.pr-chat-balao--user { background: var(--accent-soft); color: var(--text); }
+.pr-chat-balao--assistant { background: var(--surface-2); color: color-mix(in srgb, var(--text) 88%, var(--muted)); }

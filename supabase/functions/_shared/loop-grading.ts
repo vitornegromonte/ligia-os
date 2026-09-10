@@ -1,7 +1,5 @@
 import type { LLMMessage } from "./llm/types.ts";
-import type { Verdict } from "./verdict.ts";
-
-export type GradingResult = { veredito: Verdict; feedback: string; matched: boolean };
+export type { GradingResult } from "./verdict.ts";
 
 /**
  * Monta o prompt de avaliação. Formato STREAMÁVEL: 1ª linha = veredito,
@@ -29,19 +27,6 @@ export function buildGradingPrompt(
   ];
 }
 
-/**
- * Lê o veredito da 1ª linha e o feedback do resto. `matched` indica se uma das
- * três palavras-chave foi de fato reconhecida — quando false, o chamador deve
- * tratar como falha de avaliação (cair na autoavaliação honesta), em vez de
- * assumir 'parcial' silenciosamente (que seria um veredito fantasma).
- */
-export function parseGrading(text: string): GradingResult {
-  const nl = text.indexOf("\n");
-  const head = (nl === -1 ? text : text.slice(0, nl)).toLowerCase();
-  const acertou = /\bacertei\b/.test(head);
-  const errou = /\berrei\b/.test(head);
-  const parcial = /\bparcial\b/.test(head);
-  const veredito: Verdict = acertou ? "acertei" : errou ? "errei" : "parcial";
-  const feedback = (nl === -1 ? "" : text.slice(nl + 1)).trim();
-  return { veredito, feedback, matched: acertou || errou || parcial };
-}
+// O parser do formato mora em verdict.ts: ele é a metade CLIENTE do
+// contrato, e o cliente não pode importar este arquivo (que carrega o prompt).
+export { parseGrading } from "./verdict.ts";
