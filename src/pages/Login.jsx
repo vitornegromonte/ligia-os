@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Field, Input } from "../ui/Field.tsx";
+import { Button } from "../ui/Button.tsx";
+import { Alert } from "../ui/Alert.tsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Login() {
@@ -76,92 +79,53 @@ export default function Login() {
         {forgot ? (
           <form onSubmit={handleForgot}>
             {sent ? (
-              <div style={{
-                padding: "12px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
-                background: "rgba(109,168,124,.12)", border: "1px solid rgba(109,168,124,.25)",
-                color: "#6da87c", fontSize: 12, lineHeight: 1.6
-              }}>
+              <Alert tone="success" className="lg-mb-16">
                 Se um email válido foi informado, enviamos um link de redefinição. Confira sua caixa de entrada.
-              </div>
+              </Alert>
             ) : (
               <>
                 <div style={{ marginBottom: 16 }}>
-                  <label htmlFor="login-email" style={{
-                    display: "block", marginBottom: 6, color: "var(--muted)",
-                    fontSize: 12, fontWeight: 600
-                  }}>Email</label>
-                  <input id="login-email" name="email" autoComplete="email" spellCheck={false} type="email" required autoFocus
-                    value={email} onChange={e => setEmail(e.target.value)}
-                    style={{
-                      width: "100%", height: 42, padding: "0 14px",
-                      border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                      outline: "none", color: "var(--text)", background: "var(--bg)",
-                      transition: "border var(--transition)"
-                    }} />
+                  <Field label="Email">
+                    {(p) => (
+                      <Input type="email" name="email" autoComplete="email" required autoFocus
+                        value={email} onChange={e => setEmail(e.target.value)} {...p} />
+                    )}
+                  </Field>
                 </div>
-                <button type="submit" disabled={submitting}
-                  style={{
-                    width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
-                    color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
-                    cursor: submitting ? "not-allowed" : "pointer",
-                    fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
-                    transition: "background var(--transition)"
-                  }}>
-                  {submitting ? "Enviando..." : "Enviar link de redefinição"}
-                </button>
+
+                <Button type="submit" loading={submitting} style={{ width: "100%" }}>
+                  {submitting ? "Enviando…" : "Enviar link de redefinição"}
+                </Button>
               </>
             )}
           </form>
         ) : (
           <form onSubmit={handleSubmit}>
             {error && (
-              <div role="alert" aria-live="polite" style={{
-                padding: "10px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
-                background: "rgba(199,107,96,.12)", border: "1px solid rgba(199,107,96,.25)",
-                color: "#c76b60", fontSize: 12
-              }}>{error}</div>
+              <Alert tone="error" className="lg-mb-16">{error}</Alert>
             )}
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{
-                display: "block", marginBottom: 6, color: "var(--muted)",
-                fontSize: 12, fontWeight: 600
-              }}>Email</label>
-              <input type="email" required autoFocus
-                value={email} onChange={e => setEmail(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
+              <Field label="Email">
+                {(p) => (
+                  <Input type="email" name="email" autoComplete="email" required autoFocus
+                    value={email} onChange={e => setEmail(e.target.value)} {...p} />
+                )}
+              </Field>
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label htmlFor="login-password" style={{
-                display: "block", marginBottom: 6, color: "var(--muted)",
-                fontSize: 12, fontWeight: 600
-              }}>Senha</label>
-              <input id="login-password" name="password" autoComplete="current-password" type="password" required
-                value={password} onChange={e => setPassword(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
+              <Field label="Senha">
+                {(p) => (
+                  <Input type="password" name="password" autoComplete="current-password" required
+                    value={password} onChange={e => setPassword(e.target.value)} {...p} />
+                )}
+              </Field>
             </div>
 
-            <button type="submit" disabled={submitting}
-              style={{
-                width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
-                color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
-                cursor: submitting ? "not-allowed" : "pointer",
-                fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
-                transition: "background var(--transition)"
-              }}>
-              {submitting ? "Entrando..." : "Entrar"}
-            </button>
+            <Button type="submit" loading={submitting} style={{ width: "100%" }}>
+              {submitting ? "Entrando…" : "Entrar"}
+            </Button>
           </form>
         )}
 

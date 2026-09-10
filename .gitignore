@@ -10,6 +10,10 @@
 
 # Testing
 /coverage
+/test-results
+/playwright-report
+/blob-report
+/.playwright
 
 # Environment variables (Crucial for security!)
 .env
