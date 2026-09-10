@@ -12,3 +12,6 @@ verify_jwt = false
 
 [functions.loop-perguntar]
 verify_jwt = false
+
+[functions.judge]
+verify_jwt = false

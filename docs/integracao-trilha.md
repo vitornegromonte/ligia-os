@@ -305,3 +305,66 @@ type-checked por transitividade, porque `exclude` não vale para arquivo
 alcançado por import.
 
 357 testes em 32 arquivos.
+
+## Fase 5 — prática de código
+
+Rotas novas: `/aprender/codar` (catálogo) e `/aprender/codar/:slug` (bancada).
+`/pratica` e `/pratica/:slug` redirecionam, preservando o slug — os links já
+compartilhados continuam vivos. `Practice.jsx` e `PracticeDetail.jsx` saíram.
+
+### O proxy do juiz
+
+O cliente chamava o HF Space direto, e isso trazia três problemas:
+
+1. **O Space é aberto e CORS `*`.** Quem descobrisse a URL queimava a cota de
+   ZeroGPU da Liga inteira. Agora a Edge Function exige sessão e limita por
+   usuário.
+2. **O gabarito vazava.** A resposta do juiz inclui `tests[].code` — o
+   código-fonte dos testes. Ele aparecia no devtools a cada execução e ainda
+   era gravado em `submissions.results`. O proxy remove antes de responder, e
+   `semGabarito` tem teste que confere por conteúdo, não só por chave.
+3. **A gravação falhava em silêncio.** Era `catch {}` no cliente: erro de
+   banco mostrava resultado verde e não persistia nada. Agora a submissão é
+   gravada no servidor, e a resposta traz `persistido` — quando é `false`, a
+   UI diz que o resultado não entrou no histórico.
+
+### Bugs do cliente antigo, corrigidos
+
+- **O envelope de erro do Gradio virava resultado falso.** Num `event: error`
+  o `data` é um OBJETO, não array; `Array.isArray` dava false, o objeto
+  passava adiante como se fosse resultado do juiz, `success` vinha `undefined`
+  e a tela mostrava `Wrong Answer — undefined/undefined em 0ms`, gravando uma
+  linha lixo. Reproduzível hoje com qualquer slug fora dos 41.
+- **O cliente desistia antes do servidor.** Teto de ~27s contra um orçamento
+  de 60s no Space. Agora 65s, com `AbortController` (não havia nenhum).
+- **Dormia antes de consultar**, pagando 900ms mesmo com o resultado pronto.
+- **O traceback era descartado.** O juiz sempre devolveu `error_traceback`, e
+  era a informação mais útil ao aluno. Agora aparece.
+- **O link do Colab estava quebrado em todas as 41**: montava
+  `templates/${id.padStart(2,"0")}_${slug}.ipynb` assumindo id numérico, mas
+  `mapChallenge` sobrescreve `id` com o slug — saía `relu_relu.ipynb`, 404.
+  Removido.
+- **`"41 problemas curados"` era string fixa.** Agora é contagem real, e ao
+  lado dela o quanto o aluno já resolveu.
+
+### Estado resolvido
+
+Não existia camada de progresso nenhuma: `Practice.jsx` nunca chamava o
+histórico, então os 41 cards eram idênticos independentemente do que já tinha
+sido resolvido. Agora o card diz se passou, o cabeçalho mostra `N/41`, há
+filtro "A resolver", e cada card lista os conceitos da trilha que ele pratica.
+
+### Dados
+
+A tarefa `mha` tinha `description: ""` e **nenhum** `initial_code` — abria com
+editor vazio e sem instrução. Recebeu enunciado no formato dos irmãos (KaTeX,
+assinatura, regras) e stub na convenção da casa. `test/catalogo-codigo.test.ts`
+trava isso para as 41.
+
+### Navegação
+
+`/aprender` e `/aprender/codar` são itens irmãos, mas `NavLink` casa por
+prefixo — os dois acendiam ao mesmo tempo. O item da Trilha ganhou um
+predicado próprio de estado ativo.
+
+378 testes em 34 arquivos.

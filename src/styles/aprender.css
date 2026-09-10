@@ -362,3 +362,86 @@
 }
 .pr-chat-balao--user { background: var(--accent-soft); color: var(--text); }
 .pr-chat-balao--assistant { background: var(--surface-2); color: color-mix(in srgb, var(--text) 88%, var(--muted)); }
+
+/* ---------- Prática de código ---------- */
+.cd-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.cd-card__topo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.cd-card__titulo { margin: 0; font-family: var(--font-heading); font-size: 14.5px; font-weight: 600; }
+.cd-card__fn {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.cd-card__dica {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cd-workbench { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+@media (min-width: 1100px) {
+  .cd-workbench { grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr); }
+  .cd-editor { position: sticky; top: 86px; }
+}
+
+.cd-editor__barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--surface-2);
+}
+.cd-editor__arquivo { color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+.cd-editor__monaco {
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-top: 0;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.cd-resultado {
+  margin-top: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+}
+.cd-teste {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.cd-teste:first-of-type { border-top: 0; }
+.cd-saida {
+  margin: 6px 0 0;
+  padding: 10px;
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: color-mix(in srgb, var(--danger) 70%, var(--text));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.cd-saida--neutra { color: var(--muted); }

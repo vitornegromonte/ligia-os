@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
   Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints
@@ -36,8 +36,15 @@ const navGroups = [
     // Sem `roles`: a área de aprendizado é aberta a todos os papéis.
     label: "Aprender",
     items: [
-      { to: "/aprender", icon: Waypoints, label: "Trilha" },
-      { to: "/pratica", icon: Code2, label: "Prática Torch" },
+      {
+        to: "/aprender",
+        icon: Waypoints,
+        label: "Trilha",
+        // NavLink casa por prefixo, então /aprender/codar acenderia este
+        // item também. A prática de código é um irmão, não um filho.
+        ativoSe: (p) => p.startsWith("/aprender") && !p.startsWith("/aprender/codar"),
+      },
+      { to: "/aprender/codar", icon: Code2, label: "Prática Torch" },
     ]
   },
   {
@@ -50,6 +57,7 @@ const navGroups = [
 
 export default function Sidebar({ open, onClose }) {
   const { profile, signOut } = useAuth();
+  const { pathname } = useLocation();
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   return (
     <>
@@ -73,7 +81,10 @@ export default function Sidebar({ open, onClose }) {
               {group.items.map(item => (
                 <NavLink key={item.to} to={item.to} end={item.to === "/"}
                   onClick={onClose}
-                  className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+                  className={({ isActive }) => {
+                    const ativo = item.ativoSe ? item.ativoSe(pathname) : isActive;
+                    return `nav-item${ativo ? " active" : ""}`;
+                  }}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
                   {item.label}
                 </NavLink>
