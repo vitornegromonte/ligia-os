@@ -34,9 +34,9 @@ export default function NeuralHero() {
       c.height = size;
       const g = c.getContext("2d");
       const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-      grad.addColorStop(0, "rgba(255, 75, 31, 0.48)");
-      grad.addColorStop(0.28, "rgba(255, 144, 104, 0.18)");
-      grad.addColorStop(0.58, "rgba(255, 75, 31, 0.07)");
+      grad.addColorStop(0, "rgba(255, 75, 31, 0.32)");
+      grad.addColorStop(0.28, "rgba(255, 144, 104, 0.12)");
+      grad.addColorStop(0.58, "rgba(255, 75, 31, 0.05)");
       grad.addColorStop(1, "rgba(255, 75, 31, 0)");
       g.fillStyle = grad;
       g.fillRect(0, 0, size, size);
@@ -123,7 +123,7 @@ export default function NeuralHero() {
         });
       }
 
-      const pulseCount = Math.min(isMobile ? 7 : 11, edges.length);
+      const pulseCount = Math.min(isMobile ? 5 : 8, edges.length);
       const shuffled = [...edges].sort(() => Math.random() - 0.5).slice(0, pulseCount);
       shuffled.forEach(edge => {
         pulses.push({
@@ -174,11 +174,11 @@ export default function NeuralHero() {
       ctx.clearRect(0, 0, width, height);
 
       // Sutil brilho de fundo que pulsa com a rede
-      const bgPulse = 0.045 + Math.sin(now * 0.00018) * 0.012;
+      const bgPulse = 0.03 + Math.sin(now * 0.00018) * 0.008;
       ctx.fillStyle = `rgba(255, 75, 31, ${bgPulse})`;
       // não preenche tudo, só deixa o clear com tom quente muito sutil
       // Edges — Bézier orgânicas com opacidade que respira
-      const edgeBreath = 0.09 + Math.sin(now * 0.00021) * 0.015;
+      const edgeBreath = 0.06 + Math.sin(now * 0.00021) * 0.01;
       ctx.lineWidth = 0.85;
       ctx.strokeStyle = `rgba(168, 155, 138, ${edgeBreath})`;
       ctx.beginPath();
