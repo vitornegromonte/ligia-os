@@ -10,7 +10,8 @@ export default mergeConfig(
       environment: "jsdom",
       setupFiles: ["./test/setup.ts"],
       include: ["test/**/*.test.{ts,tsx}"],
-      exclude: ["e2e/**", "node_modules/**"],
+      // test/_fase3 guarda testes cujos componentes só chegam na Fase 3.
+      exclude: ["e2e/**", "node_modules/**", "test/_fase3/**"],
     },
   }),
 );

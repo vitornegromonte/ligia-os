@@ -1,0 +1,211 @@
+{
+  "$schema_note": "GERADO de src/data/torch_tasks.json por scripts/build-content.mjs. Não editar à mão.",
+  "version": "1",
+  "tasks": [
+    {
+      "slug": "adam",
+      "title": "Adam Optimizer",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "attention",
+      "title": "Softmax Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "batchnorm",
+      "title": "Implement BatchNorm",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "beam_search",
+      "title": "Beam Search Decoding",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "bpe",
+      "title": "Byte-Pair Encoding (BPE)",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "causal_attention",
+      "title": "Causal Self-Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "conv2d",
+      "title": "2D Convolution",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "cosine_lr",
+      "title": "Cosine LR Scheduler with Warmup",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "cross_attention",
+      "title": "Multi-Head Cross-Attention",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "cross_entropy",
+      "title": "Cross-Entropy Loss",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "dpo_loss",
+      "title": "DPO (Direct Preference Optimization) Loss",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "dropout",
+      "title": "Implement Dropout",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "embedding",
+      "title": "Embedding Layer",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "flash_attention",
+      "title": "Flash Attention (Tiled)",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "gelu",
+      "title": "GELU Activation",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "gpt2_block",
+      "title": "GPT-2 Transformer Block",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "gqa",
+      "title": "Grouped Query Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "gradient_accumulation",
+      "title": "Gradient Accumulation",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "gradient_clipping",
+      "title": "Gradient Norm Clipping",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "grpo_loss",
+      "title": "GRPO (Group Relative Policy Optimization) Loss",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "int8_quantization",
+      "title": "INT8 Quantized Linear",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "kv_cache",
+      "title": "KV Cache Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "layernorm",
+      "title": "Implement LayerNorm",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "linear",
+      "title": "Simple Linear Layer",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "linear_attention",
+      "title": "Linear Self-Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "linear_regression",
+      "title": "Linear Regression",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "lora",
+      "title": "LoRA (Low-Rank Adaptation)",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "mha",
+      "title": "Multi-Head Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "mlp",
+      "title": "SwiGLU MLP",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "moe",
+      "title": "Mixture of Experts (MoE)",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "opd_loss",
+      "title": "OPD (On-Policy Distillation) Loss",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "ppo_loss",
+      "title": "PPO (Proximal Policy Optimization) Clipped Loss",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "relu",
+      "title": "Implement ReLU",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "rmsnorm",
+      "title": "Implement RMSNorm",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "rope",
+      "title": "Rotary Position Embedding (RoPE)",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "sliding_window",
+      "title": "Sliding Window Attention",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "softmax",
+      "title": "Implement Softmax",
+      "difficulty": "Easy"
+    },
+    {
+      "slug": "speculative_decoding",
+      "title": "Speculative Decoding",
+      "difficulty": "Hard"
+    },
+    {
+      "slug": "topk_sampling",
+      "title": "Top-k / Top-p Sampling",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "vit_patch",
+      "title": "ViT Patch Embedding",
+      "difficulty": "Medium"
+    },
+    {
+      "slug": "weight_init",
+      "title": "Kaiming Initialization",
+      "difficulty": "Easy"
+    }
+  ]
+}

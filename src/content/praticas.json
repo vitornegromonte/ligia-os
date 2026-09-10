@@ -1,0 +1,43 @@
+{
+  "$schema_note": "Liga cada conceito da trilha às tarefas de código do catálogo Torch. Arquivo separado de concepts.json de propósito: referencia o catálogo do ligia-os, que muda em outra cadência e é de propriedade conjunta. Validado por src/lib/praticas.ts; slugs conferidos contra content/torch-tasks.index.json.",
+  "version": "1",
+  "mapeamento": {
+    "algebra-linear-basica": { "tasks": [], "nota": "M0 é refresher de matemática — prática conceitual só." },
+    "calculo-vetorial": { "tasks": [] },
+    "probabilidade-basica": { "tasks": [] },
+    "gradiente": { "tasks": [], "nota": "A mecânica de gradiente aparece em gradient-descent (M2), onde há código." },
+
+    "train-val-test": { "tasks": [], "nota": "LACUNA: vale escrever uma task de split/validação." },
+    "regressao-linear": { "tasks": ["linear_regression"] },
+    "regressao-logistica": { "tasks": ["cross_entropy"], "nota": "A perda logística é a entropia cruzada binária; a task é compartilhada com loss-functions." },
+    "knn": { "tasks": [], "nota": "LACUNA: kNN não tem task no catálogo Torch." },
+    "overfitting": { "tasks": ["dropout"] },
+    "regularizacao": { "tasks": ["dropout"] },
+
+    "loss-functions": { "tasks": ["cross_entropy"] },
+    "ativacoes": { "tasks": ["relu", "gelu", "softmax"] },
+    "gradient-descent": { "tasks": ["adam", "cosine_lr", "gradient_clipping", "gradient_accumulation"] },
+    "mlp": { "tasks": ["linear", "mlp"] },
+    "backprop": { "tasks": ["weight_init"], "nota": "Kaiming trata da propagação de variância — a face prática do backprop estável." },
+    "batchnorm": { "tasks": ["batchnorm", "layernorm", "rmsnorm"] },
+
+    "pytorch": { "tasks": ["relu", "linear"], "nota": "Porta de entrada: as duas tasks mais simples, reaproveitadas de M2." },
+    "dataloaders": { "tasks": [], "nota": "LACUNA: vale escrever uma task de Dataset/DataLoader." },
+    "cnn": { "tasks": ["conv2d"] },
+    "transfer-learning": { "tasks": [], "nota": "LACUNA: vale escrever uma task de congelar/descongelar camadas." },
+    "fine-tuning": { "tasks": ["lora", "int8_quantization", "dpo_loss", "ppo_loss", "grpo_loss", "opd_loss"] },
+
+    "tokenizacao": { "tasks": ["bpe"] },
+    "embeddings": { "tasks": ["embedding", "vit_patch"] },
+    "atencao": { "tasks": ["attention", "causal_attention"] },
+    "multi-head-attention": {
+      "tasks": ["mha", "gqa", "cross_attention", "kv_cache", "flash_attention", "linear_attention", "sliding_window"],
+      "nota": "Sete tasks, quase todas Hard. O hub ordena por dificuldade para o aluno não cair em flash_attention antes de mha."
+    },
+    "positional-encoding": { "tasks": ["rope"] },
+    "transformer": { "tasks": ["gpt2_block", "moe"] },
+    "geracao-de-texto": { "tasks": ["topk_sampling", "beam_search", "speculative_decoding"] },
+
+    "projeto-final": { "tasks": [], "nota": "Capstone é projeto aberto, não exercício de catálogo." }
+  }
+}

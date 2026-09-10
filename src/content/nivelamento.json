@@ -1,0 +1,373 @@
+{
+  "version": "2",
+  "note": "Banco do nivelamento v2. As 20 MCQ pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}); o auto-relato calibra o prior e a mensagem, não o gate de dispensa. Toda MCQ tem 'Não sei' na última posição — admitir a dúvida vale mais que chutar.",
+  "auto_relato": [
+    {
+      "id": "ar1",
+      "tipo": "multi",
+      "pergunta": "Quais destes assuntos você já estudou?",
+      "opcoes": [
+        { "texto": "Álgebra linear: vetores e matrizes", "competencia": "matematica" },
+        { "texto": "Cálculo: derivadas e gradiente", "competencia": "matematica" },
+        { "texto": "Probabilidade e estatística", "competencia": "matematica" },
+        { "texto": "Regressão e classificação (linear, logística, k-NN)", "competencia": "ml-classico" },
+        { "texto": "Overfitting e regularização", "competencia": "ml-classico" },
+        { "texto": "Redes neurais: backpropagation e ativações", "competencia": "dl-fundamentos" },
+        { "texto": "Treino em PyTorch: CNNs, transfer learning", "competencia": "dl-aplicado" },
+        { "texto": "Transformers, atenção e LLMs", "competencia": "transformers-llms" },
+        { "texto": "Nenhum destes", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar2",
+      "tipo": "multi",
+      "pergunta": "Linguagens que você domina?",
+      "opcoes": [
+        "Python",
+        "C / C++",
+        "Java",
+        "R",
+        "Outra",
+        { "texto": "Nenhuma destas", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar3",
+      "tipo": "multi",
+      "pergunta": "Frameworks de ML/DL que já usou?",
+      "opcoes": [
+        "PyTorch",
+        "TensorFlow / Keras",
+        "scikit-learn",
+        "HuggingFace",
+        { "texto": "Nenhum destes", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar4",
+      "tipo": "single",
+      "pergunta": "Área de maior interesse?",
+      "opcoes": [
+        "Visão (CV)",
+        "NLP / LLMs",
+        "RL",
+        "Teoria / Matemática",
+        "MLOps / Engenharia",
+        "Safety / Alinhamento",
+        "Ainda não sei"
+      ]
+    },
+    {
+      "id": "ar5",
+      "tipo": "single",
+      "pergunta": "Seu objetivo principal na trilha?",
+      "opcoes": ["TCC / pesquisa", "Estágio / mercado", "Curiosidade / base", "Outro"]
+    }
+  ],
+  "mcq": [
+    {
+      "id": "n-matematica-1",
+      "competencia": "matematica",
+      "dificuldade": 1,
+      "conceitos": ["algebra-linear-basica"],
+      "pergunta": "O produto escalar entre dois vetores mede, essencialmente:",
+      "opcoes": [
+        "A distância entre as pontas dos dois vetores",
+        "O comprimento do vetor resultante da soma deles",
+        "O quanto um vetor aponta na direção do outro",
+        "O ângulo entre eles, em graus",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-matematica-2",
+      "competencia": "matematica",
+      "dificuldade": 2,
+      "conceitos": ["gradiente", "calculo-vetorial"],
+      "pergunta": "Num ponto de uma função de várias variáveis, o vetor gradiente aponta para:",
+      "opcoes": [
+        "O ponto de mínimo mais próximo",
+        "A direção de maior crescimento da função",
+        "A direção em que a função não muda",
+        "O ponto onde todas as derivadas são zero",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-matematica-3",
+      "competencia": "matematica",
+      "dificuldade": 2,
+      "conceitos": ["probabilidade-basica"],
+      "pergunta": "Uma doença atinge 1 em cada 1000 pessoas. Um teste que acerta 99% das vezes deu positivo para alguém. A chance de essa pessoa estar de fato doente é:",
+      "opcoes": [
+        "99%, o mesmo acerto do teste",
+        "Bem menor que 99%, porque a doença é rara na população",
+        "50%, já que só há dois resultados possíveis",
+        "Impossível de estimar sem mais dados clínicos",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-matematica-4",
+      "competencia": "matematica",
+      "dificuldade": 3,
+      "conceitos": ["calculo-vetorial", "gradiente"],
+      "pergunta": "Por que a regra da cadeia é o que torna viável treinar redes profundas?",
+      "opcoes": [
+        "Permite derivar funções compostas, propagando o efeito camada a camada",
+        "Garante que a função de custo tenha um único mínimo",
+        "Dispensa o cálculo de derivadas parciais",
+        "Acelera a multiplicação de matrizes na GPU",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-ml-classico-1",
+      "competencia": "ml-classico",
+      "dificuldade": 1,
+      "conceitos": ["train-val-test"],
+      "pergunta": "Por que separamos um conjunto de teste antes de treinar o modelo?",
+      "opcoes": [
+        "Para deixar mais dados disponíveis no treino",
+        "Para medir o desempenho em dados que o modelo nunca viu",
+        "Para acelerar o treinamento",
+        "Para equilibrar a quantidade de exemplos de cada classe",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-ml-classico-2",
+      "competencia": "ml-classico",
+      "dificuldade": 2,
+      "conceitos": ["knn", "overfitting"],
+      "pergunta": "Um k-NN com k=1 acerta 100% no treino e 62% na validação. A explicação é:",
+      "opcoes": [
+        "Com k=1 cada exemplo é seu próprio vizinho mais próximo, então o treino é decorado",
+        "k=1 é um valor inválido para o algoritmo",
+        "O modelo precisa de mais épocas de treino",
+        "Faltou normalizar o conjunto de validação",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-ml-classico-3",
+      "competencia": "ml-classico",
+      "dificuldade": 2,
+      "conceitos": ["regressao-logistica", "regressao-linear"],
+      "pergunta": "Apesar do nome, a regressão logística serve para:",
+      "opcoes": [
+        "Prever valores contínuos, como preço ou temperatura",
+        "Agrupar dados que não têm rótulo",
+        "Reduzir a dimensionalidade das features",
+        "Classificar, estimando a probabilidade de uma classe",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-ml-classico-4",
+      "competencia": "ml-classico",
+      "dificuldade": 3,
+      "conceitos": ["regularizacao", "overfitting"],
+      "pergunta": "O que a regularização L2 faz durante o treino?",
+      "opcoes": [
+        "Penaliza pesos grandes, favorecendo soluções mais simples",
+        "Remove do dataset os exemplos que o modelo erra",
+        "Aumenta a taxa de aprendizado quando o erro estagna",
+        "Descarta as features menos correlacionadas com o alvo",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-dl-fundamentos-1",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 1,
+      "conceitos": ["ativacoes", "mlp"],
+      "pergunta": "Para que serve uma função de ativação não-linear (como a ReLU) numa rede neural?",
+      "opcoes": [
+        "Para acelerar o cálculo na GPU",
+        "Para manter todos os valores positivos",
+        "Para que a rede consiga aprender relações não-lineares",
+        "Para normalizar a entrada de cada camada",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-dl-fundamentos-2",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["gradient-descent"],
+      "pergunta": "O que costuma acontecer quando a taxa de aprendizado é alta demais?",
+      "opcoes": [
+        "O treino fica mais lento, mas converge do mesmo jeito",
+        "A loss oscila ou diverge, sem convergir",
+        "O modelo passa a sofrer overfitting",
+        "Os gradientes deixam de ser calculados",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-dl-fundamentos-3",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["loss-functions"],
+      "pergunta": "Por que se usa cross-entropy em vez de erro quadrático (MSE) em classificação?",
+      "opcoes": [
+        "Porque o MSE só funciona com problemas de uma única classe",
+        "Porque a cross-entropy é mais rápida de calcular",
+        "Porque ela penaliza mais forte a previsão confiante e errada",
+        "Porque o MSE exige que os dados estejam normalizados",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-dl-fundamentos-4",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 3,
+      "conceitos": ["backprop", "gradient-descent"],
+      "pergunta": "No backpropagation, o que é de fato propagado de volta pela rede?",
+      "opcoes": [
+        "Os dados de entrada, em ordem inversa",
+        "Os pesos já atualizados de cada camada",
+        "As ativações calculadas na passagem para frente",
+        "O gradiente da loss em relação a cada parâmetro",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-dl-aplicado-1",
+      "competencia": "dl-aplicado",
+      "dificuldade": 1,
+      "conceitos": ["cnn"],
+      "pergunta": "O que torna uma CNN adequada para imagens?",
+      "opcoes": [
+        "Ela trata a imagem inteira como um único vetor achatado",
+        "Ela precisa de menos dados que qualquer outro modelo",
+        "Ela dispensa funções de ativação",
+        "Ela detecta padrões locais que se repetem em qualquer posição",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-dl-aplicado-2",
+      "competencia": "dl-aplicado",
+      "dificuldade": 2,
+      "conceitos": ["transfer-learning", "fine-tuning"],
+      "pergunta": "Por que partir de um modelo pré-treinado costuma funcionar melhor que treinar do zero?",
+      "opcoes": [
+        "Porque ele já aprendeu representações gerais, reaproveitáveis noutro problema",
+        "Porque modelos pré-treinados têm mais parâmetros",
+        "Porque isso elimina a necessidade de conjunto de validação",
+        "Porque ele já viu exatamente as classes do seu problema",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-dl-aplicado-3",
+      "competencia": "dl-aplicado",
+      "dificuldade": 2,
+      "conceitos": ["dataloaders", "pytorch"],
+      "pergunta": "Por que embaralhar os dados de treino a cada época?",
+      "opcoes": [
+        "Para aumentar o tamanho efetivo do dataset",
+        "Para o modelo não aprender a ordem em que os exemplos aparecem",
+        "Porque o PyTorch exige dados embaralhados",
+        "Para reduzir o uso de memória da GPU",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-dl-aplicado-4",
+      "competencia": "dl-aplicado",
+      "dificuldade": 3,
+      "conceitos": ["fine-tuning", "transfer-learning"],
+      "pergunta": "Ao fazer fine-tuning de uma rede pré-treinada num dataset pequeno, uma prática comum é:",
+      "opcoes": [
+        "Treinar todas as camadas com a mesma taxa de aprendizado do pré-treino",
+        "Descartar os pesos pré-treinados das primeiras camadas",
+        "Congelar as camadas iniciais e ajustar as finais, com taxa menor",
+        "Aumentar a taxa de aprendizado para compensar o dataset pequeno",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-transformers-llms-1",
+      "competencia": "transformers-llms",
+      "dificuldade": 1,
+      "conceitos": ["tokenizacao"],
+      "pergunta": "O que a tokenização faz antes de um texto entrar num modelo de linguagem?",
+      "opcoes": [
+        "Traduz o texto para inglês",
+        "Remove as palavras repetidas",
+        "Corrige os erros de ortografia",
+        "Quebra o texto em unidades menores, convertidas em números",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-transformers-llms-2",
+      "competencia": "transformers-llms",
+      "dificuldade": 2,
+      "conceitos": ["atencao", "embeddings"],
+      "pergunta": "Numa frase, o mecanismo de atenção permite que o modelo:",
+      "opcoes": [
+        "Processe as palavras estritamente uma depois da outra",
+        "Descarte as palavras menos frequentes",
+        "Pondere quais outras palavras importam para interpretar cada palavra",
+        "Aumente o vocabulário automaticamente",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-transformers-llms-3",
+      "competencia": "transformers-llms",
+      "dificuldade": 2,
+      "conceitos": ["positional-encoding", "transformer"],
+      "pergunta": "Por que um Transformer precisa de codificação posicional?",
+      "opcoes": [
+        "Porque a atenção, sozinha, não distingue a ordem das palavras",
+        "Porque todas as frases precisam ter o mesmo tamanho",
+        "Porque isso reduz o custo computacional da atenção",
+        "Porque os embeddings não caberiam na memória sem compressão",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-transformers-llms-4",
+      "competencia": "transformers-llms",
+      "dificuldade": 3,
+      "conceitos": ["multi-head-attention", "transformer"],
+      "pergunta": "Qual a vantagem de usar várias cabeças de atenção em vez de uma só?",
+      "opcoes": [
+        "Permite processar várias frases ao mesmo tempo",
+        "Cada cabeça pode focar um tipo diferente de relação entre os tokens",
+        "Reduz o número total de parâmetros do modelo",
+        "Impede que o modelo repita palavras na geração",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    }
+  ],
+  "colab": {
+    "pergunta": "Completei a mini-tarefa de regressão logística no Iris (split treino/teste + acurácia).",
+    "url": "https://colab.research.google.com/github/lucasddmc/trilha-ligia/blob/main/templates/notebook.ipynb"
+  }
+}

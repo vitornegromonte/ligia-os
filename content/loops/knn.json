@@ -1,0 +1,32 @@
+{
+  "conceptId": "knn",
+  "orientacao": "O K-Nearest Neighbors classifica um ponto novo olhando para os k exemplos mais próximos dele e votando na classe majoritária. Antes de reler a teoria, tente responder às checagens com suas palavras — recuperar ativamente fixa muito mais que reconhecer. Pense em distância, escala e no papel do k.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). O KNN é aprendizado baseado em instâncias e 'preguiçoso' (lazy): não há fase de treino que ajusta parâmetros — o 'treino' apenas guarda os dados rotulados; toda a computação acontece na predição, calculando a distância do ponto de consulta a cada exemplo armazenado, pegando os k mais próximos e votando na classe majoritária (em regressão, faz a média dos alvos dos vizinhos). Pontos de referência por checagem: (1) Lazy/instance-based: nada é 'aprendido' antecipadamente; o custo é empurrado para a hora da predição. Diferente de um modelo paramétrico (ex.: regressão linear), que ajusta coeficientes no treino e descarta os dados. (2) Distância: a métrica padrão é a euclidiana (raiz da soma dos quadrados das diferenças por feature); existem alternativas como Manhattan/Minkowski. PRECISA padronizar/escalar as features porque a distância soma as diferenças de todas elas: uma feature em escala grande (ex.: salário 0–100000) domina outra em escala pequena (ex.: idade 0–80), determinando sozinha quem são os vizinhos. Solução: padronizar (média 0, desvio 1) ou normalizar — e calcular as estatísticas de escala SÓ no treino, aplicando-as ao teste, para não vazar informação. (3) k e viés-variância: k pequeno (k=1) gera fronteira de decisão irregular/ruidosa, ajusta-se ao ruído (alta variância, baixo viés, overfitting); k grande suaviza a fronteira mas pode apagar padrões locais e subajustar (alto viés, baixa variância). k é escolhido por validação. k ímpar ajuda a evitar empates em problemas binários. (4) Custo e dimensionalidade: predizer custa O(n·d) por consulta no método força-bruta (precisa medir distância a todos os n pontos em d dimensões) — escala mal com bases grandes; treinar é ~O(1). A maldição da dimensionalidade: com muitas features, as distâncias entre pontos ficam parecidas (o vizinho 'mais próximo' quase não é mais perto que o mais distante), e a noção de proximidade perde sentido, degradando o KNN. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Quando você 'treina' um KNN, o que de fato é calculado ou ajustado? E, na hora de prever a classe de um ponto novo, o que ele precisa fazer? Onde, então, mora o custo computacional pesado?",
+      "rubrica": "Boa resposta reconhece que no treino o KNN NÃO ajusta parâmetros/modelo — apenas armazena os dados rotulados (é 'lazy'/baseado em instâncias). A 'aprendizagem' é adiada para a predição, quando ele calcula a distância do ponto novo a TODOS os exemplos guardados, pega os k mais próximos e vota na maioria — por isso o custo pesado fica na predição, não no treino. O núcleo é a JUSTIFICATIVA dessa inversão (custo na predição PORQUE o treino só guarda os dados); citar o termo 'lazy/instance-based' é bônus, não substitui o raciocínio.",
+      "dica": "Compare com a regressão linear: lá os coeficientes são ajustados no treino. No KNN, o que sobra para fazer na hora de prever?"
+    },
+    {
+      "pergunta": "Por que costuma ser necessário padronizar/escalar as features antes de aplicar o KNN? Dê um exemplo do que dá errado se você não fizer isso.",
+      "rubrica": "Boa resposta liga à métrica de distância: o KNN soma as diferenças entre features para medir proximidade, então uma feature em escala muito maior domina a distância e decide sozinha quem são os vizinhos. Exemplo válido: 'salário (0–100000)' vs 'idade (0–80)' — sem escalar, o salário ofusca a idade. Padronizar (média 0, desvio 1) ou normalizar coloca todas em pé de igualdade. Bônus: estimar a escala só no treino.",
+      "dica": "A distância euclidiana soma as diferenças ao quadrado de TODAS as features. O que acontece se uma vai de 0 a 100000 e outra de 0 a 1?"
+    },
+    {
+      "pergunta": "Como o valor de k afeta o modelo? Contraste o que tende a acontecer com k=1 e com um k muito grande.",
+      "rubrica": "Boa resposta descreve o trade-off viés-variância: k=1 cria uma fronteira de decisão irregular que segue o ruído dos dados (overfitting, alta variância, baixo viés); k muito grande suaviza demais a fronteira, podendo ignorar padrões locais e subajustar (alto viés, baixa variância). O ideal fica no meio e é escolhido por validação. Reconhecer as duas pontas do trade-off é o ponto central.",
+      "dica": "Pense na fronteira de decisão: com 1 vizinho ela 'abraça' cada ponto; com k = tamanho do dataset, todo mundo recebe a mesma classe (a majoritária)."
+    },
+    {
+      "pergunta": "Quanto custa, em ordem de grandeza, fazer UMA predição com KNN força-bruta numa base de n pontos? E por que isso vira um problema em dimensões muito altas?",
+      "rubrica": "Boa resposta: cada predição custa ~O(n) (mais precisamente O(n·d), pois mede a distância a todos os n exemplos em d dimensões) — escala mal com bases grandes, já que nada foi pré-computado no treino. Para alta dimensionalidade, citar a maldição da dimensionalidade: com muitas features as distâncias entre pontos ficam todas parecidas, o 'vizinho mais próximo' deixa de ser de fato próximo, e a proximidade perde poder discriminativo. Citar O(n) e a maldição da dimensionalidade é o esperado.",
+      "dica": "Como não há modelo treinado, prever exige comparar o ponto novo com quantos exemplos? E em 1000 dimensões, 'perto' ainda quer dizer 'parecido'?"
+    }
+  ],
+  "ponteiros": [
+    "scikit-learn — Iris dataset example (plot_iris_dataset): visualize as classes do Iris no plano das features e imagine onde cairiam as fronteiras de vizinhança — https://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html",
+    "scikit-learn — User Guide: Nearest Neighbors (KNeighborsClassifier, métricas de distância e escolha de k)",
+    "Aula da LigIA: K-Nearest Neighbors (botão “Ver aula” no painel da trilha)"
+  ]
+}

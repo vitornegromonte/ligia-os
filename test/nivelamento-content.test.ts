@@ -1,0 +1,183 @@
+import { describe, it, expect } from "vitest";
+import raw from "@/content/nivelamento.json";
+import rawConcepts from "@/content/concepts.json";
+import {
+  loadNivelamentoContent,
+  priorDeAr1,
+  questoesParaEngine,
+} from "@/lib/nivelamento-content";
+import { COMPETENCIAS, type CompetenciaId } from "@/lib/competencias";
+
+const content = loadNivelamentoContent(raw);
+
+/** Mapa conceito → módulo, a partir do conteúdo real da trilha. */
+const moduloDoConceito = new Map<string, string>(
+  (rawConcepts as { concepts: { id: string; module: string }[] }).concepts.map((c) => [
+    c.id,
+    c.module,
+  ]),
+);
+
+const moduloDaCompetencia = new Map<CompetenciaId, string>(
+  COMPETENCIAS.map((c) => [c.id, c.modulo]),
+);
+
+describe("banco de questões — estrutura", () => {
+  it("tem 20 questões, 4 por competência", () => {
+    expect(content.mcq).toHaveLength(20);
+    for (const { id } of COMPETENCIAS) {
+      const qs = content.mcq.filter((q) => q.competencia === id);
+      expect(qs, `competência ${id}`).toHaveLength(4);
+    }
+  });
+
+  it("cada competência tem o multiset de dificuldades {1,2,2,3}", () => {
+    for (const { id } of COMPETENCIAS) {
+      const difs = content.mcq
+        .filter((q) => q.competencia === id)
+        .map((q) => q.dificuldade)
+        .sort();
+      expect(difs, `competência ${id}`).toEqual([1, 2, 2, 3]);
+    }
+  });
+
+  it("ids são únicos e seguem o padrão n-<competencia>-<n>", () => {
+    const ids = content.mcq.map((q) => q.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const q of content.mcq) {
+      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-[1-4]$`));
+    }
+  });
+});
+
+describe("banco de questões — opções e gabarito", () => {
+  it('toda MCQ tem exatamente uma opção "Não sei", na última posição', () => {
+    for (const q of content.mcq) {
+      const marcadas = q.opcoes.filter((o) => o.naoSei);
+      expect(marcadas, q.id).toHaveLength(1);
+      expect(q.opcoes[q.opcoes.length - 1].naoSei, q.id).toBe(true);
+    }
+  });
+
+  it("toda MCQ tem 4 opções de conteúdo além do 'Não sei'", () => {
+    for (const q of content.mcq) {
+      expect(q.opcoes, q.id).toHaveLength(5);
+    }
+  });
+
+  it("correta é índice válido e nunca aponta pro 'Não sei'", () => {
+    for (const q of content.mcq) {
+      expect(q.correta, q.id).toBeGreaterThanOrEqual(0);
+      expect(q.correta, q.id).toBeLessThan(q.opcoes.length);
+      expect(q.opcoes[q.correta].naoSei, q.id).toBe(false);
+    }
+  });
+
+  it("gabarito não é degenerado: nenhum índice concentra mais de 40% das respostas", () => {
+    const contagem = new Map<number, number>();
+    for (const q of content.mcq) {
+      contagem.set(q.correta, (contagem.get(q.correta) ?? 0) + 1);
+    }
+    for (const [indice, n] of contagem) {
+      expect(n / content.mcq.length, `índice ${indice}`).toBeLessThanOrEqual(0.4);
+    }
+  });
+});
+
+describe("banco de questões — ancoragem nos conceitos", () => {
+  it("todo conceito citado existe em concepts.json", () => {
+    for (const q of content.mcq) {
+      expect(q.conceitos.length, q.id).toBeGreaterThan(0);
+      for (const c of q.conceitos) {
+        expect(moduloDoConceito.has(c), `${q.id} → ${c}`).toBe(true);
+      }
+    }
+  });
+
+  it("todo conceito citado pertence ao módulo da competência da questão", () => {
+    for (const q of content.mcq) {
+      const esperado = moduloDaCompetencia.get(q.competencia);
+      for (const c of q.conceitos) {
+        expect(moduloDoConceito.get(c), `${q.id} → ${c}`).toBe(esperado);
+      }
+    }
+  });
+});
+
+describe("auto-relato", () => {
+  it("ar1 mapeia opções em competências válidas e termina com a exclusiva", () => {
+    const ar1 = content.auto_relato.find((p) => p.id === "ar1")!;
+    expect(ar1).toBeDefined();
+    const ids = new Set(COMPETENCIAS.map((c) => c.id));
+    const ultima = ar1.opcoes[ar1.opcoes.length - 1];
+    expect(ultima.exclusiva).toBe(true);
+    expect(ultima.competencia).toBeNull();
+    for (const op of ar1.opcoes.slice(0, -1)) {
+      expect(op.competencia, op.texto).not.toBeNull();
+      expect(ids.has(op.competencia as CompetenciaId), op.texto).toBe(true);
+    }
+    // toda competência aparece ao menos uma vez (senão o prior nunca a cobre)
+    const cobertas = new Set(ar1.opcoes.map((o) => o.competencia).filter(Boolean));
+    expect(cobertas.size).toBe(COMPETENCIAS.length);
+  });
+
+  it("ar2 e ar3 também têm opção exclusiva no fim", () => {
+    for (const id of ["ar2", "ar3"]) {
+      const p = content.auto_relato.find((x) => x.id === id)!;
+      expect(p, id).toBeDefined();
+      expect(p.opcoes[p.opcoes.length - 1].exclusiva, id).toBe(true);
+    }
+  });
+
+  it("perguntas single (ar4/ar5) não têm opção exclusiva", () => {
+    for (const id of ["ar4", "ar5"]) {
+      const p = content.auto_relato.find((x) => x.id === id)!;
+      expect(p.tipo, id).toBe("single");
+      expect(p.opcoes.some((o) => o.exclusiva), id).toBe(false);
+    }
+  });
+});
+
+describe("priorDeAr1", () => {
+  const ar1 = () => content.auto_relato.find((p) => p.id === "ar1")!;
+
+  it("converte índices marcados nas competências correspondentes", () => {
+    const opcoes = ar1().opcoes;
+    const iMat = opcoes.findIndex((o) => o.competencia === "matematica");
+    const iTrf = opcoes.findIndex((o) => o.competencia === "transformers-llms");
+    const prior = priorDeAr1(ar1(), [iMat, iTrf]);
+    expect(prior.matematica).toBe(true);
+    expect(prior["transformers-llms"]).toBe(true);
+    expect(prior["ml-classico"]).toBeUndefined();
+  });
+
+  it('"Nenhum destes" não declara competência alguma', () => {
+    const opcoes = ar1().opcoes;
+    const iNenhum = opcoes.findIndex((o) => o.exclusiva);
+    expect(priorDeAr1(ar1(), [iNenhum])).toEqual({});
+  });
+
+  it("seleção vazia e índices inválidos são ignorados", () => {
+    expect(priorDeAr1(ar1(), [])).toEqual({});
+    expect(priorDeAr1(ar1(), [999, -1])).toEqual({});
+  });
+});
+
+describe("questoesParaEngine", () => {
+  it("expõe só o que a engine precisa — sem gabarito", () => {
+    const qs = questoesParaEngine(content);
+    expect(qs).toHaveLength(20);
+    for (const q of qs) {
+      expect(Object.keys(q).sort()).toEqual(["competencia", "conceitos", "dificuldade", "id"]);
+    }
+  });
+});
+
+describe("loadNivelamentoContent", () => {
+  it("é fail-fast em conteúdo inválido", () => {
+    expect(() => loadNivelamentoContent({ version: "2" })).toThrow();
+    expect(() =>
+      loadNivelamentoContent({ ...(raw as object), mcq: [{ id: "x" }] }),
+    ).toThrow();
+  });
+});

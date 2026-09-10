@@ -1,0 +1,991 @@
+[
+  {
+    "conceptId": "algebra-linear-basica",
+    "orientacao": "Álgebra linear é a linguagem em que quase todo modelo de ML é escrito: dados viram vetores, modelos viram matrizes e treinar é mexer nessas transformações. Antes de reabrir os vídeos, tente reconstruir a intuição geométrica nas checagens com suas próprias palavras — recuperar do zero fixa muito mais do que reassistir. Mire na intuição de espaço (à la 3B1B), não na decoreba de fórmula.",
+    "checagens": [
+      {
+        "pergunta": "Você tem dois vetores no plano. O que significa o 'span' deles, e como o span muda se um vetor for múltiplo escalar do outro? Por que isso importa para pensar em 'dimensão'?",
+        "rubrica": "Boa resposta: span = conjunto de TODOS os pontos alcançáveis por combinações lineares (a·v + b·w) dos vetores. Com dois vetores em direções diferentes (independentes), o span é o plano inteiro (2D); se um for múltiplo do outro (dependentes/colineares), o span colapsa para uma reta (1D), porque o segundo vetor é redundante. Ligar a número de dimensões = número de vetores linearmente independentes é o núcleo. Citar 'independência linear' ou 'redundância' reforça.",
+        "dica": "Pense no que cada vetor 'adiciona' de novo ao conjunto de pontos que você consegue alcançar."
+      },
+      {
+        "pergunta": "Por que uma matriz pode ser entendida como uma transformação do espaço? E o que, concretamente, as COLUNAS de uma matriz representam nessa visão geométrica?",
+        "rubrica": "Boa resposta: uma matriz representa uma transformação LINEAR (estica/rotaciona/cisalha/reflete/projeta o espaço), preservando a origem e mantendo a grade reta/uniforme (preserva soma e escala). O ponto-chave esperado: as COLUNAS são as imagens dos vetores da base — para onde î, ĵ (e demais eixos) vão parar depois da transformação. Quem sabe disso consegue reconstruir a matriz só sabendo onde a base aterrissa.",
+        "dica": "Onde vão parar os vetores que apontam ao longo dos eixos depois da transformação?"
+      },
+      {
+        "pergunta": "Sem decorar a regra 'linha vezes coluna': explique por que multiplicar uma matriz M por um vetor x dá uma COMBINAÇÃO LINEAR das colunas de M. Use a ideia de transformação para justificar.",
+        "rubrica": "Boa resposta: como as colunas de M dizem para onde a base vai, e x = x1·î + x2·ĵ + …, por linearidade a imagem de x é x1·(coluna 1) + x2·(coluna 2) + … — ou seja, a combinação linear das colunas com pesos dados pelas entradas de x. O argumento central é usar a linearidade (T(a·u+b·v)=a·T(u)+b·T(v)) para 'distribuir' a transformação sobre a decomposição de x na base. Aceitar também a leitura 'cada entrada do resultado é o dot product de uma linha de M com x' como complementar correto.",
+        "dica": "Escreva x como soma dos vetores da base escalados e aplique a transformação termo a termo."
+      },
+      {
+        "pergunta": "Multiplicar matrizes A·B corresponde a qual ideia geométrica? Use isso para explicar por que, em geral, A·B ≠ B·A.",
+        "rubrica": "Boa resposta: A·B é a COMPOSIÇÃO das transformações — aplicar primeiro B, depois A (porque (A·B)·x = A·(B·x)). Como A·B representa 'fazer B e então A', a ordem das operações importa: rotacionar e depois cisalhar não é o mesmo que cisalhar e depois rotacionar, logo A·B ≠ B·A em geral (não-comutatividade). Citar a ordem 'direita primeiro, esquerda depois' é um plus.",
+        "dica": "Pense em duas transformações concretas (ex.: rotação e cisalhamento) e teste se trocar a ordem muda o resultado."
+      },
+      {
+        "pergunta": "Dois embeddings de palavras têm produto interno positivo grande, ~0, e negativo. O que cada caso diz sobre o ângulo/alinhamento entre os vetores? E por que costuma-se NORMALIZAR os vetores antes de comparar?",
+        "rubrica": "Boa resposta liga o sinal do dot product ao alinhamento: positivo = vetores apontam no mesmo sentido geral (ângulo agudo, alinhados/'parecidos'); ~0 = (quase) ortogonais/perpendiculares (θ≈90°, sem relação direcional); negativo = sentidos opostos (ângulo obtuso). Sobre normalizar: o dot product mistura magnitude e direção (v·w=|v||w|cos θ); normalizar (dividir pela norma) isola o cos θ, dando similaridade de cosseno que compara só a DIREÇÃO, sem viés do comprimento dos vetores. Citar 'projeção' ou 'cos θ' reforça.",
+        "dica": "v·w = |v|·|w|·cos(θ). O que sobra quando você tira o efeito dos comprimentos?"
+      }
+    ],
+    "ponteiros": [
+      "3B1B — Essence of Linear Algebra, cap. 1–2 (Vetores · Combinações lineares, span e bases): https://www.youtube.com/@3blue1brown",
+      "3B1B — Essence of Linear Algebra, cap. 3–4 (Transformações lineares e matrizes · Multiplicação de matrizes como composição): https://www.youtube.com/@3blue1brown",
+      "3B1B — Essence of Linear Algebra, cap. 9 (Produto interno / dot product e a dualidade com projeções): https://www.youtube.com/@3blue1brown"
+    ]
+  },
+  {
+    "conceptId": "atencao",
+    "orientacao": "O mecanismo de atenção (self-attention) deixa cada token da sequência \"olhar\" para os outros e montar uma representação que mistura contexto de toda a frase, em vez de depender de uma janela fixa. Antes de reler o material, tente responder cada checagem com suas palavras — recuperar de memória, mesmo travando um pouco, fixa muito mais do que reconhecer a resposta pronta.",
+    "checagens": [
+      {
+        "pergunta": "Na self-attention, cada token gera três vetores — query, key e value. De onde eles vêm e por que são três coisas diferentes, e não só o embedding?",
+        "rubrica": "Boa resposta: os três são projeções lineares do MESMO embedding do token, obtidas por três matrizes de pesos APRENDIDAS e distintas (W_Q, W_K, W_V). São separados porque têm papéis diferentes: a query expressa 'o que este token procura', a key 'o que este token oferece/como é indexado', e o value 'a informação que ele transporta'. Citar 'matrizes aprendidas' e a ideia de papéis distintos é o núcleo. Não precisa dar dimensões.",
+        "dica": "É o mesmo embedding passando por três 'lentes' treináveis diferentes."
+      },
+      {
+        "pergunta": "Como se calcula quanto um token A deve 'prestar atenção' a um token B?",
+        "rubrica": "Boa resposta percorre: (1) produto escalar entre a query de A e a key de B (mede alinhamento/compatibilidade); (2) divisão por √d_k (escala); (3) softmax sobre todos os tokens, transformando os scores numa distribuição de pesos que soma 1. Acertar 'produto escalar query·key' e 'softmax' é o essencial; mencionar o √d_k conta a favor mas é cobrado a fundo na próxima checagem.",
+        "dica": "Você quer transformar a compatibilidade entre os vetores de A e B em algo comparável entre todos os tokens."
+      },
+      {
+        "pergunta": "Depois de ter os pesos de atenção, como se forma a SAÍDA de um token? E o que essa operação permite que o embedding cru sozinho não permitia?",
+        "rubrica": "Boa resposta: a saída é a SOMA PONDERADA dos vetores VALUE de todos os tokens, usando os pesos de atenção (value de cada token entra proporcional a quanto se 'olha' para ele). Isso deixa cada token coletar/misturar CONTEXTO da sequência inteira de uma vez, capturando dependências de longo alcance — em vez de ficar preso a uma janela fixa/vizinhança local. Citar 'soma ponderada dos values' e a ideia de 'contexto da sequência toda' é o ponto.",
+        "dica": "Os pesos dizem 'quanto'; os values dizem 'o quê'. Combine os dois."
+      },
+      {
+        "pergunta": "Antes do softmax, os scores de atenção passam por uma divisão por uma constante ligada à dimensão dos vetores. Que constante é essa — e o que daria errado sem essa escala?",
+        "rubrica": "Boa resposta liga à estabilidade do treino: com d_k grande, a variância do produto escalar query·key cresce, gerando scores muito grandes em magnitude; isso satura o softmax (vira quase one-hot) e leva a gradientes minúsculos/instáveis. Dividir por √d_k controla a variância, mantém o softmax mais suave e os gradientes utilizáveis. Reconhecer 'scores grandes → softmax saturado → gradiente pequeno' é o núcleo; mencionar 'variância cresce com d_k' é o ideal.",
+        "dica": "O que acontece com o softmax quando uma das entradas é gigante comparada às outras?"
+      },
+      {
+        "pergunta": "Num decoder de LLM gerando texto token a token, por que se usa atenção causal (mascarada)? Como a máscara é aplicada na prática?",
+        "rubrica": "Boa resposta: o modelo é autorregressivo, então cada posição só pode atender a si mesma e às ANTERIORES, nunca a tokens futuros — senão 'espiaria' o que ainda não foi gerado (trapaça no treino e impossível na geração). Na prática, somam-se −∞ (ou um valor muito negativo) aos scores das posições futuras ANTES do softmax, de modo que esses pesos virem ~0 depois do softmax. Citar 'não olhar o futuro / só posições anteriores' e a ideia de mascarar antes do softmax é o esperado.",
+        "dica": "Durante a geração você ainda não tem os tokens da direita. O que fazer com o peso deles?"
+      }
+    ],
+    "ponteiros": [
+      "Jay Alammar — The Illustrated Transformer (http://jalammar.github.io/illustrated-transformer/): seção 'Self-Attention in Detail' mostra Q/K/V, o score query·key, a divisão por √d_k e a soma ponderada dos values com diagramas.",
+      "Vaswani et al. (2017), 'Attention Is All You Need' — seção 3.2.1 (Scaled Dot-Product Attention) formaliza softmax(QKᵀ/√d_k)·V e a máscara causal.",
+      "Aula da LigIA: Mecanismo de Atenção (módulo M4 — Transformers e LLMs; botão “Ver aula” no painel da trilha)."
+    ]
+  },
+  {
+    "conceptId": "ativacoes",
+    "orientacao": "A função de ativação é a não-linearidade que cada neurônio aplica depois da combinação linear das entradas — é ela que dá poder de fato a uma rede profunda. Antes de abrir os materiais, tente responder às checagens com suas palavras: recuperar ativamente por que a não-linearidade é indispensável, e o que cada ativação (sigmoide, tanh, ReLU, softmax) ganha e perde, fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Imagine uma rede com várias camadas densas, mas SEM nenhuma função de ativação não-linear entre elas (ou com ativação identidade). O que acontece com o poder dessa rede — e por quê?",
+        "rubrica": "Boa resposta: a rede colapsa em UMA única transformação linear, equivalente a uma só camada, por mais camadas que tenha — porque a composição de transformações lineares/afins é de novo linear (W2·(W1·x+b1)+b2 = W'·x+b'). Logo, sem não-linearidade, profundidade não acrescenta poder e a rede não passa de um modelo linear. Reconhecer 'colapsa em uma transformação linear' + 'composição de lineares é linear' é o núcleo.",
+        "dica": "O que dá ao compor f(g(x)) quando f e g são ambas lineares (do tipo Wx+b)?"
+      },
+      {
+        "pergunta": "Por que ativações como a sigmoide e a tanh dificultam o treino de redes PROFUNDAS? Use a palavra 'gradiente' na resposta.",
+        "rubrica": "Boa resposta liga SATURAÇÃO a VANISHING GRADIENT: para entradas de módulo grande, sigmoide/tanh ficam quase planas e sua DERIVADA tende a zero (sigmoide ≤ 0,25). No backprop os gradientes se multiplicam camada a camada; vários fatores <1 fazem o gradiente encolher exponencialmente, e as camadas iniciais quase não aprendem. Citar 'saturam' + 'gradiente some/desaparece (vanishing)' é o esperado.",
+        "dica": "O que acontece com a INCLINAÇÃO (derivada) da sigmoide quando z é bem grande ou bem negativo? E o que o backprop faz multiplicando muitos números <1?"
+      },
+      {
+        "pergunta": "A ReLU (max(0, z)) virou padrão nas camadas ocultas. Cite uma vantagem dela sobre a sigmoide e descreva o problema do 'dead ReLU' (ReLU morta).",
+        "rubrica": "Boa resposta — VANTAGEM: é barata de computar (um limiar, sem exponencial) e/ou para z>0 tem derivada 1, então não satura no lado positivo, mitigando o vanishing gradient. DEAD ReLU: para z<0 a saída e a derivada são 0; se um neurônio passa a produzir z<0 para todas as entradas, seu gradiente fica sempre 0, ele para de atualizar e fica 'morto' (sempre solta 0), desperdiçando capacidade. Bônus: agravado por learning rate alto; mitigado por Leaky ReLU/variantes. Reconhecer ao menos uma vantagem + a ideia de neurônio que zera e não atualiza mais é o ponto.",
+        "dica": "Quanto vale a derivada da ReLU quando z<0? E se isso valer para TODAS as entradas de um neurônio, ele ainda consegue se atualizar?"
+      },
+      {
+        "pergunta": "Numa classificação com 5 classes mutuamente exclusivas, qual ativação se usa na CAMADA DE SAÍDA e que propriedade ela garante? Por que ela não serviria nas camadas ocultas?",
+        "rubrica": "Boa resposta: softmax na saída; ela transforma o vetor de logits em valores em (0,1) que SOMAM 1, ou seja, uma distribuição de probabilidade sobre as classes (generaliza a sigmoide para >2 classes). Nas ocultas não se usa softmax porque o papel ali é introduzir não-linearidade por neurônio (típico: ReLU); softmax acopla todas as unidades numa distribuição e é específica da decisão final. Reconhecer 'softmax' + 'probabilidades que somam 1' é o núcleo.",
+        "dica": "Você quer, na saída, números que possam ser lidos como probabilidades de cada classe. O que precisa valer para um conjunto de números ser uma distribuição de probabilidade?"
+      },
+      {
+        "pergunta": "Em uma frase: qual é o papel da função de ativação na EXPRESSIVIDADE da rede, e como você decide qual usar nas camadas ocultas versus na de saída?",
+        "rubrica": "Boa resposta: a ativação introduz a não-linearidade que dá à rede capacidade de representar funções/fronteiras não-lineares (expressividade) — sem ela, profundidade é inútil. Escolha: nas OCULTAS, ReLU (ou variante) por padrão; na SAÍDA, pela tarefa — softmax (multiclasse), sigmoide (binária/multirrótulo), linear/sem ativação (regressão). Reconhecer 'não-linearidade = expressividade' + 'oculta ReLU / saída depende da tarefa' é o esperado.",
+        "dica": "Separe o porquê (o que a não-linearidade habilita) do onde (oculta padrão vs. saída guiada pela tarefa)."
+      }
+    ],
+    "ponteiros": [
+      "Andrej Karpathy — Neural Networks: Zero to Hero (série/playlist): vídeo 'Building makemore' constrói um MLP do zero e mostra na prática a tanh saturando, os gradientes encolhendo e o efeito da inicialização — https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "Andrej Karpathy — Zero to Hero: 'micrograd' (backpropagation manual) ajuda a enxergar por que a derivada da ativação importa no fluxo do gradiente, antes de chegar a ReLU/softmax — https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "Aula da LigIA: Funções de Ativação (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "backprop",
+    "orientacao": "Backpropagation é o algoritmo que calcula com eficiência os gradientes da perda em relação a cada parâmetro da rede, aplicando a regra da cadeia de trás pra frente sobre o grafo de computação. Antes de reabrir o vídeo, tente responder às checagens do seu jeito — recuperar ativamente o passo-a-passo fixa muito mais que reassistir.",
+    "checagens": [
+      {
+        "pergunta": "Em uma frase: o que backpropagation produz durante o treino — e, depois que ele roda, os pesos da rede já saíram atualizados?",
+        "rubrica": "Boa resposta: backprop CALCULA/FORNECE os gradientes da perda em relação a cada parâmetro (pesos e vieses); NÃO atualiza os parâmetros — quem dá o passo e atualiza os pesos é o otimizador / gradiente descendente. Reconhecer a separação 'backprop fornece os gradientes, o otimizador usa' é o núcleo.",
+        "dica": "Backprop responde 'quanto cada peso influencia a perda'. Calcular essa informação é a mesma coisa que dar o passo que muda o peso?"
+      },
+      {
+        "pergunta": "Descreva os dois passos do treino de uma rede ao processar um lote: o que acontece no forward pass e o que acontece no backward pass?",
+        "rubrica": "Boa resposta: (1) FORWARD — propaga a entrada pela rede, calcula a saída e, no fim, a perda (loss). (2) BACKWARD — começa na perda e propaga os gradientes de trás pra frente até as entradas/parâmetros, aplicando a regra da cadeia. Citar a ordem (forward → backward) e que o backward parte da perda é o esperado.",
+        "dica": "Primeiro a rede 'chuta' uma saída e mede o erro; depois ela descobre de quem é a culpa, indo de trás pra frente."
+      },
+      {
+        "pergunta": "Qual regra do cálculo backprop aplica, e por que ele percorre o grafo de TRÁS PRA FRENTE (da perda para as entradas) em vez de da frente pra trás?",
+        "rubrica": "Boa resposta: aplica a REGRA DA CADEIA — o gradiente em relação a um parâmetro é o produto dos gradientes locais ao longo do caminho da perda até ele. Ir de trás pra frente (a partir da perda, que é uma saída escalar) permite calcular o gradiente acumulado uma vez por nó e propagá-lo; ir da frente pra trás obrigaria a refazer trabalho. Citar 'regra da cadeia' é obrigatório.",
+        "dica": "A perda é um único número no fim do grafo. Começar dela e descer a cadeia evita recomeçar o cálculo para cada peso."
+      },
+      {
+        "pergunta": "Por que backprop é EFICIENTE? O que ele reaproveita, em contraste com calcular a derivada de cada parâmetro do zero?",
+        "rubrica": "Boa resposta: ele REAPROVEITA os gradientes intermediários — o gradiente acumulado até cada nó é calculado uma vez e reusado por tudo que vem antes dele, em vez de refazer a cadeia inteira (desde a perda) separadamente para cada parâmetro. Resultado: o backward custa da mesma ordem do forward, não explode com o número de parâmetros. Reconhecer o reuso/evitar recomputação é o ponto.",
+        "dica": "Imagine milhões de pesos. Recalcular a cadeia inteira do zero para cada um seria absurdo. O que dá pra guardar e reusar?"
+      },
+      {
+        "pergunta": "Por que backprop é considerado o que tornou viável treinar redes PROFUNDAS (com muitas camadas e milhões de parâmetros)?",
+        "rubrica": "Boa resposta: liga a eficiência (custo do gradiente ≈ proporcional ao tamanho da rede, graças ao reuso) à escala: sem backprop, obter os gradientes de tantos parâmetros seria custoso demais a cada passo de treino. Como ele dá todos os gradientes em uma única passada de trás pra frente, o gradiente descendente consegue atualizar redes enormes iterativamente. Mencionar viabilidade computacional / custo gerenciável em escala é o esperado.",
+        "dica": "Não é que a ideia (regra da cadeia) seja nova — é que fazê-la barata o bastante para milhões de parâmetros é o que destrava o resto."
+      }
+    ],
+    "ponteiros": [
+      "Andrej Karpathy — The spelled-out intro to neural networks and backpropagation: building micrograd (vídeo, ~2h30): https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "micrograd (repo de Karpathy) — autograd engine de ~100 linhas: construa um nó Value, chame .backward() e veja a regra da cadeia propagando gradientes pelo grafo",
+      "Aula da LigIA: Backpropagation (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "batchnorm",
+    "orientacao": "Batch Normalization normaliza as ativações de uma camada usando estatísticas do mini-batch e depois reescala/desloca com parâmetros aprendíveis. Antes de assistir ao vídeo ou reler, tente responder às checagens com suas próprias palavras — recuperar ativamente o que você acha que entendeu fixa muito mais do que reconhecer a resposta pronta.",
+    "checagens": [
+      {
+        "pergunta": "Em 1–2 frases: o que a Batch Normalization calcula sobre as ativações de uma camada, e em relação a QUE conjunto de exemplos ela calcula a média e a variância durante o treino?",
+        "rubrica": "Boa resposta: BN normaliza as ativações (por feature/canal) subtraindo a média e dividindo pelo desvio-padrão, deixando-as ~média 0 e ~variância 1; e essas estatísticas são calculadas SOBRE O MINI-BATCH atual (não sobre o dataset inteiro nem por exemplo isolado). O núcleo é 'normalizar para média 0 / variância 1' + 'estatísticas do mini-batch'.",
+        "dica": "A cada passo do treino, o modelo só tem em mãos um pequeno grupo de exemplos. Sobre qual conjunto, então, dá para calcular a média e a variância naquele momento?"
+      },
+      {
+        "pergunta": "Depois de normalizar para média 0 e variância 1, a BN ainda aplica ŷ = γ·x̂ + β com γ e β aprendíveis. Por que não parar na normalização? O que se perderia, e o que γ e β recuperam?",
+        "rubrica": "Boa resposta: forçar média 0 / variância 1 limita o que a camada consegue representar (perde expressividade — ex.: prenderia uma ativação à faixa linear de uma sigmoide). γ (escala) e β (deslocamento) são APRENDIDOS e devolvem essa liberdade: a rede pode reescalar/deslocar a distribuição e até desfazer a normalização se for melhor (γ=σ, β=μ). Reconhecer 'expressividade/poder de representação' + 'γ e β são aprendidos' é o ponto.",
+        "dica": "Se a normalização fosse sempre ótima, não faria sentido a rede poder revertê-la — γ e β existem justamente para isso."
+      },
+      {
+        "pergunta": "Um colega diz: 'BatchNorm acelera o treino porque elimina o internal covariate shift.' Qual parte disso é consenso e qual parte é debatida? Cite a evidência alternativa.",
+        "rubrica": "Boa resposta distingue: (a) CONSENSO — BN estabiliza/acelera o treino e permite learning rates maiores; (b) DEBATIDO — a EXPLICAÇÃO de que isso decorre de reduzir o 'internal covariate shift' (hipótese do artigo original de Ioffe & Szegedy) é contestada. Evidência alternativa: trabalhos como Santurkar et al. (2018) mostram empiricamente que o ganho vem mais de SUAVIZAR a paisagem de perda (gradientes/loss mais bem-comportados, melhor Lipschitzness) do que de reduzir o covariate shift. O essencial é separar 'funciona' (aceito) de 'por causa do covariate shift' (não fechado) — não precisa citar o nome do paper.",
+        "dica": "Separe DOIS níveis: 'BN ajuda?' versus 'qual é o mecanismo pelo qual ela ajuda?'. Só um deles é pacífico."
+      },
+      {
+        "pergunta": "Por que a BatchNorm se comporta de forma diferente no treino e na inferência? O que ela usa em cada fase para normalizar, e que problema surgiria se usasse as estatísticas do batch também na inferência?",
+        "rubrica": "Boa resposta: no TREINO usa a média/variância do mini-batch atual (e vai acumulando médias/variâncias 'running' via momentum); na INFERÊNCIA usa essas estatísticas acumuladas/running (estimativa da população), com γ e β congelados. Problema de usar estatísticas do batch na inferência: a predição de uma amostra passaria a depender de quais outras amostras estão no mesmo batch (não-determinística / inconsistente), e quebraria com batch de tamanho 1. Reconhecer 'batch no treino vs. running/acumulada na inferência' + um motivo (determinismo/independência entre amostras) é o ponto.",
+        "dica": "Na inferência você pode receber UM exemplo só — de qual 'batch' calcularia média e variância?"
+      },
+      {
+        "pergunta": "Dizem que a BatchNorm tem um leve efeito regularizador. De onde vem esse efeito?",
+        "rubrica": "Boa resposta: como a normalização de cada exemplo depende das estatísticas (média/variância) do mini-batch em que ele caiu, e esse batch é sorteado aleatoriamente, as ativações de um mesmo exemplo variam um pouco de passo para passo — isso injeta um RUÍDO estocástico que age como regularização leve (em espírito, parecido com dropout, porém mais fraco). O núcleo é 'ruído vindo da dependência das estatísticas do batch / do batch ser aleatório'.",
+        "dica": "O mesmo exemplo, em batches diferentes, é normalizado por estatísticas levemente diferentes. O que isso adiciona às ativações?"
+      }
+    ],
+    "ponteiros": [
+      "Karpathy — makemore Part 3: Activations & Gradients, BatchNorm (vídeo, ~115 min): a parte central deriva a BatchNorm passo a passo (média/variância do batch, γ e β) e mostra na prática o buffer de running mean/var usado na inferência — https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "Karpathy — makemore Part 3 (trecho do diagnóstico de ativações/gradientes): observe como BatchNorm muda a saúde das ativações e por que isso permite treinar com taxas de aprendizado maiores.",
+      "Aula da LigIA: Batch Normalization (botão “Ver aula” no painel da trilha) — fecha o loop depois que você tentar as checagens."
+    ]
+  },
+  {
+    "conceptId": "calculo-vetorial",
+    "orientacao": "Em ML, cálculo é a linguagem de como o erro muda quando você mexe nos parâmetros — derivada é inclinação, gradiente é o vetor que aponta ladeira acima, e treinar é andar na direção oposta. Antes de olhar as fórmulas, tente responder cada checagem com suas palavras: recuperar ativamente fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Sem citar a definição com limite: o que a derivada f'(x) te diz sobre a função em um ponto, geometricamente e em termos de 'taxa de variação'?",
+        "rubrica": "Boa resposta liga a derivada à inclinação da reta TANGENTE ao gráfico naquele ponto, e/ou à taxa de variação local: quanto a saída muda para uma pequena mudança na entrada. Reconhecer que o sinal dá a direção (cresce/decresce) e a magnitude dá a sensibilidade é um plus. Não precisa de fórmula nem de limite.",
+        "dica": "Imagine dar um zoom infinito no gráfico até a curva virar quase uma reta — qual é a inclinação dessa reta?"
+      },
+      {
+        "pergunta": "Usando a regra da cadeia, derive f(g(x)). Mais importante: por que ela é o coração do backpropagation em redes neurais?",
+        "rubrica": "Boa resposta: a derivada de f(g(x)) é f'(g(x))·g'(x) — as taxas de variação se MULTIPLICAM ao longo da composição. Para a parte de ML: uma rede é uma composição encadeada de funções (camadas), e a regra da cadeia permite calcular quão sensível o erro final é a um peso lá no início, multiplicando as sensibilidades locais elo a elo. Citar 'composição de funções' e 'multiplicar as derivadas/sensibilidades' é o núcleo.",
+        "dica": "Pense em engrenagens encadeadas: como a velocidade da primeira afeta a última passando por todas as do meio?"
+      },
+      {
+        "pergunta": "O que é uma derivada PARCIAL ∂f/∂xi, e por que precisamos delas em ML em vez de uma derivada só?",
+        "rubrica": "Boa resposta: a parcial ∂f/∂xi é a derivada de f em relação a xi tratando todas as OUTRAS variáveis como constantes — a inclinação ao longo de um único eixo/parâmetro. Em ML o modelo tem muitos parâmetros (pesos), então uma única derivada não basta: precisamos saber a sensibilidade do custo a CADA parâmetro separadamente. Reconhecer 'segura as outras fixas' e 'um eixo por vez' é o ponto.",
+        "dica": "Se a função depende de 1000 botões, como você mede o efeito de mexer só em um deles?"
+      },
+      {
+        "pergunta": "O gradiente ∇f é o vetor das parciais. Por que ele aponta na direção de MAIOR crescimento da função — e não em outra qualquer?",
+        "rubrica": "Boa resposta: ∇f empilha todas as parciais e aponta na direção de subida mais íngreme. A justificativa: a taxa de variação numa direção (derivada direcional) é o produto escalar ∇f·u; esse produto é máximo quando a direção u está ALINHADA com ∇f (mesmo sentido). O núcleo é a justificativa via produto escalar / derivada direcional (∇f·u é máximo quando u se alinha com ∇f). A versão informal ('combinação das inclinações de cada eixo') é apenas parcial — não explica o 'porquê'. Mencionar magnitude = quão íngreme é um plus.",
+        "dica": "A variação numa direção é ∇f·u (produto escalar). Para que direção u esse produto é o maior possível?"
+      },
+      {
+        "pergunta": "Treinar um modelo minimiza uma função de custo L(θ). Usando o gradiente, qual a regra de atualização dos parâmetros, e por que o sinal de menos?",
+        "rubrica": "Boa resposta: como ∇L aponta para onde o custo CRESCE mais rápido, andamos no sentido OPOSTO para reduzi-lo: θ ← θ − η·∇L (gradiente descendente). O sinal de menos é justamente para descer a ladeira em vez de subir; η (learning rate) regula o tamanho do passo. Citar 'direção oposta ao gradiente' e 'descer a perda' é o núcleo; mencionar learning rate ou mínimo local é bônus.",
+        "dica": "O gradiente aponta ladeira ACIMA. Você quer ir para cima ou para baixo no vale do erro?"
+      }
+    ],
+    "ponteiros": [
+      "3B1B — Essence of Calculus (cap. 1–3: derivada como inclinação/taxa de variação; cap. da regra da cadeia): https://www.youtube.com/@3blue1brown",
+      "3B1B — Essence of Calculus, parte de derivadas parciais e gradiente (e o vídeo 'Backpropagation calculus' da série de Redes Neurais, que conecta a regra da cadeia ao treino)",
+      "Aula da LigIA: Cálculo Vetorial (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "cnn",
+    "orientacao": "Redes convolucionais trocam a conexão total das camadas densas por filtros pequenos que deslizam pela imagem, reaproveitando os mesmos pesos em toda parte. Antes de abrir o material, tente reconstruir de memória POR QUE isso faz sentido para imagens — recuperar ativamente, mesmo errando, fixa muito mais que reler. Responda às checagens com suas palavras antes de conferir.",
+    "checagens": [
+      {
+        "pergunta": "Em uma camada convolucional, o que significa o filtro ter campo receptivo LOCAL e ainda COMPARTILHAR pesos ao deslizar pela imagem? Cite as duas consequências principais disso.",
+        "rubrica": "Boa resposta: (1) local = cada saída olha só uma pequena vizinhança da entrada (não a imagem inteira); (2) compartilhamento = o MESMO conjunto de pesos (o filtro) é aplicado em todas as posições ao deslizar. Consequências: muito MENOS parâmetros que uma camada densa E equivariância a translação (o mesmo detector funciona em qualquer posição). Citar ao menos as duas consequências é o núcleo.",
+        "dica": "Pense no que o filtro 'enxerga' de cada vez e no que ele reaproveita de uma posição para outra."
+      },
+      {
+        "pergunta": "Por que usar uma camada densa (fully-connected) ligando cada pixel a cada neurônio é uma má ideia para imagens, e como a convolução resolve isso?",
+        "rubrica": "Boa resposta: a densa tem um peso por (pixel × neurônio), então o nº de parâmetros explode com a resolução e ela ignora a estrutura espacial 2D (trata pixels vizinhos e distantes igual). A convolução é local (campo receptivo pequeno) e compartilha pesos, usando pouquíssimos parâmetros e respeitando a vizinhança espacial. Reconhecer 'explosão de parâmetros' + 'estrutura espacial / eficiência' é o esperado.",
+        "dica": "Imagine quantos pesos uma camada densa precisa para uma imagem grande — e que ela não sabe que pixels vizinhos formam algo."
+      },
+      {
+        "pergunta": "O que um filtro aprende, e o que é o mapa de ativação (feature map) que ele produz?",
+        "rubrica": "Boa resposta: o filtro aprende (via treino/backprop) a detectar um PADRÃO/feature (ex.: borda numa orientação, mancha de cor); ao deslizar pela imagem ele gera um mapa de ativação 2D que indica ONDE e quão forte aquele padrão aparece em cada posição. Vários filtros geram vários feature maps (a profundidade do volume de saída). Citar 'detecta um padrão' + 'mapa de onde ele responde' é o ponto.",
+        "dica": "O filtro é o 'detector'; o feature map é o 'mapa de calor' de onde ele encontrou aquilo."
+      },
+      {
+        "pergunta": "Para que serve o POOLING (ex.: max-pooling), e qual a diferença entre a equivariância da convolução e a invariância que o pooling ajuda a dar?",
+        "rubrica": "Boa resposta: pooling subamostra (reduz a dimensão espacial e a computação, ex.: 2×2 stride 2) e dá alguma INVARIÂNCIA local a translação (pequenos deslocamentos quase não mudam a saída). A convolução é EQUIVARIANTE: se o objeto se move, a ativação se move junto (não some). Distinção: equivariância = a saída acompanha o deslocamento; invariância (parcial, via pooling) = a saída tende a NÃO mudar com pequenos deslocamentos. Acertar essa diferença é o foco.",
+        "dica": "Equivariante: mexeu a entrada, a ativação 'anda junto'. Invariante: pequenos deslocamentos não mudam o resultado."
+      },
+      {
+        "pergunta": "Como surge a HIERARQUIA de features ao empilhar camadas, e por que isso casa bem com a estrutura de imagens?",
+        "rubrica": "Boa resposta: camadas iniciais aprendem features simples/de baixo nível (bordas, cores); camadas mais profundas COMBINAM essas em features mais complexas (texturas → partes → objetos), e o campo receptivo efetivo cresce com a profundidade. Casa com imagens porque objetos são composições espaciais de partes, que são composições de bordas/texturas. Reconhecer 'simples → complexo / composição em níveis' é o núcleo.",
+        "dica": "Pense de baixo para cima: bordas formam partes, partes formam objetos — cada camada vê um pedaço maior."
+      }
+    ],
+    "ponteiros": [
+      "Stanford CS231n — Convolutional Networks (notas oficiais: conectividade local, parameter sharing, pooling): https://cs231n.github.io/convolutional-networks/",
+      "fast.ai — CNNs aplicadas (lessons 1-2), abordagem top-down e hands-on: https://course.fast.ai",
+      "Aula da LigIA: Redes Convolucionais (CNN) (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "dataloaders",
+    "orientacao": "No PyTorch, dois objetos dividem o trabalho de alimentar o modelo: o Dataset, que sabe acessar UMA amostra de cada vez, e o DataLoader, que organiza essas amostras para o laço de treino. Antes de abrir a doc, tente responder às checagens do seu jeito — recuperar de memória qual objeto faz o quê fixa muito mais do que reler o tutorial.",
+    "checagens": [
+      {
+        "pergunta": "No PyTorch há dois objetos — Dataset e DataLoader. Em uma ou duas frases, qual é a responsabilidade de cada um, e como eles se relacionam?",
+        "rubrica": "Boa resposta: o Dataset sabe ACESSAR uma amostra (e seu rótulo) por índice, aplicando transforms; o DataLoader ENVOLVE o Dataset e entrega o conjunto em MINI-BATCHES (com shuffle e/ou carregamento paralelo) para o laço de treino. O núcleo é reconhecer que são camadas separadas — a fonte de dados (uma amostra) vs. o consumo no treino (batches) — e que o DataLoader recebe um Dataset.",
+        "dica": "Um dos dois é a 'fonte' (de onde sai cada amostra individual); o outro é o 'organizador' que prepara os dados para o laço de treino. Qual é qual, e quem envolve quem?"
+      },
+      {
+        "pergunta": "Quais métodos uma subclasse de Dataset precisa implementar, e o que cada um faz? Foque no que recebe e no que retorna.",
+        "rubrica": "Boa resposta cita __len__ (retorna o NÚMERO de amostras do dataset) e __getitem__(idx) (recebe um ÍNDICE, carrega UMA amostra, aplica os transforms e retorna a amostra com seu rótulo — tipicamente uma tupla). Mencionar __init__ (guarda caminhos/anotações/transforms ao instanciar) é um plus. O essencial é entender que __getitem__ é por-amostra e indexável.",
+        "dica": "Pense em como você faria dataset[7] devolver a 8ª amostra — e como o objeto saberia quantas amostras existem."
+      },
+      {
+        "pergunta": "O DataLoader entrega os dados em mini-batches. Por que treinar com mini-batches em vez de uma amostra de cada vez OU o dataset inteiro de uma vez?",
+        "rubrica": "Boa resposta contrasta os extremos: o dataset inteiro (batch GD) dá um gradiente preciso mas é caro/pode não caber na memória e dá poucos passos; uma única amostra (SGD puro) é barata mas o gradiente fica muito ruidoso. O mini-batch é o meio-termo: estimativa de gradiente razoável + uso eficiente de hardware vetorizado/GPU (processa o lote de uma vez). Citar 'eficiência/GPU' E 'estimativa do gradiente' é o esperado.",
+        "dica": "Há um trade-off entre quão BOA é a estimativa do gradiente e quão CARO é cada passo."
+      },
+      {
+        "pergunta": "Por que normalmente passamos shuffle=True no DataLoader de treino? O que pode dar errado se os dados não forem embaralhados?",
+        "rubrica": "Boa resposta liga shuffle à ORDEM dos dados: se as amostras vêm ordenadas (ex.: agrupadas por classe), batches consecutivos ficam correlacionados/enviesados e o SGD recebe gradientes tendenciosos, prejudicando a convergência e induzindo overfitting à ordem. Reembaralhar a cada época quebra essa correlação. Citar 'quebrar a ordem/correlação entre batches' é o núcleo.",
+        "dica": "Imagine um dataset com TODOS os exemplos da classe A, depois TODOS da classe B. Como ficariam os primeiros batches?"
+      },
+      {
+        "pergunta": "Por que costumamos usar shuffle=True só no DataLoader de treino e shuffle=False na validação/teste?",
+        "rubrica": "Boa resposta: na validação/teste não há atualização de pesos — só se calcula uma métrica agregada sobre todas as amostras, então a ORDEM não muda o resultado; manter shuffle=False dá reprodutibilidade e não há motivo para embaralhar. O embaralhamento importa no treino porque é onde o gradiente é estimado por batch e a correlação de ordem atrapalha o SGD.",
+        "dica": "No teste o modelo não aprende — você só está medindo. A ordem das amostras muda a métrica final?"
+      }
+    ],
+    "ponteiros": [
+      "PyTorch — Datasets & DataLoaders (tutorial oficial): https://pytorch.org/tutorials/beginner/basics/data_tutorial.html",
+      "PyTorch docs — torch.utils.data (referência de Dataset e DataLoader, argumentos como batch_size, shuffle e num_workers)",
+      "Aula da LigIA: Datasets e DataLoaders (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "embeddings",
+    "orientacao": "Um embedding é um vetor denso e aprendido que representa um token, posicionando significados próximos perto uns dos outros no espaço. Antes de abrir os ponteiros, tente responder às checagens com suas próprias palavras — recuperar de memória custa mais e fixa muito mais do que reler.",
+    "checagens": [
+      {
+        "pergunta": "Em uma ou duas frases: o que é um embedding de um token, e o que significa dizer que ele é 'denso' e 'aprendido'?",
+        "rubrica": "Boa resposta: embedding é um vetor (lista de números) de dimensão fixa que representa um token num espaço contínuo. 'Denso' = a maioria das entradas é não-nula (contrasta com esparso); 'aprendido' = os valores são ajustados durante o treino, não definidos à mão. Citar que codifica significado/contexto é um plus.",
+        "dica": "Pense em 'vetor de números' + de onde vêm esses números + se há muitos zeros ou não."
+      },
+      {
+        "pergunta": "O que é a 'tabela de embeddings' e como se obtém o embedding de um token específico a partir dela?",
+        "rubrica": "Boa resposta: a tabela é uma matriz [tamanho_do_vocabulário × dimensão_do_embedding]; o embedding de um token é a LINHA correspondente, recuperada por lookup usando o id (inteiro) do token como índice. Reconhecer que a tabela é um parâmetro treinável (ajustada pelo backprop) é um diferencial.",
+        "dica": "Cada token tem um id inteiro. O que esse id indexa numa matriz?"
+      },
+      {
+        "pergunta": "Como uma representação one-hot de um token difere de um embedding, e por que one-hot não consegue expressar que duas palavras têm significados parecidos?",
+        "rubrica": "Boa resposta contrasta: one-hot é ESPARSO, com dimensão = tamanho do vocabulário, e os vetores são ortogonais ⇒ similaridade de cosseno entre quaisquer dois tokens distintos é 0, logo não há noção de similaridade. Embedding é denso, de baixa dimensão e coloca tokens parecidos próximos no espaço. Citar 'ortogonal' ou 'cosseno = 0' é o núcleo.",
+        "dica": "Em one-hot, dois tokens diferentes nunca compartilham uma posição '1'. O que isso faz com o ângulo entre eles?"
+      },
+      {
+        "pergunta": "Quando dizemos que dois embeddings são 'próximos', como costumamos medir essa proximidade, e o que ela indica sobre os tokens?",
+        "rubrica": "Boa resposta: mede-se tipicamente por similaridade de cosseno (cosseno do ângulo entre os vetores; foca na direção, ignora a magnitude) — também vale citar distância euclidiana. Proximidade alta (cosseno perto de 1) indica significado/uso semelhante. O núcleo é ligar 'proximidade geométrica' a 'similaridade semântica'.",
+        "dica": "É sobre o ângulo entre os vetores, não o tamanho deles."
+      },
+      {
+        "pergunta": "O cálculo 'rei − homem + mulher ≈ rainha' funciona com embeddings. O que esse resultado evidencia sobre o espaço, e por que dizer 'evidencia' em vez de 'prova'?",
+        "rubrica": "Boa resposta: a aritmética de vetores aproxima 'rainha', evidenciando que DIREÇÕES no espaço capturam relações semânticas (ex.: o 'eixo' de gênero), ou seja, o espaço tem estrutura/regularidade. 'Evidencia' e não 'prova' porque é um padrão aprendido e aproximado (≈), que não vale exatamente para todo par/analogia. Reconhecer o caráter aproximado é o ponto fino.",
+        "dica": "Subtrair 'homem' e somar 'mulher' equivale a andar numa certa direção. O que essa direção representaria? E o '≈' importa."
+      }
+    ],
+    "ponteiros": [
+      "Jay Alammar — The Illustrated Word2vec (https://jalammar.github.io/illustrated-word2vec/): intuição visual de embeddings, similaridade de cosseno e analogias de vetores",
+      "Andrej Karpathy — Building makemore Part 2: MLP (https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ): a tabela de embeddings (C[X]) como lookup pelo id do token, treinada por backprop",
+      "Aula da LigIA: Embeddings (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "fine-tuning",
+    "orientacao": "Fine-tuning é descongelar pesos de um modelo pré-treinado e continuar o treino na sua tarefa — diferente de feature extraction, que mantém o backbone congelado e só treina a cabeça nova. Antes de olhar a teoria, tente responder cada checagem com suas palavras; recuperar ativamente o porquê de cada cuidado (taxa baixa, esquecimento, overfitting) fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Qual é a diferença concreta entre fine-tuning e feature extraction, em termos de QUAIS pesos são treinados?",
+        "rubrica": "Boa resposta: em feature extraction o backbone pré-treinado fica CONGELADO e treina-se só a cabeça/classificador novo (features pré-treinadas como representações fixas); em fine-tuning DESCONGELA-se parte ou todo o backbone e continua-se o treino atualizando TAMBÉM os pesos pré-treinados. O núcleo é reconhecer que fine-tuning mexe nos pesos pré-treinados e feature extraction não.",
+        "dica": "Pense no que está 'congelado' e no que recebe gradiente em cada caso."
+      },
+      {
+        "pergunta": "Por que no fine-tuning se usa uma taxa de aprendizado (learning rate) BAIXA ao descongelar o backbone?",
+        "rubrica": "Boa resposta liga LR à preservação das features: os pesos pré-treinados já estão numa boa região; um LR alto faz updates grandes que destroem/sobrescrevem as features aprendidas. LR baixa ajusta os pesos só um pouco. Citar 'não destruir o que foi aprendido no pré-treino' é o ponto central.",
+        "dica": "Os pesos pré-treinados já 'sabem' coisas úteis — quão violentamente você quer mexer neles?"
+      },
+      {
+        "pergunta": "O que é 'esquecimento catastrófico' e por que ele fica MAIS provável quando você tem poucos dados na tarefa nova?",
+        "rubrica": "Boa resposta: o modelo, ao treinar na tarefa nova, 'esquece'/sobrescreve as representações úteis do pré-treino. Com poucos dados há muitos parâmetros descongelados para pouquíssimos exemplos → overfitting: o modelo decora o conjunto pequeno e perde a generalização do backbone. Reconhecer a ligação com overfitting / poucos exemplos é o núcleo.",
+        "dica": "Muitos parâmetros para descongelar + pouquíssimos exemplos = qual problema clássico de treino?"
+      },
+      {
+        "pergunta": "Na abordagem da fast.ai, por que usar learning rates DISCRIMINATIVOS — camadas iniciais com LR menor e camadas finais com LR maior?",
+        "rubrica": "Boa resposta: camadas iniciais aprendem features GERAIS (bordas, texturas) que quase não precisam mudar → LR menor; camadas finais são mais específicas da tarefa/domínio → precisam de mais ajuste → LR maior. Mencionar 'geral nas primeiras, específico nas últimas' já cobre o essencial. Bônus: descongelamento gradual (treinar a cabeça primeiro, depois descongelar das últimas para as primeiras).",
+        "dica": "Quais camadas aprendem coisas genéricas (úteis em qualquer tarefa) e quais aprendem coisas específicas da SUA tarefa?"
+      },
+      {
+        "pergunta": "Você tem um dataset PEQUENO e muito parecido com o do pré-treino. Fine-tuning completo (descongelar tudo) ou só feature extraction? E se o dataset fosse grande e/ou de um domínio bem diferente?",
+        "rubrica": "Boa resposta: com poucos dados + domínio parecido, preferir feature extraction (ou descongelar só as últimas camadas), pois descongelar tudo com poucos exemplos causa overfitting/esquecimento. Com MUITOS dados o fine-tuning compensa e tende a render mais; com domínio MUITO diferente é preciso fine-tunar (descongelando mais fundo) porque as features fixas deixam de ser ótimas. O ponto é articular o trade-off dados × similaridade de domínio.",
+        "dica": "Mais dados e/ou domínio mais distante puxam para qual lado: congelar mais ou descongelar mais?"
+      }
+    ],
+    "ponteiros": [
+      "fast.ai — Practical Deep Learning for Coders: fine-tuning de modelos pré-treinados, gradual unfreezing e learning rates discriminativos (course.fast.ai)",
+      "ISL / cs231n (Transfer Learning) — quadro de decisão tamanho do dataset × similaridade de domínio para escolher entre congelar e fine-tunar",
+      "Aula da LigIA: Fine-tuning (M3 — DL Aplicado) — botão “Ver aula” no painel da trilha"
+    ]
+  },
+  {
+    "conceptId": "geracao-de-texto",
+    "orientacao": "Um LLM gera texto um token de cada vez, decidindo o próximo a partir de uma distribuição de probabilidade sobre o vocabulário. Antes de olhar a explicação, tente responder cada checagem do seu jeito — recuperar de memória, mesmo com esforço, fixa muito mais que reler. Foque em ENTENDER por que existem várias estratégias de decodificação, não em decorar valores.",
+    "checagens": [
+      {
+        "pergunta": "Descreva, em uma ou duas frases, o que significa dizer que a geração de texto de um LLM é 'autorregressiva'.",
+        "rubrica": "Boa resposta descreve o laço: o modelo prevê o PRÓXIMO token a partir dos tokens anteriores, ANEXA esse token à sequência e REPETE o processo (até parar). O núcleo é 'um token de cada vez, cada um condicionado aos anteriores e realimentado na entrada'. Não precisa citar critérios de parada.",
+        "dica": "Pense no que o modelo faz com o token que acabou de gerar antes de gerar o seguinte."
+      },
+      {
+        "pergunta": "Em cada passo, a 'saída' do modelo não é diretamente uma palavra. O que ela é de fato, e como os logits viram essa saída?",
+        "rubrica": "Boa resposta: a saída é uma DISTRIBUIÇÃO de probabilidade sobre TODO o vocabulário; o modelo produz um logit por token e o SOFTMAX converte os logits em probabilidades que somam 1. Citar 'distribuição sobre o vocabulário' e 'softmax dos logits' é o esperado. Pode mencionar que uma estratégia de decodificação escolhe o token a partir dessa distribuição.",
+        "dica": "O que precisa acontecer para que os números brutos da última camada virem algo que soma 1?"
+      },
+      {
+        "pergunta": "Compare decodificação GREEDY com AMOSTRAGEM. Como cada uma escolhe o próximo token e qual é a desvantagem típica da greedy?",
+        "rubrica": "Boa resposta: greedy pega sempre o token de MAIOR probabilidade (argmax) — determinístico; amostragem SORTEIA o token segundo as probabilidades — traz diversidade. Desvantagem da greedy: tende a texto repetitivo/genérico (e pode perder sequências globalmente melhores). Reconhecer 'argmax/determinístico' vs 'sorteio/diverso' e ao menos a repetitividade é o ponto.",
+        "dica": "Uma sempre faz a aposta 'mais segura'; a outra deixa o acaso entrar conforme as probabilidades."
+      },
+      {
+        "pergunta": "A temperatura escala os logits antes do softmax. Explique o efeito de uma temperatura BAIXA (<1) versus ALTA (>1) sobre a distribuição e sobre o texto gerado.",
+        "rubrica": "Boa resposta: T<1 amplia as diferenças entre logits → distribuição mais concentrada/'pontuda' → saída mais conservadora/determinística (foco no topo); T>1 achata a distribuição → mais uniforme → saída mais aleatória/criativa (mais chance à cauda). Bônus: notar que T→0 tende ao greedy e que a temperatura não muda o RANKING dos tokens, só o quão espalhada é a probabilidade.",
+        "dica": "Dividir os logits por um número pequeno vs grande: o que isso faz com a distância entre o maior logit e os demais?"
+      },
+      {
+        "pergunta": "Top-k e top-p (nucleus) servem para cortar a cauda improvável antes de amostrar. Qual a diferença entre eles, e por que cortar a cauda ajuda?",
+        "rubrica": "Boa resposta: top-k mantém os k tokens mais prováveis (k FIXO) e renormaliza; top-p mantém o menor conjunto cuja probabilidade ACUMULADA ≥ p (tamanho DINÂMICO, adapta-se à incerteza do passo) e renormaliza. Cortar a cauda impede sortear tokens muito improváveis que quebrariam a coerência (melhora o trade-off diversidade × coerência). Distinguir 'k fixo' de 'p acumulado/dinâmico' é o núcleo.",
+        "dica": "Um corta por quantidade de candidatos; o outro corta por massa de probabilidade acumulada."
+      }
+    ],
+    "ponteiros": [
+      "HuggingFace — LLM Course, cap. 3 (https://huggingface.co/learn/llm-course): pipeline de geração e como o modelo prevê o próximo token",
+      "HuggingFace — LLM Course, cap. 1: modelos decoder-only e o processo autorregressivo (atenção só ao passado / máscara causal)",
+      "Aula da LigIA: Geração de Texto (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "gradient-descent",
+    "orientacao": "Gradiente descendente é o algoritmo iterativo que treina a maioria dos modelos de ML/DL: ele ajusta os parâmetros aos poucos para fazer a perda descer. Antes de abrir o vídeo, tente responder às checagens com suas próprias palavras — recuperar ativamente o porquê de cada passo fixa muito mais que reassistir. Você já viu gradiente/regra da cadeia e funções de perda; aqui é onde essas peças se juntam.",
+    "checagens": [
+      {
+        "pergunta": "Em uma ou duas frases: o que o gradiente descendente faz, e por que ele é chamado de método 'iterativo'?",
+        "rubrica": "Boa resposta diz que ele MINIMIZA a função de perda ajustando os parâmetros aos poucos, repetindo um passo (avaliar o gradiente no θ atual → atualizar θ) até convergir. O núcleo é: otimização iterativa que faz a perda DESCER, em vez de resolver de uma vez. Não precisa escrever a fórmula.",
+        "dica": "Pense no que ele otimiza e por que precisa de vários passos em vez de um só."
+      },
+      {
+        "pergunta": "A regra é θ ← θ − η·∇L(θ). Por que aparece um sinal de MENOS na frente do gradiente?",
+        "rubrica": "Boa resposta: o gradiente ∇L aponta na direção de maior CRESCIMENTO (subida mais íngreme) da perda; como o objetivo é MINIMIZAR, andamos no sentido OPOSTO, ou seja, −∇L (a descida mais íngreme). Reconhecer 'gradiente = direção de subida, então invertemos para descer' é o ponto. Bônus se notar que em ∇L≈0 o passo desaparece.",
+        "dica": "O gradiente diz para onde a perda SOBE mais rápido. Você quer ir para qual lado?"
+      },
+      {
+        "pergunta": "O que é a taxa de aprendizado (η) e o que dá errado se ela for grande demais? E pequena demais?",
+        "rubrica": "Boa resposta: η controla o TAMANHO do passo. Grande demais → ultrapassa o mínimo (overshoot), a perda oscila e pode DIVERGIR (crescer). Pequena demais → convergência muito LENTA (passos minúsculos, muitas iterações). Citar os dois extremos e a ideia de um valor 'no meio' é o esperado.",
+        "dica": "Imagine descer uma ladeira dando passos: gigantes demais ou minúsculos demais — o que acontece em cada caso?"
+      },
+      {
+        "pergunta": "Qual é o trade-off entre usar o dataset INTEIRO por passo (batch) e usar só UM exemplo por passo (SGD)? Onde o mini-batch entra?",
+        "rubrica": "Boa resposta liga ruído × custo por passo: batch dá um gradiente preciso/estável mas é caro e lento por atualização; SGD (1 exemplo) é barato e frequente, mas o gradiente é RUIDOSO (ziguezague) e pode não assentar no mínimo exato. Mini-batch (ex.: dezenas/centenas de exemplos) é o meio-termo: menos ruído que o SGD, mais barato que o batch, aproveita a GPU. Reconhecer 'mais dados por passo = menos ruído mas mais caro' é o núcleo.",
+        "dica": "Mais exemplos por passo deixam a estimativa do gradiente mais precisa — mas custam mais. Onde fica o equilíbrio?"
+      },
+      {
+        "pergunta": "Em regressão linear (perda convexa) o GD costuma achar o melhor ajuste possível, mas em redes neurais isso não é garantido. Por quê?",
+        "rubrica": "Boa resposta usa CONVEXIDADE: numa perda convexa todo mínimo local é global, então GD (com η bom) converge para o mínimo GLOBAL. Em redes neurais a perda é NÃO-CONVEXA (vários mínimos locais e saddle points), então GD em geral só garante um mínimo LOCAL / ponto crítico, não o global. Citar 'convexo vs não-convexo' e 'mínimo local vs global' é o ponto. Bônus: na prática funciona porque muitos pontos críticos são saddle points e os mínimos locais costumam ter perda próxima do global.",
+        "dica": "Pense no formato da superfície de perda: uma tigela única vs. um terreno cheio de vales."
+      }
+    ],
+    "ponteiros": [
+      "3Blue1Brown — \"Gradient descent, how neural networks learn\" (Neural Networks, cap. 2, ~30min): https://www.youtube.com/@3blue1brown — a melhor intuição visual de descer a superfície de perda e do papel do gradiente.",
+      "Andrew Ng — Machine Learning Specialization, Curso 1 (gradient descent e learning rate): https://www.coursera.org/specializations/machine-learning-introduction — formaliza a regra de atualização e o efeito de η.",
+      "Aula da LigIA: Gradiente Descendente (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "gradiente",
+    "orientacao": "O gradiente empacota todas as derivadas parciais de uma função em um vetor, e a regra da cadeia diz como derivar funções compostas. Juntos, são o que faz uma rede neural aprender. Antes de assistir ao vídeo, tente responder às checagens com suas palavras — recuperar de cabeça fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "O gradiente de uma função de várias variáveis: que tipo de objeto matemático ele é (e por quê), e o que ele guarda em relação a cada variável de entrada?",
+        "rubrica": "Boa resposta: o gradiente é um VETOR (não um escalar), com uma componente por variável de entrada, e cada componente é a derivada PARCIAL de f em relação àquela variável. Citar 'vetor das derivadas parciais' é o núcleo. Bônus se notar que vive no espaço das entradas.",
+        "dica": "Quantas derivadas parciais uma função de n variáveis tem? E em que formato o gradiente as apresenta?"
+      },
+      {
+        "pergunta": "Para que direção o gradiente aponta, e por isso, ao MINIMIZAR uma função de perda, em que sentido damos o passo de atualização?",
+        "rubrica": "Boa resposta: ∇f aponta na direção de MAIOR CRESCIMENTO (subida mais íngreme); logo, para minimizar, andamos no sentido OPOSTO, −∇f (gradiente descendente). Mencionar que andamos contra o gradiente / no negativo do gradiente é o ponto. Bônus: citar o passo x ← x − η·∇f e o papel da taxa de aprendizado η.",
+        "dica": "Se o gradiente sobe o morro o mais rápido possível, para descer você vai para onde?"
+      },
+      {
+        "pergunta": "Enuncie a regra da cadeia para y = f(g(x)). Em uma frase, qual é a intuição do que ela faz?",
+        "rubrica": "Boa resposta: dy/dx = f'(g(x))·g'(x) — derivada da função de fora avaliada no valor de dentro, vezes a derivada da de dentro. Intuição aceitável: a sensibilidade total é o PRODUTO das sensibilidades locais ao longo da composição (como taxas que se multiplicam). Acertar a estrutura 'produto de derivadas' é o essencial; a notação exata é bônus.",
+        "dica": "Derivada da de fora (no ponto de dentro) vezes derivada da de dentro."
+      },
+      {
+        "pergunta": "Uma rede neural é uma composição de muitas funções, e a backpropagation é 'a regra da cadeia organizada'. Por que a regra da cadeia é exatamente a ferramenta certa para obter o gradiente da loss em relação a cada peso?",
+        "rubrica": "Boa resposta liga: a rede é uma função COMPOSTA/aninhada (camada após camada até a loss); a regra da cadeia é justamente como se deriva composições, então ela dá ∂loss/∂peso multiplicando as derivadas locais de cada camada ao longo do caminho. Bônus forte: a backprop propaga essas derivadas de TRÁS pra FRENTE (da loss para os pesos) REAPROVEITANDO os fatores locais, o que evita recomputar e torna o cálculo viável em redes profundas. Reconhecer 'composição → regra da cadeia' já é o núcleo.",
+        "dica": "Se cada camada é uma função e você as encaixa uma na outra, que regra deriva esse encaixe?"
+      }
+    ],
+    "ponteiros": [
+      "3Blue1Brown — Gradient descent / chain rule (vídeo, ~40min): https://www.youtube.com/@3blue1brown — a intuição visual de gradiente como direção de subida mais íngreme e de como a regra da cadeia vira backprop.",
+      "3Blue1Brown — série 'Neural networks' (caps. de backpropagation e backpropagation calculus): mostra a regra da cadeia propagando o gradiente da loss camada a camada.",
+      "Aula da LigIA: Gradiente e Regra da Cadeia (botão “Ver aula” no painel da trilha)."
+    ]
+  },
+  {
+    "conceptId": "knn",
+    "orientacao": "O K-Nearest Neighbors classifica um ponto novo olhando para os k exemplos mais próximos dele e votando na classe majoritária. Antes de reler a teoria, tente responder às checagens com suas palavras — recuperar ativamente fixa muito mais que reconhecer. Pense em distância, escala e no papel do k.",
+    "checagens": [
+      {
+        "pergunta": "Quando você 'treina' um KNN, o que de fato é calculado ou ajustado? E, na hora de prever a classe de um ponto novo, o que ele precisa fazer? Onde, então, mora o custo computacional pesado?",
+        "rubrica": "Boa resposta reconhece que no treino o KNN NÃO ajusta parâmetros/modelo — apenas armazena os dados rotulados (é 'lazy'/baseado em instâncias). A 'aprendizagem' é adiada para a predição, quando ele calcula a distância do ponto novo a TODOS os exemplos guardados, pega os k mais próximos e vota na maioria — por isso o custo pesado fica na predição, não no treino. O núcleo é a JUSTIFICATIVA dessa inversão (custo na predição PORQUE o treino só guarda os dados); citar o termo 'lazy/instance-based' é bônus, não substitui o raciocínio.",
+        "dica": "Compare com a regressão linear: lá os coeficientes são ajustados no treino. No KNN, o que sobra para fazer na hora de prever?"
+      },
+      {
+        "pergunta": "Por que costuma ser necessário padronizar/escalar as features antes de aplicar o KNN? Dê um exemplo do que dá errado se você não fizer isso.",
+        "rubrica": "Boa resposta liga à métrica de distância: o KNN soma as diferenças entre features para medir proximidade, então uma feature em escala muito maior domina a distância e decide sozinha quem são os vizinhos. Exemplo válido: 'salário (0–100000)' vs 'idade (0–80)' — sem escalar, o salário ofusca a idade. Padronizar (média 0, desvio 1) ou normalizar coloca todas em pé de igualdade. Bônus: estimar a escala só no treino.",
+        "dica": "A distância euclidiana soma as diferenças ao quadrado de TODAS as features. O que acontece se uma vai de 0 a 100000 e outra de 0 a 1?"
+      },
+      {
+        "pergunta": "Como o valor de k afeta o modelo? Contraste o que tende a acontecer com k=1 e com um k muito grande.",
+        "rubrica": "Boa resposta descreve o trade-off viés-variância: k=1 cria uma fronteira de decisão irregular que segue o ruído dos dados (overfitting, alta variância, baixo viés); k muito grande suaviza demais a fronteira, podendo ignorar padrões locais e subajustar (alto viés, baixa variância). O ideal fica no meio e é escolhido por validação. Reconhecer as duas pontas do trade-off é o ponto central.",
+        "dica": "Pense na fronteira de decisão: com 1 vizinho ela 'abraça' cada ponto; com k = tamanho do dataset, todo mundo recebe a mesma classe (a majoritária)."
+      },
+      {
+        "pergunta": "Quanto custa, em ordem de grandeza, fazer UMA predição com KNN força-bruta numa base de n pontos? E por que isso vira um problema em dimensões muito altas?",
+        "rubrica": "Boa resposta: cada predição custa ~O(n) (mais precisamente O(n·d), pois mede a distância a todos os n exemplos em d dimensões) — escala mal com bases grandes, já que nada foi pré-computado no treino. Para alta dimensionalidade, citar a maldição da dimensionalidade: com muitas features as distâncias entre pontos ficam todas parecidas, o 'vizinho mais próximo' deixa de ser de fato próximo, e a proximidade perde poder discriminativo. Citar O(n) e a maldição da dimensionalidade é o esperado.",
+        "dica": "Como não há modelo treinado, prever exige comparar o ponto novo com quantos exemplos? E em 1000 dimensões, 'perto' ainda quer dizer 'parecido'?"
+      }
+    ],
+    "ponteiros": [
+      "scikit-learn — Iris dataset example (plot_iris_dataset): visualize as classes do Iris no plano das features e imagine onde cairiam as fronteiras de vizinhança — https://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html",
+      "scikit-learn — User Guide: Nearest Neighbors (KNeighborsClassifier, métricas de distância e escolha de k)",
+      "Aula da LigIA: K-Nearest Neighbors (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "loss-functions",
+    "orientacao": "Uma função de perda transforma o quão errada está uma previsão em um único número que o treino tenta minimizar. Antes de abrir o material, tente responder às checagens com suas próprias palavras — recuperar ativamente o conceito fixa muito mais que reler a definição. Não se preocupe em acertar a fórmula exata; foque no porquê de cada escolha.",
+    "checagens": [
+      {
+        "pergunta": "Em uma frase: o que uma função de perda mede, e o que o treino faz com ela?",
+        "rubrica": "Boa resposta diz que a perda mede o quão erradas (ou distantes do alvo) estão as previsões — um número que é maior quando a previsão é pior — e que o treino ajusta os parâmetros para MINIMIZÁ-la. O núcleo é 'mede o erro' + 'objetivo a minimizar'.",
+        "dica": "Pense no que o modelo está tentando deixar o MENOR possível durante o treino."
+      },
+      {
+        "pergunta": "Que função de perda você usaria para um problema de REGRESSÃO (alvo contínuo) e qual para CLASSIFICAÇÃO? Por que são diferentes?",
+        "rubrica": "Boa resposta: regressão → erro quadrático médio (MSE) ou similar, porque o alvo é um número contínuo e queremos penalizar a distância numérica; classificação → entropia cruzada / log-loss, porque a saída é uma probabilidade e queremos penalizar dar probabilidade baixa à classe correta. Citar 'MSE' e 'entropia cruzada/log-loss' associados ao tipo certo é o esperado.",
+        "dica": "Em um caso a saída é um número qualquer; no outro é uma probabilidade entre 0 e 1."
+      },
+      {
+        "pergunta": "Por que normalmente NÃO se usa MSE em problemas de classificação, mesmo sendo possível calculá-lo?",
+        "rubrica": "Boa resposta cita ao menos um motivo correto: combinado à sigmoide/softmax o MSE dá superfície não-convexa e gradientes que somem quando o modelo está confiante e errado (aprendizado lento / vanishing gradient); penaliza pouco o erro confiante; a entropia cruzada dá gradiente forte justamente quando se erra com confiança e converge melhor. Reconhecer 'gradiente fraco/lento' ou 'pune pouco o erro confiante' já acerta o núcleo.",
+        "dica": "Pense no que acontece com o gradiente quando o modelo prevê 0,99 mas a resposta certa era a outra classe."
+      },
+      {
+        "pergunta": "Por que a função de perda precisa ser DIFERENCIÁVEL? O que há de errado em treinar minimizando diretamente a taxa de erro (perda 0-1)?",
+        "rubrica": "Boa resposta liga à otimização por gradiente: o gradiente descendente precisa da derivada da perda para saber em que direção mexer os parâmetros. A perda 0-1 (contar acertos/erros) tem gradiente zero quase em todo lugar e saltos, então não dá direção de melhora e o gradiente descendente fica preso. Por isso usamos perdas suaves (MSE, entropia cruzada) como substitutas. Citar 'gradiente zero' ou 'não dá direção' é o ponto.",
+        "dica": "Gradiente descendente segue a inclinação da perda — o que acontece se a 'inclinação' for sempre plana (zero)?"
+      },
+      {
+        "pergunta": "Qual a diferença entre a perda de UM exemplo e o que de fato se minimiza no treino sobre o dataset? E como a entropia cruzada se conecta à máxima verossimilhança?",
+        "rubrica": "Boa resposta: a perda é definida por exemplo; o treino minimiza o CUSTO, que é a média (ou soma) das perdas sobre o conjunto/mini-batch. Quanto à verossimilhança: minimizar a entropia cruzada (log-verossimilhança negativa) equivale a MAXIMIZAR a verossimilhança dos dados sob o modelo. Acertar a parte 'média sobre o dataset' já vale; a conexão com MLE é o bônus esperado de quem foi mais a fundo.",
+        "dica": "Uma parte é só 'somar/tirar média sobre todos os exemplos'; a outra é 'minimizar −log da probabilidade = maximizar a probabilidade'."
+      }
+    ],
+    "ponteiros": [
+      "3Blue1Brown — Neural Networks (capítulo sobre a função de custo): a visualização do custo como média do erro sobre os exemplos e do gradiente descendente buscando seu mínimo — https://www.youtube.com/@3blue1brown",
+      "Aula da LigIA: Funções de Perda (botão “Ver aula” no painel da trilha)",
+      "Revisar antes: Regressão Logística — a sigmoide e a probabilidade prevista são a base para entender a entropia cruzada e a ligação com máxima verossimilhança"
+    ]
+  },
+  {
+    "conceptId": "mlp",
+    "orientacao": "Um Perceptron Multicamadas (MLP) empilha camadas de neurônios totalmente conectados, em que cada camada faz uma transformação linear (Wx+b) seguida de uma ativação não-linear. Antes de abrir os ponteiros, tente reconstruir de cabeça por que cada peça está ali — recuperar ativamente, mesmo errando, fixa muito mais que reler. Responda às checagens com suas próprias palavras.",
+    "checagens": [
+      {
+        "pergunta": "Descreva o que UMA camada de um MLP faz com sua entrada. Quais são as duas operações, e o que significa a camada ser 'totalmente conectada'?",
+        "rubrica": "Boa resposta menciona (1) uma transformação linear/afim Wx+b (multiplicar pela matriz de pesos e somar o viés) SEGUIDA de (2) uma ativação NÃO-LINEAR (σ, ex.: ReLU) aplicada elemento a elemento. 'Totalmente conectada' = cada neurônio da camada recebe todas as saídas da camada anterior. Citar a ordem (linear → ativação) é o núcleo; não precisa da fórmula exata.",
+        "dica": "São dois passos em sequência por camada — um deles 'entorta' a reta."
+      },
+      {
+        "pergunta": "O que aconteceria com um MLP de várias camadas se você REMOVESSE todas as funções de ativação não-lineares? Por quê?",
+        "rubrica": "Boa resposta: o MLP colapsaria em um único modelo LINEAR (equivalente a uma regressão linear), por mais camadas que tivesse. Razão: a composição de transformações afins é ela mesma uma transformação afim — empilhar W's e b's sem não-linearidade equivale a um único W' e b'. Reconhecer 'composição de lineares ainda é linear' (ou que a profundidade deixa de agregar poder) é o ponto central.",
+        "dica": "Componha duas vezes Wx+b sem nada no meio: o que sobra é da mesma forma?"
+      },
+      {
+        "pergunta": "Qual é o papel das camadas OCULTAS? O que elas produzem que a entrada crua não tinha?",
+        "rubrica": "Boa resposta: as camadas ocultas aprendem REPRESENTAÇÕES / features intermediárias da entrada — transformações progressivamente mais úteis que a rede constrói sozinha (em vez de features projetadas à mão). A saída opera sobre essa representação transformada, não sobre os dados crus. Citar 'features aprendidas' ou 'representações intermediárias' é o esperado.",
+        "dica": "Pense no que a rede 'inventa' entre a entrada e a saída — e quem decide isso."
+      },
+      {
+        "pergunta": "O teorema da aproximação universal diz que um MLP com uma única camada oculta pode aproximar qualquer função contínua. Por que, então, não basta usar uma camada e pronto? Cite ao menos um limite PRÁTICO.",
+        "rubrica": "Boa resposta reconhece que o teorema é de EXISTÊNCIA e cita pelo menos um limite prático: (a) não diz COMO achar os pesos (não dá algoritmo de treino / não garante que o gradiente os encontre); (b) a largura necessária pode explodir (potencialmente exponencial); (c) aproximar no treino não garante GENERALIZAR (overfitting). Reconhecer 'existe, mas não é construtivo/treinável/eficiente' é o núcleo.",
+        "dica": "'Poder existir' é diferente de 'conseguir treinar com tamanho razoável e generalizar'."
+      },
+      {
+        "pergunta": "Largura (neurônios por camada) e profundidade (número de camadas) aumentam a capacidade do MLP. Por que, na prática, costuma-se ir mais FUNDO em vez de só alargar uma única camada?",
+        "rubrica": "Boa resposta: empiricamente, redes mais profundas atingem a mesma capacidade de aproximação com MUITO menos neurônios totais (e parâmetros) do que alargar uma só camada — profundidade é mais eficiente em representar funções complexas, compondo features. Mencionar também que capacidade demais (largura ou profundidade) aumenta o risco de overfitting é um plus. O ponto central é a eficiência da profundidade vs. largura.",
+        "dica": "Compare o CUSTO (nº de neurônios) de chegar à mesma aproximação por uma via ou outra."
+      }
+    ],
+    "ponteiros": [
+      "Karpathy — Neural Networks: Zero to Hero (do micrograd, que constrói autograd e backprop do zero, até makemore, onde um MLP de fato é montado e treinado caractere a caractere): https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "Dive into Deep Learning (d2l.ai), cap. Multilayer Perceptrons — afim + ativação, por que a não-linearidade é necessária e aproximação universal",
+      "Aula da LigIA: Perceptron Multicamadas (MLP) (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "multi-head-attention",
+    "orientacao": "Você já sabe como UMA atenção funciona (query/key/value, softmax, soma ponderada). Aqui o foco é o que muda quando rodamos VÁRIAS atenções em paralelo. Antes de abrir o material, tente responder às checagens recuperando o que você já entende de atenção — esse esforço de recuperar fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Multi-head attention roda o mecanismo de atenção várias vezes. O que é IGUAL e o que é DIFERENTE entre as heads?",
+        "rubrica": "Boa resposta: o mecanismo em si (scaled dot-product: Q·Kᵀ, softmax, soma ponderada de V) é o mesmo em todas as heads; o que difere são as matrizes de PROJEÇÃO Q/K/V, que são APRENDIDAS e DISTINTAS por head, projetando as entradas em subespaços de representação diferentes. O núcleo é reconhecer que não é a mesma atenção copiada — cada head tem seu próprio WQ/WK/WV.",
+        "dica": "Se todas as heads usassem as mesmas projeções, elas dariam exatamente o mesmo resultado. Então o que precisa ser diferente?"
+      },
+      {
+        "pergunta": "Por que usar VÁRIAS heads costuma ser melhor do que uma única head com a mesma dimensão total?",
+        "rubrica": "Boa resposta liga à DIVERSIDADE de subespaços: várias heads permitem atender, em paralelo, a diferentes aspectos/posições da sequência (diferentes subespaços de representação), em vez de ficar preso a um único padrão; com uma só head a média ponderada tende a 'diluir' tudo num foco só. Citar que heads diferentes podem capturar relações diferentes (ex.: sintaxe, correferência, curto vs. longo alcance) é um forte sinal. Não precisa citar o paper.",
+        "dica": "Pense no que se perde quando UMA única média ponderada precisa dar conta de TODAS as relações da frase de uma vez."
+      },
+      {
+        "pergunta": "Depois que cada head produz sua própria saída, como essas saídas viram um único resultado de novo?",
+        "rubrica": "Boa resposta: as saídas das heads são CONCATENADAS e depois passam por uma projeção linear de saída (matriz Wᴼ, aprendida) que mistura as heads e devolve o vetor à dimensão do modelo (d_model). O ponto-chave é a concatenação MAIS uma combinação/transformação que devolve o vetor à dimensão do modelo. Mencionar 'voltar a d_model' ou 'misturar/combinar as heads' já satisfaz (não exige o nome 'Wᴼ'); só 'concatena' sozinho fica incompleto.",
+        "dica": "Concatenar empilha os vetores das heads. Mas o resultado precisa voltar ao tamanho original e as heads precisam ser 'combinadas' — o que falta depois da concatenação?"
+      },
+      {
+        "pergunta": "Se temos 8 heads, cada head trabalha na dimensão cheia do modelo? Qual é a consequência disso para o custo computacional?",
+        "rubrica": "Boa resposta: NÃO — cada head costuma operar numa dimensão MENOR, tipicamente d_model/h (ex.: 512/8 = 64 por head no paper original). Por causa dessa dimensão reduzida, o custo total fica SEMELHANTE ao de uma única atenção na dimensão cheia, ou seja, ganha-se a diversidade de heads sem estourar o custo. O núcleo é: dimensão por head ≈ d_model/h e custo ~ comparável a uma head 'cheia'.",
+        "dica": "Se cada uma das 8 heads usasse a dimensão inteira, o custo multiplicaria por 8. Como o projeto evita isso?"
+      }
+    ],
+    "ponteiros": [
+      "Jay Alammar — The Illustrated Transformer, seção 'multi-head attention' (as 8 heads, projeções Q/K/V por head, concatenação e Wᴼ): http://jalammar.github.io/illustrated-transformer/",
+      "Vaswani et al., 'Attention Is All You Need' (2017), seção 3.2.2 — Multi-Head Attention (h=8, d_k=d_v=d_model/h=64, custo total semelhante ao single-head)",
+      "Clark et al., 'What Does BERT Look At? An Analysis of BERT's Attention' (2019) — evidência de heads especializadas em dependências sintáticas e correferência",
+      "Aula da LigIA: Transformers e Atenção (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "overfitting",
+    "orientacao": "Overfitting é quando o modelo aprende bem demais o treino — inclusive o ruído e as peculiaridades daquela amostra — e por isso vai mal em dados novos. Antes de procurar a definição, tente responder às checagens do seu jeito: recuperar ativamente o trade-off viés-variância fixa muito mais que reler o capítulo.",
+    "checagens": [
+      {
+        "pergunta": "Em uma ou duas frases: o que significa um modelo estar com overfitting, e por que isso é um problema mesmo que ele acerte tudo no treino?",
+        "rubrica": "Boa resposta diz que o modelo aprendeu o RUÍDO / particularidades da amostra de treino em vez da relação verdadeira, e por isso GENERALIZA mal para dados novos (não vistos). O núcleo é a oposição 'vai bem no treino, mal em dados novos' — acertar o treino não garante generalizar.",
+        "dica": "Pense na diferença entre decorar a prova e entender a matéria."
+      },
+      {
+        "pergunta": "Você treina e olha o erro no treino e o erro num conjunto de teste/validação separado. Que padrão nesses dois números denuncia overfitting? E qual padrão denunciaria underfitting?",
+        "rubrica": "Boa resposta: overfitting = erro de TREINO baixo (quase zero) MAS erro de TESTE/validação alto (lacuna grande entre os dois). Underfitting = os DOIS erros altos (modelo nem o treino aprende). Identificar a 'lacuna treino-teste' como assinatura do overfitting é o ponto central.",
+        "dica": "Compare os dois erros: a distância entre eles conta uma história."
+      },
+      {
+        "pergunta": "No trade-off viés-variância, overfitting está associado a viés alto ou variância alta? Explique o que essa quantidade alta significa na prática, e por que não dá simplesmente para zerar viés e variância ao mesmo tempo.",
+        "rubrica": "Boa resposta: overfitting = ALTA VARIÂNCIA (e baixo viés). Variância alta = o modelo muda muito se a amostra de treino mudar (sensível ao ruído daquela amostra). Não dá para zerar os dois porque há um trade-off: reduzir um tende a aumentar o outro, e ainda sobra o erro irredutível (ruído). Citar 'trade-off' e a ligação overfitting↔variância é o esperado; mencionar erro irredutível é bônus.",
+        "dica": "Underfitting é o lado do viés; overfitting é o outro lado. Reduzir um costuma custar o outro."
+      },
+      {
+        "pergunta": "Por que o KNN com k=1 é o exemplo clássico de overfitting? O que acontece com o erro de treino e com a fronteira de decisão? E como aumentar o k muda isso?",
+        "rubrica": "Boa resposta: com k=1 cada ponto é seu próprio vizinho mais próximo, então o erro de TREINO é ~zero, e a fronteira de decisão fica recortada/serrilhada, contornando cada ponto inclusive ruído/outliers → baixo viés, altíssima variância. Aumentar k suaviza a fronteira (mais viés, menos variância); k grande demais leva a underfitting. Reconhecer 'erro de treino zero + fronteira que decora cada ponto' é o núcleo.",
+        "dica": "Quem é o vizinho mais próximo de um ponto que já está no treino?"
+      },
+      {
+        "pergunta": "Cite duas estratégias para reduzir overfitting e, para cada uma, diga em uma frase por que ela ajuda.",
+        "rubrica": "Boa resposta dá DUAS estratégias válidas com justificativa coerente. Opções aceitas: mais dados de treino (menos chance de decorar ruído); modelo mais simples / menos features / menos flexibilidade, ex.: aumentar k no KNN (menos variância); regularização L1/L2 (penaliza complexidade); validação cruzada (escolher hiperparâmetro sem usar o teste); early stopping (parar antes de decorar); poda/profundidade máxima em árvores. Basta que as duas sejam corretas e bem justificadas.",
+        "dica": "Você pode mexer nos dados, na complexidade do modelo, ou em como ele é treinado/escolhido."
+      }
+    ],
+    "ponteiros": [
+      "ISL (An Introduction to Statistical Learning), cap. 2 — Assessing Model Accuracy: curva em U do erro de teste e o trade-off viés-variância — https://www.statlearning.com",
+      "ISL cap. 2 — a decomposição erro = viés² + variância + erro irredutível (a 'fórmula' do trade-off)",
+      "Aula da LigIA: Overfitting (botão “Ver aula” no painel da trilha) — overfitting visto no KNN com k=1"
+    ]
+  },
+  {
+    "conceptId": "positional-encoding",
+    "orientacao": "A auto-atenção sozinha enxerga a sequência como um conjunto de tokens, sem noção de ordem; o positional encoding é o que devolve essa noção ao modelo. Antes de abrir a aula, tente reconstruir do zero por que a ordem precisa ser injetada e como ela entra — recuperar ativamente fixa muito mais que reler. Não se cobre a fórmula exata; busque a intuição.",
+    "checagens": [
+      {
+        "pergunta": "A auto-atenção, sozinha, é 'permutação-invariante' e trata a entrada como um conjunto. O que isso quer dizer, e por que ela não tem noção intrínseca de ordem?",
+        "rubrica": "Boa resposta: a auto-atenção calcula relações entre todos os pares de tokens sem usar a posição deles, então embaralhar a ordem dos tokens não muda a representação de cada um — ela vê um CONJUNTO, não uma sequência ordenada. O núcleo é ligar a ausência de ordem ao fato de não haver recorrência/convolução; basta a ideia, não a prova formal.",
+        "dica": "Pergunte-se: se eu embaralhar as palavras antes de entrar na atenção, a conta de cada token muda?"
+      },
+      {
+        "pergunta": "Dê um exemplo de linguagem que mostre por que a ordem precisa importar, e explique o que se perderia se o modelo ignorasse a posição.",
+        "rubrica": "Boa resposta: cita um par com as MESMAS palavras em ordens diferentes e significados distintos (ex.: 'cão morde homem' vs. 'homem morde cão') e conclui que, sem posição, o modelo daria a mesma representação aos dois — perdendo o significado que vem da ordem. Qualquer exemplo válido de reordenação que muda o sentido serve.",
+        "dica": "Pense em duas frases com exatamente as mesmas palavras, mas sentidos opostos."
+      },
+      {
+        "pergunta": "Como o positional encoding é combinado com o embedding do token na entrada do modelo — e o que essa forma de combinar exige sobre a dimensão do vetor posicional?",
+        "rubrica": "Boa resposta: gera-se um vetor posicional e ele é SOMADO ao embedding de cada token (na entrada, antes da atenção); por ser somado, precisa ter a MESMA dimensão (d_model) do embedding. Citar 'somar' e 'mesma dimensão' é o esperado; reconhecer que a posição passa a fazer parte do vetor que alimenta Q/K/V é um plus.",
+        "dica": "Pense na operação mais simples que junta dois vetores sem mudar a dimensão do resultado — e no que ela exige sobre o tamanho de cada um."
+      },
+      {
+        "pergunta": "Contraste a versão SENOIDAL original com a versão APRENDIDA do positional encoding: como cada uma é construída e que vantagem a senoidal busca?",
+        "rubrica": "Boa resposta: a senoidal é FIXA, sem parâmetros treináveis — usa senos e cossenos de frequências diferentes por dimensão para gerar um padrão único por posição; a aprendida é um embedding de posição TREINADO junto com o modelo (como o de tokens). Vantagem citada para a senoidal: extrapolar para comprimentos maiores que os do treino e/ou facilitar posições relativas. Não precisa da fórmula; o eixo fixo-determinístico vs. treinável é o núcleo.",
+        "dica": "Uma versão é calculada por uma fórmula fixa; a outra é mais um conjunto de pesos que o modelo aprende."
+      },
+      {
+        "pergunta": "Verdadeiro ou falso, justificando: 'o positional encoding substitui o embedding semântico do token'.",
+        "rubrica": "Boa resposta: FALSO. O positional encoding é SOMADO ao embedding semântico, não o substitui — o vetor de entrada final combina significado (embedding) e posição (encoding). Reconhecer que são informações complementares somadas no mesmo vetor é o ponto.",
+        "dica": "A posição entra por uma soma com o embedding semântico. Pense no que acontece com cada um dos dois vetores nessa soma — algum deles chega a ser descartado?"
+      }
+    ],
+    "ponteiros": [
+      "Jay Alammar — The Illustrated Transformer, seção 'Representing The Order of The Sequence Using Positional Encoding' (http://jalammar.github.io/illustrated-transformer/)",
+      "Vaswani et al. (2017), 'Attention Is All You Need', seção 3.5 — Positional Encoding (a fórmula senoidal e a nota sobre embeddings aprendidos)",
+      "Aula da LigIA: Positional Encoding (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "probabilidade-basica",
+    "orientacao": "Probabilidade é a linguagem da incerteza, e quase todo modelo de ML fala ela: classificadores estimam P(classe | dados), e treinar muitas vezes é maximizar a verossimilhança dos dados. Antes de abrir o vídeo, tente responder às checagens com suas próprias palavras — recuperar de cabeça fixa muito mais que reler. Tudo bem errar; o esforço de tentar é o que ensina.",
+    "checagens": [
+      {
+        "pergunta": "O que significa a probabilidade condicional P(A|B), e por que em geral P(A|B) é diferente de P(B|A)? Dê um exemplo onde confundir os dois leva a uma conclusão errada.",
+        "rubrica": "Boa resposta: P(A|B) é a probabilidade de A DADO que B ocorreu (restringe o universo a B). P(A|B) e P(B|A) condicionam coisas diferentes, então não são iguais em geral. Exemplo aceitável: P(teste positivo | doente) ser alto NÃO implica P(doente | teste positivo) alto se a doença é rara (taxa-base). Reconhecer a inversão indevida do condicionamento é o núcleo; o exemplo numérico exato não é exigido.",
+        "dica": "Pense em P(teste+ | doente) versus P(doente | teste+) quando a doença é rara."
+      },
+      {
+        "pergunta": "Quando dois eventos são independentes (em fórmula e em intuição)? Por que 'mutuamente exclusivos' NÃO é o mesmo que 'independentes'?",
+        "rubrica": "Boa resposta: independentes quando P(A∩B)=P(A)·P(B), equivalente a P(A|B)=P(A) — saber B não muda a probabilidade de A. Mutuamente exclusivos (disjuntos) significa que não ocorrem juntos (P(A∩B)=0); aí saber que um ocorreu zera o outro, ou seja, são FORTEMENTE dependentes. Distinguir os dois conceitos é o ponto.",
+        "dica": "Se A e B nunca ocorrem juntos, saber que A ocorreu te diz algo sobre B?"
+      },
+      {
+        "pergunta": "Escreva a regra de Bayes e explique como ela é usada para classificar. Em P(classe | dados) ∝ P(dados | classe)·P(classe), quem é a verossimilhança e quem é o prior — e por que o denominador costuma ser ignorado na hora de DECIDIR a classe?",
+        "rubrica": "Boa resposta: P(A|B)=P(B|A)·P(A)/P(B). Em classificação, posterior P(classe|dados) ∝ verossimilhança P(dados|classe) × prior P(classe). Bayes serve para INVERTER o condicionamento: estima-se P(dados|classe) do treino e obtém-se P(classe|dados). O denominador P(dados) (evidência) é o mesmo para todas as classes, então não afeta qual classe é a maior — por isso some na decisão (argmax). Identificar verossimilhança/prior corretamente e a razão do denominador constante é o núcleo.",
+        "dica": "Olhe só para o denominador P(dados): ele muda conforme a classe que você está testando? E o que isso significa na hora de escolher a classe vencedora (argmax)?"
+      },
+      {
+        "pergunta": "O que a esperança E[X] e a variância Var(X) medem? Para uma Bernoulli(p) (uma tentativa que dá 1 com prob. p e 0 com prob. 1-p), quanto valem cada uma?",
+        "rubrica": "Boa resposta: E[X] é a média ponderada pelos pesos de probabilidade (valor médio a longo prazo / centro de massa); Var(X) mede a dispersão em torno da média (E[(X-μ)²]). Para Bernoulli(p): E[X]=p e Var(X)=p(1-p). Aceitar resposta correta mesmo sem deduzir; basta os dois valores certos e a noção do que cada quantidade mede. Citar que a variância é máxima em p=0,5 é um plus, não exigido.",
+        "dica": "Para a Bernoulli, X só assume 0 ou 1. Aplique a definição de média ponderada pelas probabilidades e a de dispersão em torno da média a esses dois casos e veja no que dá."
+      },
+      {
+        "pergunta": "Qual a diferença entre PROBABILIDADE e VEROSSIMILHANÇA (likelihood)? O que fica fixo e o que varia em cada uma, e por que isso é a base de 'treinar' muitos modelos de ML?",
+        "rubrica": "Boa resposta: numericamente L(θ|dados)=P(dados|θ), mas o ponto de vista inverte. Probabilidade: parâmetros FIXOS, dados variam ('dado o modelo, quão provável é este dado?'). Verossimilhança: dados FIXOS (já observados), parâmetros variam ('quais parâmetros tornam estes dados mais plausíveis?'). Treinar por máxima verossimilhança (MLE) = escolher θ que maximiza L. Reconhecer a troca de 'o que é fixo' é o núcleo. Plus (não exigido): likelihood não precisa somar 1 sobre θ; usa-se log-verossimilhança na prática.",
+        "dica": "Numa, você fixa o modelo e pergunta sobre os dados; na outra, fixa os dados e pergunta sobre o modelo."
+      }
+    ],
+    "ponteiros": [
+      "StatQuest — Probabilidade e Estatística (canal de Josh Starmer): https://www.youtube.com/@statquest — vídeos sobre Bayes, distribuições, esperança e verossimilhança (clearly explained)",
+      "StatQuest — Maximum Likelihood, clearly explained!!! (para fechar a checagem de verossimilhança vs probabilidade)",
+      "Aula da LigIA: Probabilidade Básica (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "pytorch",
+    "orientacao": "PyTorch dá três peças que se encaixam: tensores (arrays com GPU e derivada automática), autograd (o grafo que calcula gradientes para você) e nn.Module (onde os pesos vivem). Antes de abrir a doc, tente reconstruir de memória o loop de treino e o que cada linha faz — recuperar ativamente, mesmo errando, fixa o modelo mental muito melhor do que reler o tutorial.",
+    "checagens": [
+      {
+        "pergunta": "Um tensor do PyTorch é descrito como 'um array NumPy com superpoderes'. Que dois superpoderes são esses, e por que eles importam pra deep learning?",
+        "rubrica": "Boa resposta cita (1) rodar em GPU/acelerador (via .to(device)) e (2) autograd / rastreamento automático de gradiente. Importam porque DL precisa de muita computação paralela (GPU) e de calcular gradientes para treinar via backprop. Citar os dois superpoderes é o núcleo; ligar autograd a 'treinar a rede' é o diferencial.",
+        "dica": "Pense no que NumPy NÃO faz: nem usa GPU, nem calcula derivadas sozinho."
+      },
+      {
+        "pergunta": "Você marcou um tensor com requires_grad=True, fez algumas operações e chamou .backward() na perda. O que o PyTorch construiu pelo caminho e onde o resultado de .backward() aparece?",
+        "rubrica": "Boa resposta: as operações montaram um grafo de computação (dinâmico, build-on-the-fly); .backward() percorre esse grafo de trás pra frente (regra da cadeia / backpropagation) e preenche o atributo .grad de cada tensor rastreado com o gradiente da perda em relação a ele. Reconhecer que .grad guarda o GRADIENTE (não o peso já atualizado) é importante. Citar 'grafo' e '.grad' é o esperado.",
+        "dica": "Separe três coisas: o grafo (montado no forward), .backward() (calcula), e .grad (onde fica o resultado)."
+      },
+      {
+        "pergunta": "No loop de treino canônico do PyTorch, por que precisamos chamar optimizer.zero_grad() a cada iteração? O que acontece se esquecermos?",
+        "rubrica": "Boa resposta: porque o PyTorch ACUMULA gradientes por padrão — cada .backward() SOMA ao que já está em .grad em vez de sobrescrever. Sem zerar, o gradiente do passo atual vira a soma dos batches anteriores, e o optimizer.step() faz uma atualização errada (o treino degrada). Citar 'acumula/soma' é o núcleo. Bônus: notar que a acumulação é proposital e às vezes desejada (ex.: simular batch maior).",
+        "dica": "Por padrão .backward() NÃO zera o que estava em .grad — ele adiciona."
+      },
+      {
+        "pergunta": "Coloque em ordem as quatro chamadas do passo de treino: optimizer.step(), loss.backward(), optimizer.zero_grad() e o forward (pred = model(x)). Justifique por que zero_grad vem antes de backward e step vem depois.",
+        "rubrica": "Ordem correta: forward (pred = model(x)) → loss = loss_fn(pred, y) → optimizer.zero_grad() → loss.backward() → optimizer.step(). Justificativa: zero_grad limpa os .grad ANTES de backward depositar os gradientes novos (senão acumularia com lixo do passo anterior); step vem DEPOIS de backward porque precisa ler os .grad recém-calculados para atualizar os pesos. Acertar a ordem e justificar a posição relativa de zero_grad/step é o ponto.",
+        "dica": "step lê .grad; backward escreve .grad; zero_grad apaga .grad. Quem escreve precisa rodar entre quem apaga e quem lê."
+      },
+      {
+        "pergunta": "Antes de avaliar/usar o modelo em validação você chama model.eval(). O que isso muda no comportamento da rede — e por que model.eval() sozinho NÃO basta para uma inferência eficiente?",
+        "rubrica": "Boa resposta: eval() troca o modo das camadas sensíveis a treino — Dropout desliga (não zera mais ativações) e BatchNorm passa a usar as estatísticas acumuladas (running mean/var) em vez das do batch, deixando a saída determinística. Mas eval() NÃO desativa o autograd; para não rastrear gradiente (economizar memória/tempo) é preciso torch.no_grad() (ou torch.inference_mode()). Reconhecer o efeito em Dropout/BatchNorm E a distinção eval() vs no_grad() é o diferencial; citar pelo menos Dropout ou BatchNorm + 'não desliga gradiente' já é uma boa resposta.",
+        "dica": "São duas coisas separadas: o MODO das camadas (train/eval) e o RASTREAMENTO de gradiente (no_grad)."
+      }
+    ],
+    "ponteiros": [
+      "PyTorch — Learn the Basics: seções 'Tensors' e 'Automatic Differentiation with torch.autograd' (https://pytorch.org/tutorials/)",
+      "PyTorch — Learn the Basics: 'Build the Neural Network' (nn.Module) e 'Optimizing Model Parameters' (loop de treino: zero_grad / backward / step)",
+      "Aula da LigIA: PyTorch básico (M3 — DL Aplicado); pré-requisito: Backpropagation (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "regressao-linear",
+    "orientacao": "Regressão linear modela uma saída contínua como uma combinação linear das features, ajustando coeficientes que minimizam o erro. Antes de ver a fórmula, tente responder às checagens do seu jeito — recuperar ativamente fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Em uma frase: o que a regressão linear tenta prever, e o que ela ajusta para conseguir isso?",
+        "rubrica": "Boa resposta menciona (1) prever uma variável-alvo CONTÍNUA (numérica) e (2) ajustar os coeficientes/pesos (e o intercepto) de uma combinação linear das features. Não precisa citar a fórmula fechada.",
+        "dica": "Pense no que é a 'saída' e no que o modelo 'mexe' durante o treino."
+      },
+      {
+        "pergunta": "Por que avaliar o modelo nos mesmos dados em que ele foi ajustado superestima o desempenho?",
+        "rubrica": "Boa resposta liga à generalização: nos dados de treino o modelo já viu os pontos, então o erro lá subestima o erro em dados NOVOS; por isso medimos em um conjunto de teste separado, que expõe overfitting. Citar 'generalização' ou 'dados não vistos' é o núcleo.",
+        "dica": "O objetivo é prever bem o que o modelo ainda NÃO viu."
+      },
+      {
+        "pergunta": "O que a regressão minimiza para escolher os coeficientes, e por que elevar o erro ao quadrado em vez de somar o erro com sinal?",
+        "rubrica": "Boa resposta: minimiza a soma/média dos erros ao QUADRADO (MSE / mínimos quadrados). O quadrado evita que erros positivos e negativos se cancelem e penaliza mais os erros grandes. Citar 'MSE' ou 'mínimos quadrados' é o esperado.",
+        "dica": "Pense num ponto que erra para cima e outro que erra para baixo, na mesma medida: o que aconteceria com o total se você apenas somasse os erros com sinal?"
+      },
+      {
+        "pergunta": "O coeficiente de uma feature deu ≈0. O que isso sugere — e que cuidado tomar antes de concluir 'essa feature não importa'?",
+        "rubrica": "Boa resposta: coeficiente ~0 sugere pouca relação LINEAR com o alvo, DADAS as outras features. Cuidados: a relação pode ser não-linear; a feature pode estar correlacionada com outra (colinearidade); a escala/normalização afeta a magnitude do coeficiente. Reconhecer ao menos um cuidado é o ponto.",
+        "dica": "O coeficiente mede efeito linear 'controlando' as demais — e a escala importa."
+      }
+    ],
+    "ponteiros": [
+      "ISL (An Introduction to Statistical Learning), cap. 3 — Linear Regression",
+      "Andrew Ng / Machine Learning — semana de regressão linear e gradiente descendente",
+      "Aula da LigIA: Regressão Linear (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "regressao-logistica",
+    "orientacao": "Apesar do nome, regressão logística é um modelo de CLASSIFICAÇÃO: ela transforma uma combinação linear das features em uma probabilidade e decide a classe a partir dela. Antes de abrir os materiais, tente responder às checagens com suas palavras — recuperar ativamente o porquê de cada peça (sigmoide, log-odds, perda) fixa muito mais que reler a derivação.",
+    "checagens": [
+      {
+        "pergunta": "O nome diz 'regressão', mas para que tarefa a regressão logística é usada — e o que ela produz como saída crua antes de decidir uma classe?",
+        "rubrica": "Boa resposta: é um modelo de CLASSIFICAÇÃO (não previsão de valor contínuo); a saída crua é uma PROBABILIDADE da classe positiva (entre 0 e 1), e só depois um limiar converte essa probabilidade em rótulo. Reconhecer 'classificação' + 'probabilidade' é o núcleo.",
+        "dica": "Pense no tipo do alvo (categoria vs. número) e no que está entre 0 e 1."
+      },
+      {
+        "pergunta": "A regressão logística calcula uma combinação linear z = β0 + β1·x1 + … das features. Por que esse z não pode ser usado direto como probabilidade, e o que a função sigmoide/logística faz com ele?",
+        "rubrica": "Boa resposta: z varia de −∞ a +∞, então não respeita os limites [0,1] de uma probabilidade. A sigmoide σ(z)=1/(1+e^(−z)) 'espreme' qualquer z para o intervalo (0,1), produzindo uma probabilidade; z=0 mapeia para 0,5. Citar que a sigmoide mapeia a reta para [0,1] é o esperado.",
+        "dica": "Uma probabilidade tem que ficar entre 0 e 1; a combinação linear não fica."
+      },
+      {
+        "pergunta": "Diz-se que a regressão logística é 'linear'. Em que escala/quantidade a relação com as features é de fato linear — e o que isso tem a ver com 'log-odds' (logit)?",
+        "rubrica": "Boa resposta: o que é linear nas features é o LOG-ODDS (logit), isto é, log[p/(1−p)] = z = β0 + β1·x1 + … A probabilidade em si é NÃO-linear (passa pela sigmoide). Reconhecer que o modelo é linear na escala de log-odds/logit, não na de probabilidade, é o ponto central.",
+        "dica": "Inverter a sigmoide leva a log[p/(1−p)] = z. O que do lado direito é linear?"
+      },
+      {
+        "pergunta": "Com limiar 0,5, como fica a fronteira de decisão no espaço das features — e por quê? O que muda se você baixar o limiar para, digamos, 0,3?",
+        "rubrica": "Boa resposta: limiar 0,5 corresponde a p ≥ 0,5 ⇔ z ≥ 0; como z é linear nas features, a fronteira é LINEAR (uma reta/hiperplano). Baixar o limiar para 0,3 classifica mais exemplos como positivos: desloca a fronteira, aumenta o recall e tende a reduzir a precisão — escolha guiada pelos custos assimétricos de erro. Reconhecer 'fronteira linear' + 'o limiar move o trade-off' é o esperado.",
+        "dica": "p=0,5 acontece exatamente quando z=0. E z=0 descreve que tipo de superfície?"
+      },
+      {
+        "pergunta": "Por que a regressão logística NÃO usa o erro quadrático médio (MSE) como na regressão linear, e sim a entropia cruzada (log-loss)?",
+        "rubrica": "Boa resposta deve trazer ao menos uma razão sólida: (a) combinado com a sigmoide, o MSE gera uma superfície de perda NÃO-convexa (mínimos locais), enquanto a entropia cruzada (vinda da máxima verossimilhança da Bernoulli) é convexa → otimização confiável; e/ou (b) o gradiente do MSE+sigmoide satura/desaparece em erros confiantes (predição perto de 0 ou 1), ao passo que a entropia cruzada penaliza muito (→∞) o erro confiante, mantendo gradiente útil. Citar 'entropia cruzada / log-loss' e 'convexidade' ou 'penaliza erro confiante' é o núcleo.",
+        "dica": "Pense no formato da superfície de perda (mínimos locais?) e em quão forte é o castigo quando o modelo erra com muita confiança."
+      }
+    ],
+    "ponteiros": [
+      "Andrew Ng — Machine Learning Specialization, Curso 1 (Supervised ML): módulo de classificação com regressão logística — sigmoide, fronteira de decisão e custo de entropia cruzada — https://www.coursera.org/specializations/machine-learning-introduction",
+      "ISL (An Introduction to Statistical Learning), cap. 4 — Classification: seção de Logistic Regression (logit/log-odds, máxima verossimilhança) — https://www.statlearning.com",
+      "Aula da LigIA: Regressão Logística (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "regularizacao",
+    "orientacao": "Regularização L2 (ridge) adiciona à função de perda uma penalidade que cresce com o tamanho dos pesos, empurrando os coeficientes para perto de zero e combatendo overfitting. Antes de olhar a fórmula, tente reconstruir nas checagens POR QUE encolher os pesos ajuda — recuperar ativamente o raciocínio fixa muito mais que reler a definição.",
+    "checagens": [
+      {
+        "pergunta": "Em uma frase: o que a regularização L2 acrescenta à função de perda da regressão, e qual o efeito disso sobre os pesos?",
+        "rubrica": "Boa resposta menciona (1) acrescenta uma PENALIDADE proporcional à soma dos QUADRADOS dos pesos (λ·Σwj²) e (2) o efeito é ENCOLHER/reduzir os coeficientes em direção a zero. Não precisa escrever a fórmula exata; reconhecer 'soma dos quadrados dos pesos' e 'encolhe' é o núcleo.",
+        "dica": "Pense no que entra a MAIS no que o modelo minimiza, e para onde isso empurra os coeficientes."
+      },
+      {
+        "pergunta": "Por que penalizar pesos grandes ajuda a combater overfitting? Conecte sua resposta ao trade-off viés-variância.",
+        "rubrica": "Boa resposta liga pesos grandes a um modelo que encaixa ruído/é instável (alta variância) e explica que encolher os pesos restringe o modelo: AUMENTA o viés e REDUZ a variância, melhorando a generalização. Citar 'trade-off viés-variância' e a direção (mais viés / menos variância) é o esperado.",
+        "dica": "Modelo que decora o treino costuma ter coeficientes grandes; restringi-los troca um pouco de flexibilidade por estabilidade."
+      },
+      {
+        "pergunta": "O que o hiperparâmetro λ controla? Descreva o que acontece com o modelo quando λ=0 e quando λ é muito grande.",
+        "rubrica": "Boa resposta: λ controla a FORÇA da regularização. λ=0 → sem penalidade → regressão comum (mínimos quadrados), risco de overfit. λ grande → penalidade domina → pesos muito pequenos → modelo mais simples/mais viés, menos variância (no extremo, underfit). Bônus: λ é escolhido por validação, não no teste. Reconhecer a direção (λ↑ = mais simples) é o ponto central.",
+        "dica": "λ é o 'volume' da penalidade: zero a desliga; alto demais apaga os pesos."
+      },
+      {
+        "pergunta": "Por convenção, o intercepto (bias/β0) NÃO costuma ser penalizado na regularização L2. Por quê?",
+        "rubrica": "Boa resposta: o intercepto só desloca a previsão (nível-base), não controla a complexidade/flexibilidade do modelo; encolhê-lo não reduz overfitting e ainda faria o modelo depender da escala/origem do alvo (ex.: somar uma constante a y mudaria a solução). Reconhecer que o intercepto não mede complexidade é suficiente.",
+        "dica": "A penalidade existe para conter o quanto as FEATURES influenciam a saída — o intercepto não pesa nenhuma feature."
+      },
+      {
+        "pergunta": "Antes de aplicar L2 costuma-se escalar/padronizar as features. Por quê? E como o L2 difere do L1 (lasso) no efeito sobre os coeficientes?",
+        "rubrica": "Boa resposta tem duas partes: (a) ESCALA — a penalidade soma quadrados dos pesos, então features em escalas diferentes ganham pesos em escalas diferentes e a penalidade as trataria de forma desigual/arbitrária; padronizar deixa a penalização justa. (b) L2 vs L1 — L1 penaliza a soma dos valores ABSOLUTOS e ZERA pesos (esparsidade/seleção de features); L2 só ENCOLHE em direção a zero, mantendo todas as features. Acertar a distinção 'L1 zera / L2 encolhe' é o essencial.",
+        "dica": "A penalidade compara pesos entre si — e a forma da penalidade (quadrado vs valor absoluto) muda se ela consegue chegar a zero exato."
+      }
+    ],
+    "ponteiros": [
+      "Andrew Ng — Machine Learning Specialization, Curso 1 (Supervised Learning), seção de regularization: por que regularizar, o termo λ·Σwj² e o efeito de λ no viés/variância — https://www.coursera.org/specializations/machine-learning-introduction",
+      "Pré-requisitos na trilha: revise Overfitting (o problema que a L2 ataca) e Regressão Linear (a perda à qual a penalidade é somada) antes de aprofundar",
+      "Aula da LigIA: Regularização (L2) (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "tokenizacao",
+    "orientacao": "Tokenização é a ponte entre texto e modelo: ela quebra o texto em pedaços (tokens) que viram inteiros (IDs), porque o modelo só processa números, não texto cru. Antes de abrir o curso, tente responder às checagens com suas palavras — recuperar ativamente o porquê das escolhas de vocabulário fixa muito mais que reler.",
+    "checagens": [
+      {
+        "pergunta": "Um modelo de linguagem recebe a string de texto diretamente? Em uma frase, o que a tokenização produz e por que esse passo é necessário?",
+        "rubrica": "Boa resposta deixa claro que o modelo NÃO recebe texto cru — ele só processa números. A tokenização quebra o texto em tokens e os converte em IDs inteiros (input_ids), via um vocabulário, que são a entrada de fato do modelo. Citar 'IDs/inteiros' e a ideia de que o modelo só lida com números é o núcleo.",
+        "dica": "Pense no que a rede neural realmente consome: tensores de quê?"
+      },
+      {
+        "pergunta": "Por que tokenizar por palavra inteira costuma ser ruim? Cite os dois problemas centrais ligados a vocabulário e a palavras nunca vistas.",
+        "rubrica": "Boa resposta menciona (1) vocabulário gigante — uma entrada por palavra (centenas de milhares), e variações como 'dog'/'dogs' viram itens não relacionados; e (2) muitas palavras fora do vocabulário (OOV), que viram o token de desconhecido ([UNK]/<unk>) e perdem informação. Reconhecer os dois eixos (vocabulário grande + OOV) é o esperado.",
+        "dica": "Quantas palavras tem uma língua? E o que acontece com uma palavra que nunca apareceu no treino?"
+      },
+      {
+        "pergunta": "Como a tokenização por SUBPALAVRA equilibra tamanho de vocabulário e palavras desconhecidas? O que ela faz com uma palavra rara nunca vista no treino?",
+        "rubrica": "Boa resposta: subpalavra mantém palavras frequentes inteiras e decompõe palavras raras em subpalavras menores e significativas. Assim o vocabulário fica fixo e relativamente pequeno, mas quase não há OOV — uma palavra nova é COMPOSTA a partir de subpalavras/caracteres já no vocabulário (ex.: 'tokenization' → 'token' + 'ization'). O ponto central é 'palavra rara/nova vira composição de subpalavras conhecidas'.",
+        "dica": "Não precisa estar no vocabulário inteira — basta ser montável a partir de pedaços que estão."
+      },
+      {
+        "pergunta": "Em uma frase cada: qual é a ideia básica do BPE e o que diferencia o WordPiece dele?",
+        "rubrica": "Boa resposta: BPE parte de caracteres/bytes e funde iterativamente o par adjacente mais FREQUENTE até atingir o tamanho-alvo do vocabulário. WordPiece é parecido (também subpalavra, bottom-up), mas escolhe os merges por VEROSSIMILHANÇA (likelihood) do corpus em vez de frequência pura, e costuma marcar continuação de palavra com prefixo '##'. Citar 'par mais frequente' (BPE) e 'verossimilhança/likelihood' OU '##' (WordPiece) já cobre. Não é necessário lembrar quais modelos usam cada um.",
+        "dica": "Os dois fundem pedaços iterativamente; a diferença está no CRITÉRIO de qual par fundir."
+      },
+      {
+        "pergunta": "O que são tokens especiais como [CLS], [SEP] ou <eos>, e por que o tokenizador os adiciona à sequência?",
+        "rubrica": "Boa resposta: são tokens que NÃO vêm do texto do usuário — sinalizam estrutura/limites (início de sequência, separação entre sentenças, fim, padding, desconhecido). O modelo foi pré-treinado esperando-os, então é preciso inseri-los na inferência da mesma forma para obter o comportamento certo (ex.: [CLS] no começo, [SEP] separando segmentos). Reconhecer 'marcadores de estrutura que o modelo aprendeu no pré-treino' é o núcleo; exemplos específicos são bônus.",
+        "dica": "Eles não são palavras da frase. Que informação dão ao modelo sobre onde as coisas começam e terminam?"
+      }
+    ],
+    "ponteiros": [
+      "HuggingFace — LLM Course, cap. 2 (\"Tokenizers\"): word-based vs character-based vs subword, encode/decode, tokens → input_ids, [UNK] — https://huggingface.co/learn/llm-course/chapter2/4",
+      "HuggingFace — LLM Course, cap. 1-2: pipeline de NLP e por que o modelo só processa números — https://huggingface.co/learn/llm-course",
+      "Aula da LigIA: Tokenização (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "train-val-test",
+    "orientacao": "Separar os dados em treino, validação e teste é o que permite estimar honestamente quão bem um modelo vai generalizar para dados novos. Antes de olhar a teoria, tente responder às checagens com suas palavras — recuperar ativamente fixa o porquê de cada conjunto muito melhor que reler.",
+    "checagens": [
+      {
+        "pergunta": "Para que serve cada um dos três conjuntos — treino, validação e teste? Dê a função distinta de cada um.",
+        "rubrica": "Boa resposta separa os três papéis: TREINO ajusta os parâmetros/pesos do modelo; VALIDAÇÃO serve para comparar modelos e escolher hiperparâmetros (seleção de modelo) e detectar overfitting durante o desenvolvimento; TESTE dá a estimativa final e não-enviesada do desempenho em dados nunca vistos. Acertar os três papéis distintos é o núcleo; confundir validação com teste é o erro a evitar.",
+        "dica": "Um conjunto 'aprende', outro 'escolhe entre opções', outro 'dá a nota final'."
+      },
+      {
+        "pergunta": "Por que medir o desempenho nos próprios dados de treino dá uma estimativa otimista demais do quão bom o modelo é?",
+        "rubrica": "Boa resposta liga à generalização: o modelo já viu os pontos de treino (no limite pode decorá-los), então o erro medido ali subestima o erro em dados NOVOS. O que importa é o desempenho em dados não vistos; por isso avaliamos fora do treino. Citar 'generalização' / 'dados não vistos' / 'overfitting' é o esperado.",
+        "dica": "É como corrigir uma prova com as respostas que o aluno já tinha estudado."
+      },
+      {
+        "pergunta": "Por que NÃO se deve tocar no conjunto de teste até o final? O que acontece com a estimativa se você usar o teste para escolher entre vários modelos?",
+        "rubrica": "Boa resposta: assim que o teste é usado para decidir algo (escolher modelo, hiperparâmetro, threshold), ele passa a influenciar o resultado e deixa de representar 'dados não vistos' — a estimativa fica otimista/enviesada. Escolher a melhor de várias configurações com base num conjunto já o vicia (análogo a comparações múltiplas / overfitting adaptativo); por isso esse uso repetido vai na VALIDAÇÃO e o teste é olhado uma única vez. Reconhecer que o teste perde a imparcialidade ao ser reutilizado é o ponto central.",
+        "dica": "Se você 'consulta' o teste muitas vezes para escolher, ele vira só mais um conjunto de validação."
+      },
+      {
+        "pergunta": "O que é vazamento de dados (data leakage)? Dê um exemplo concreto envolvendo pré-processamento.",
+        "rubrica": "Boa resposta: leakage é quando informação que deveria ficar fora do treino (do teste/validação, ou do alvo/futuro) 'vaza' para o treino e infla o desempenho artificialmente, dando uma estimativa boa demais que não se sustenta na prática. Exemplo aceitável: ajustar normalização/scaler, imputação de faltantes ou seleção de features usando o dataset INTEIRO antes de dividir — o correto é ajustar o pré-processamento só no treino e depois aplicar aos demais. Identificar o vazamento via pré-processamento global é o esperado; outros exemplos válidos (duplicatas entre conjuntos, usar o futuro em série temporal) também contam.",
+        "dica": "Pergunte: essa estatística (média, escala, ranking de features) foi calculada vendo dados que o modelo não deveria ter visto?"
+      },
+      {
+        "pergunta": "Quando há poucos dados, reservar um bloco fixo de validação 'desperdiça' dados. Que técnica resolve isso e como ela funciona em linhas gerais?",
+        "rubrica": "Boa resposta: validação cruzada k-fold. Divide o treino em k partes (folds); a cada rodada treina em k-1 partes e valida na parte que sobrou, repetindo k vezes para que cada parte seja validação uma vez; faz a média das k medidas. Assim todos os dados são usados para validar (estimativa mais estável / menor variância) sem precisar de um bloco fixo. Bônus: o teste ainda deve ficar de fora, e selecionar hiperparâmetros via CV pede idealmente CV aninhada ou um teste separado. Descrever a rotação dos folds + média é o ponto.",
+        "dica": "Em vez de um único 'pedaço' de validação, faça vários rodízios e tire a média."
+      }
+    ],
+    "ponteiros": [
+      "Andrew Ng — Machine Learning Specialization, Curso 1 (módulo de avaliação de modelos: conjuntos de treino/validação/teste e seleção de modelo) — https://www.coursera.org/specializations/machine-learning-introduction",
+      "ISL (An Introduction to Statistical Learning), caps. 1–2 — visão geral de aprendizado estatístico, treino vs. teste e a ideia de generalização — https://www.statlearning.com",
+      "Aula da LigIA: Split Treino/Validação/Teste (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "transfer-learning",
+    "orientacao": "Transfer learning reaproveita um modelo já treinado numa tarefa grande (ex.: ImageNet) como ponto de partida para uma tarefa nova, em vez de treinar do zero. Antes de abrir os ponteiros, tente responder às checagens com suas palavras — recuperar ativamente o porquê de funcionar fixa muito mais que reler a explicação pronta.",
+    "checagens": [
+      {
+        "pergunta": "Em uma frase: o que é transfer learning e por que normalmente não treinamos uma CNN do zero para uma tarefa nova com poucos dados?",
+        "rubrica": "Boa resposta: reaproveitar um modelo PRÉ-TREINADO numa tarefa/dataset grande (ex.: ImageNet) como ponto de partida para uma tarefa nova, em vez de iniciar com pesos aleatórios. O motivo de não treinar do zero: é raro ter dados (e compute) suficientes; o modelo pré-treinado já traz features úteis. Citar 'pré-treinado' e a ideia de reaproveitar é o núcleo.",
+        "dica": "Pense em começar de um modelo que já 'sabe ver', em vez de uma rede com pesos aleatórios."
+      },
+      {
+        "pergunta": "Por que as features de uma CNN pré-treinada em ImageNet conseguem ser úteis numa tarefa diferente? O que muda das camadas iniciais para as finais?",
+        "rubrica": "Boa resposta liga à hierarquia de features: as camadas INICIAIS aprendem features GERAIS de baixo nível (bordas, texturas, cores) que servem a quase qualquer imagem e por isso são transferíveis; as camadas FINAIS são ESPECÍFICAS da tarefa original (combinações para as classes do ImageNet) e por isso costumam ser substituídas. Reconhecer 'geral nas iniciais, específico nas finais' é o ponto.",
+        "dica": "Detectar uma borda serve para qualquer imagem; reconhecer 'raça de cão do ImageNet' não."
+      },
+      {
+        "pergunta": "Descreva o modo feature extraction: o que você faz com o backbone pré-treinado, o que substitui e o que de fato é treinado?",
+        "rubrica": "Boa resposta: CONGELA (freeze) os pesos do backbone pré-treinado — ele não atualiza/não recebe gradiente — e SUBSTITUI a última camada (a cabeça/classificador, ex.: a fully-connected final) por uma nova adequada às classes da tarefa; só essa nova cabeça é treinada, usando o backbone como extrator FIXO de features. Citar 'congelar o backbone' + 'treinar só a nova cabeça' é o esperado.",
+        "dica": "Backbone vira extrator fixo; a única parte que aprende é a cabeça nova."
+      },
+      {
+        "pergunta": "Quais são os principais benefícios do feature extraction, e em que situação ele é uma boa escolha?",
+        "rubrica": "Boa resposta cita benefícios — precisa de MENOS dados (features já prontas) e MENOS compute/tempo (só uma fração dos parâmetros treina; backbone congelado é só forward). Situação ideal: dataset novo PEQUENO e/ou SEMELHANTE ao original. Mencionar pelo menos um benefício e a condição 'pouco dado e/ou tarefa parecida' é o ponto.",
+        "dica": "Pense em quanto dado/GPU você economiza e quão parecida a tarefa nova é da original."
+      },
+      {
+        "pergunta": "Em uma frase, qual a diferença central entre feature extraction e fine-tuning?",
+        "rubrica": "Boa resposta: em feature extraction o backbone pré-treinado fica CONGELADO (só a cabeça nova treina); em fine-tuning ele é DESCONGELADO (total ou parcialmente) e seus pesos CONTINUAM sendo treinados/ajustados na tarefa nova. O núcleo é 'congelado vs. continua treinando o backbone'. Não precisa detalhar learning rate; basta o contraste.",
+        "dica": "A diferença está em o backbone ficar parado ou continuar aprendendo."
+      }
+    ],
+    "ponteiros": [
+      "PyTorch — Transfer Learning tutorial (beginner): cenários 'finetuning the ConvNet' vs 'ConvNet as fixed feature extractor' — https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html",
+      "PyTorch tutorial, seção 'ConvNet as fixed feature extractor' — congelar com requires_grad=False e treinar só a nova camada final (foco deste loop)",
+      "Aula da LigIA: Transfer Learning (botão “Ver aula” no painel da trilha)"
+    ]
+  },
+  {
+    "conceptId": "transformer",
+    "orientacao": "Você já viu as peças soltas — self-attention, multi-head e positional encoding. Aqui o foco é como tudo se MONTA na arquitetura completa: o bloco Transformer, a pilha de blocos e a cabeça final. Antes de reler ou ver o vídeo, tente responder às checagens de memória — recuperar ativamente como as peças se encaixam fixa muito mais que reler o diagrama.",
+    "checagens": [
+      {
+        "pergunta": "Descreva o que tem DENTRO de um bloco Transformer. Quais são as duas subcamadas principais, e qual a diferença de papel entre elas?",
+        "rubrica": "Boa resposta cita as duas subcamadas: (1) multi-head self-attention e (2) uma rede feed-forward position-wise (MLP aplicada a cada posição). Idealmente nota a diferença de papel: a attention MISTURA informação entre posições (cada token olha os outros), enquanto a feed-forward processa cada posição de forma independente. Não precisa detalhar dimensões.",
+        "dica": "Uma subcamada faz os tokens 'conversarem' entre si; a outra processa cada token sozinho."
+      },
+      {
+        "pergunta": "Em volta de cada subcamada do bloco há uma conexão residual (atalho) seguida de layer norm. Por que esse padrão 'Add & Norm' é o que viabiliza empilhar muitos blocos e treinar redes profundas?",
+        "rubrica": "Boa resposta liga ao treino de redes PROFUNDAS: a conexão residual (somar a entrada à saída da subcamada) cria um caminho direto pro gradiente fluir, evitando que ele suma/exploda ao atravessar muitas camadas; a layer norm estabiliza/normaliza as ativações, mantendo o treino estável. O núcleo é reconhecer que sem residual+norm empilhar N blocos seria instável/intratável. Mencionar 'gradiente' ou 'caminho/atalho' é o esperado.",
+        "dica": "Pense no que acontece com o gradiente ao atravessar dezenas de camadas — e o que um atalho que soma a entrada original faz por ele."
+      },
+      {
+        "pergunta": "Qual é a vantagem-chave do Transformer sobre uma RNN no PROCESSAMENTO da sequência? E como isso se conecta à necessidade da positional encoding?",
+        "rubrica": "Boa resposta: o Transformer processa a sequência EM PARALELO (todas as posições de uma vez, via attention/multiplicação de matrizes), enquanto a RNN é SEQUENCIAL (cada passo depende do hidden state anterior) — o paralelismo acelera o treino e escala em GPU. Conexão com positional encoding: como não há recorrência/ordem implícita, a informação de POSIÇÃO precisa ser injetada explicitamente. Reconhecer o paralelo-vs-sequencial é o ponto central.",
+        "dica": "A RNN precisa terminar o passo t antes de começar o t+1. O Transformer não — mas o que ele perde ao olhar todos os tokens 'de uma vez'?"
+      },
+      {
+        "pergunta": "Compare a arquitetura encoder-decoder (ex.: tradução) com a decoder-only do GPT. O que muda na atenção, e o que significa atenção 'causal' / mascarada?",
+        "rubrica": "Boa resposta: encoder-decoder tem um encoder (attention plena/bidirecional, todos os tokens se veem) e um decoder com self-attention causal mais cross-attention olhando pro encoder. Decoder-only (GPT) é só a pilha com attention CAUSAL/MASCARADA. 'Causal/mascarada' = cada token só pode atender a si mesmo e aos tokens ANTERIORES, nunca aos futuros — o que permite geração autorregressiva (token a token). Reconhecer a máscara causal e o 'não olhar o futuro' é o núcleo.",
+        "dica": "Na hora de prever o próximo token, faria sentido o modelo já ter 'espiado' os tokens que ainda vai gerar?"
+      },
+      {
+        "pergunta": "Depois que a entrada passa pela pilha de N blocos, como o modelo transforma o vetor de saída na previsão do PRÓXIMO token? Cite as duas etapas finais.",
+        "rubrica": "Boa resposta cita: (1) uma projeção LINEAR (a 'cabeça'/LM head) que mapeia o vetor de saída para um vetor do tamanho do VOCABULÁRIO (os logits); (2) um SOFTMAX que transforma esses logits numa distribuição de PROBABILIDADE sobre os tokens possíveis. Citar 'logits' e 'softmax'/'distribuição de probabilidade sobre o vocabulário' é o esperado.",
+        "dica": "Você tem um vetor de números reais e precisa de uma probabilidade para cada token possível — qual operação faz exatamente isso?"
+      }
+    ],
+    "ponteiros": [
+      "Karpathy — Let's build GPT: from scratch, in code, spelled out (nanoGPT): constrói um Transformer decoder-only do zero, montando bloco a bloco (attention + feed-forward + Add & Norm) — https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+      "Vaswani et al., 'Attention Is All You Need' (2017) — o paper original: figura do encoder-decoder, Add & Norm e a pilha de N blocos",
+      "The Annotated Transformer (Harvard NLP) — o paper anotado linha a linha em código, ótimo para ver como as subcamadas se conectam"
+    ]
+  }
+]

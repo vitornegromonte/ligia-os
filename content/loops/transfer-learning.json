@@ -1,0 +1,37 @@
+{
+  "conceptId": "transfer-learning",
+  "orientacao": "Transfer learning reaproveita um modelo já treinado numa tarefa grande (ex.: ImageNet) como ponto de partida para uma tarefa nova, em vez de treinar do zero. Antes de abrir os ponteiros, tente responder às checagens com suas palavras — recuperar ativamente o porquê de funcionar fixa muito mais que reler a explicação pronta.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Transfer learning = pegar uma rede pré-treinada num dataset grande e geral (tipicamente uma CNN treinada em ImageNet, ~1000 classes) e reaproveitar o que ela já aprendeu para uma tarefa NOVA, com pouco dado próprio. Motivação: quase ninguém treina uma ConvNet do zero (com pesos aleatórios), porque é raro ter um dataset grande o bastante; a rede pré-treinada funciona como um 'modelo genérico do mundo visual'. Pontos de referência por checagem: (1) Por que funciona — em CNNs as camadas INICIAIS aprendem features GERAIS e de baixo nível (bordas, cantos, texturas, cores) que servem a quase qualquer imagem; as camadas FINAIS são ESPECÍFICAS da tarefa original (combinações que distinguem as 1000 classes do ImageNet). Logo as features iniciais são transferíveis e só a parte específica precisa ser substituída/reaprendida. (2) Feature extraction (modo principal deste loop) = CONGELAR (freeze) os pesos do backbone pré-treinado — em PyTorch, requires_grad=False, então eles NÃO recebem gradiente nem atualizam — e SUBSTITUIR a última camada (a cabeça/classificador, ex.: a fully-connected final) por uma nova com pesos aleatórios, dimensionada para as classes da nova tarefa. Só essa nova cabeça é treinada. O backbone vira um extrator FIXO de features: passa a imagem e devolve um vetor de representação, que a cabeça nova aprende a mapear para os rótulos da tarefa. (3) Benefícios — precisa de MENOS dados (as features úteis já vêm prontas) e MENOS compute/tempo (só uma fração dos parâmetros é otimizada; o backbone congelado é só forward, sem backprop por ele). (4) Quando usar feature extraction — dataset novo PEQUENO e/ou PARECIDO com o original (ex.: gato vs. cachorro, já que ImageNet tem muitos animais); aí as features pré-treinadas se aplicam bem quase sem ajuste. (5) Contraste com fine-tuning (que é OUTRO conceito/loop — aqui só mencione, não aprofunde): no fine-tuning o backbone NÃO fica totalmente congelado — descongela-se parte (ou todo) dele e CONTINUA-SE treinando seus pesos junto com a cabeça nova, geralmente com learning rate baixo. Fine-tuning adapta as próprias features ao novo domínio; custa mais compute e tende a pedir mais dados, mas ajuda quando a tarefa nova é maior ou mais diferente da original. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Em uma frase: o que é transfer learning e por que normalmente não treinamos uma CNN do zero para uma tarefa nova com poucos dados?",
+      "rubrica": "Boa resposta: reaproveitar um modelo PRÉ-TREINADO numa tarefa/dataset grande (ex.: ImageNet) como ponto de partida para uma tarefa nova, em vez de iniciar com pesos aleatórios. O motivo de não treinar do zero: é raro ter dados (e compute) suficientes; o modelo pré-treinado já traz features úteis. Citar 'pré-treinado' e a ideia de reaproveitar é o núcleo.",
+      "dica": "Pense em começar de um modelo que já 'sabe ver', em vez de uma rede com pesos aleatórios."
+    },
+    {
+      "pergunta": "Por que as features de uma CNN pré-treinada em ImageNet conseguem ser úteis numa tarefa diferente? O que muda das camadas iniciais para as finais?",
+      "rubrica": "Boa resposta liga à hierarquia de features: as camadas INICIAIS aprendem features GERAIS de baixo nível (bordas, texturas, cores) que servem a quase qualquer imagem e por isso são transferíveis; as camadas FINAIS são ESPECÍFICAS da tarefa original (combinações para as classes do ImageNet) e por isso costumam ser substituídas. Reconhecer 'geral nas iniciais, específico nas finais' é o ponto.",
+      "dica": "Detectar uma borda serve para qualquer imagem; reconhecer 'raça de cão do ImageNet' não."
+    },
+    {
+      "pergunta": "Descreva o modo feature extraction: o que você faz com o backbone pré-treinado, o que substitui e o que de fato é treinado?",
+      "rubrica": "Boa resposta: CONGELA (freeze) os pesos do backbone pré-treinado — ele não atualiza/não recebe gradiente — e SUBSTITUI a última camada (a cabeça/classificador, ex.: a fully-connected final) por uma nova adequada às classes da tarefa; só essa nova cabeça é treinada, usando o backbone como extrator FIXO de features. Citar 'congelar o backbone' + 'treinar só a nova cabeça' é o esperado.",
+      "dica": "Backbone vira extrator fixo; a única parte que aprende é a cabeça nova."
+    },
+    {
+      "pergunta": "Quais são os principais benefícios do feature extraction, e em que situação ele é uma boa escolha?",
+      "rubrica": "Boa resposta cita benefícios — precisa de MENOS dados (features já prontas) e MENOS compute/tempo (só uma fração dos parâmetros treina; backbone congelado é só forward). Situação ideal: dataset novo PEQUENO e/ou SEMELHANTE ao original. Mencionar pelo menos um benefício e a condição 'pouco dado e/ou tarefa parecida' é o ponto.",
+      "dica": "Pense em quanto dado/GPU você economiza e quão parecida a tarefa nova é da original."
+    },
+    {
+      "pergunta": "Em uma frase, qual a diferença central entre feature extraction e fine-tuning?",
+      "rubrica": "Boa resposta: em feature extraction o backbone pré-treinado fica CONGELADO (só a cabeça nova treina); em fine-tuning ele é DESCONGELADO (total ou parcialmente) e seus pesos CONTINUAM sendo treinados/ajustados na tarefa nova. O núcleo é 'congelado vs. continua treinando o backbone'. Não precisa detalhar learning rate; basta o contraste.",
+      "dica": "A diferença está em o backbone ficar parado ou continuar aprendendo."
+    }
+  ],
+  "ponteiros": [
+    "PyTorch — Transfer Learning tutorial (beginner): cenários 'finetuning the ConvNet' vs 'ConvNet as fixed feature extractor' — https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html",
+    "PyTorch tutorial, seção 'ConvNet as fixed feature extractor' — congelar com requires_grad=False e treinar só a nova camada final (foco deste loop)",
+    "Aula da LigIA: Transfer Learning (botão “Ver aula” no painel da trilha)"
+  ]
+}

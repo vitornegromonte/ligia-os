@@ -1,0 +1,37 @@
+{
+  "conceptId": "overfitting",
+  "orientacao": "Overfitting é quando o modelo aprende bem demais o treino — inclusive o ruído e as peculiaridades daquela amostra — e por isso vai mal em dados novos. Antes de procurar a definição, tente responder às checagens do seu jeito: recuperar ativamente o trade-off viés-variância fixa muito mais que reler o capítulo.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Overfitting = o modelo captura RUÍDO e idiossincrasias da amostra de treino (padrões que não existem na população) em vez de só o sinal subjacente, e por isso GENERALIZA mal para dados não vistos. Underfitting = o oposto: o modelo é simples/rígido demais e nem o treino aprende direito. Pontos de referência por checagem: (1) Definição: capta ruído/particularidades do treino, não a relação verdadeira; sinal de que é 'demais' e não 'genuíno' é falhar no teste. (2) Diagnóstico por curvas de erro: a assinatura típica é erro de TREINO baixo (até ~0) MAS erro de TESTE/VALIDAÇÃO alto — uma lacuna grande (generalization gap) entre os dois. Underfitting dá os DOIS erros altos. À medida que se aumenta a flexibilidade do modelo, o erro de treino cai monotonicamente, mas o erro de teste tem forma de U: cai, atinge um mínimo e volta a SUBIR — esse ramo ascendente é o overfitting (ISL cap. 2, figuras da curva em U do MSE de teste). (3) Trade-off viés-variância: erro esperado de teste se decompõe em viés² + variância + erro irredutível (ruído). Overfitting = ALTA VARIÂNCIA (modelo muda muito se a amostra de treino mudar; baixo viés). Underfitting = ALTO VIÉS (suposições rígidas demais; baixa variância). O 'ponto ótimo' minimiza viés²+variância — não dá para zerar os dois ao mesmo tempo; é um trade-off. Erro irredutível não some com modelo nenhum. (4) KNN com k=1: cada ponto é seu próprio vizinho mais próximo, então o erro de TREINO é zero (ou quase), a fronteira de decisão fica recortada/serrilhada contornando cada ponto (inclusive outliers/ruído) — caso clássico de baixo viés e ALTÍSSIMA variância → overfitting. Aumentar k suaviza a fronteira: mais viés, menos variância (k muito grande → underfitting). (5) Remédios (qualquer subconjunto correto serve): mais dados de treino; modelo mais simples / menos features / menos flexibilidade (ex.: aumentar k no KNN); regularização (L1/L2, penaliza complexidade); validação cruzada (k-fold) para escolher hiperparâmetros sem 'vazar' o teste; early stopping (parar o treino antes de decorar); para árvores, poda/limitar profundidade. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme nem exija fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Em uma ou duas frases: o que significa um modelo estar com overfitting, e por que isso é um problema mesmo que ele acerte tudo no treino?",
+      "rubrica": "Boa resposta diz que o modelo aprendeu o RUÍDO / particularidades da amostra de treino em vez da relação verdadeira, e por isso GENERALIZA mal para dados novos (não vistos). O núcleo é a oposição 'vai bem no treino, mal em dados novos' — acertar o treino não garante generalizar.",
+      "dica": "Pense na diferença entre decorar a prova e entender a matéria."
+    },
+    {
+      "pergunta": "Você treina e olha o erro no treino e o erro num conjunto de teste/validação separado. Que padrão nesses dois números denuncia overfitting? E qual padrão denunciaria underfitting?",
+      "rubrica": "Boa resposta: overfitting = erro de TREINO baixo (quase zero) MAS erro de TESTE/validação alto (lacuna grande entre os dois). Underfitting = os DOIS erros altos (modelo nem o treino aprende). Identificar a 'lacuna treino-teste' como assinatura do overfitting é o ponto central.",
+      "dica": "Compare os dois erros: a distância entre eles conta uma história."
+    },
+    {
+      "pergunta": "No trade-off viés-variância, overfitting está associado a viés alto ou variância alta? Explique o que essa quantidade alta significa na prática, e por que não dá simplesmente para zerar viés e variância ao mesmo tempo.",
+      "rubrica": "Boa resposta: overfitting = ALTA VARIÂNCIA (e baixo viés). Variância alta = o modelo muda muito se a amostra de treino mudar (sensível ao ruído daquela amostra). Não dá para zerar os dois porque há um trade-off: reduzir um tende a aumentar o outro, e ainda sobra o erro irredutível (ruído). Citar 'trade-off' e a ligação overfitting↔variância é o esperado; mencionar erro irredutível é bônus.",
+      "dica": "Underfitting é o lado do viés; overfitting é o outro lado. Reduzir um costuma custar o outro."
+    },
+    {
+      "pergunta": "Por que o KNN com k=1 é o exemplo clássico de overfitting? O que acontece com o erro de treino e com a fronteira de decisão? E como aumentar o k muda isso?",
+      "rubrica": "Boa resposta: com k=1 cada ponto é seu próprio vizinho mais próximo, então o erro de TREINO é ~zero, e a fronteira de decisão fica recortada/serrilhada, contornando cada ponto inclusive ruído/outliers → baixo viés, altíssima variância. Aumentar k suaviza a fronteira (mais viés, menos variância); k grande demais leva a underfitting. Reconhecer 'erro de treino zero + fronteira que decora cada ponto' é o núcleo.",
+      "dica": "Quem é o vizinho mais próximo de um ponto que já está no treino?"
+    },
+    {
+      "pergunta": "Cite duas estratégias para reduzir overfitting e, para cada uma, diga em uma frase por que ela ajuda.",
+      "rubrica": "Boa resposta dá DUAS estratégias válidas com justificativa coerente. Opções aceitas: mais dados de treino (menos chance de decorar ruído); modelo mais simples / menos features / menos flexibilidade, ex.: aumentar k no KNN (menos variância); regularização L1/L2 (penaliza complexidade); validação cruzada (escolher hiperparâmetro sem usar o teste); early stopping (parar antes de decorar); poda/profundidade máxima em árvores. Basta que as duas sejam corretas e bem justificadas.",
+      "dica": "Você pode mexer nos dados, na complexidade do modelo, ou em como ele é treinado/escolhido."
+    }
+  ],
+  "ponteiros": [
+    "ISL (An Introduction to Statistical Learning), cap. 2 — Assessing Model Accuracy: curva em U do erro de teste e o trade-off viés-variância — https://www.statlearning.com",
+    "ISL cap. 2 — a decomposição erro = viés² + variância + erro irredutível (a 'fórmula' do trade-off)",
+    "Aula da LigIA: Overfitting (botão “Ver aula” no painel da trilha) — overfitting visto no KNN com k=1"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "conceptId": "regressao-logistica",
+  "orientacao": "Apesar do nome, regressão logística é um modelo de CLASSIFICAÇÃO: ela transforma uma combinação linear das features em uma probabilidade e decide a classe a partir dela. Antes de abrir os materiais, tente responder às checagens com suas palavras — recuperar ativamente o porquê de cada peça (sigmoide, log-odds, perda) fixa muito mais que reler a derivação.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). A regressão logística modela P(y=1 | x) aplicando a função sigmoide/logística σ(z) = 1 / (1 + e^(−z)) sobre uma combinação linear z = β0 + β1·x1 + … + βp·xp. A sigmoide é monotônica e mapeia qualquer z ∈ (−∞, +∞) para uma probabilidade em (0, 1); z=0 dá σ=0,5. Equivalentemente, o LOG-ODDS (logit) log[p/(1−p)] = z é LINEAR nas features — daí o 'linear' do modelo viver na escala de log-odds, não na de probabilidade. Pontos de referência por checagem: (1) É CLASSIFICAÇÃO, não previsão de valor contínuo: a saída crua é uma probabilidade da classe positiva, e uma regra de decisão (limiar) converte em rótulo. O nome 'regressão' é herança histórica da família de modelos de regressão (ajuste de coeficientes a dados); não premie nem exija explicação etimológica. (2) A sigmoide existe para ESPREMER a reta z (que vai de −∞ a +∞) para [0,1], onde ela vira probabilidade interpretável; sem ela, a combinação linear não respeitaria os limites de uma probabilidade. (3) FRONTEIRA DE DECISÃO: com limiar padrão 0,5, prevê-se classe 1 quando p ≥ 0,5, o que equivale a z ≥ 0; como z é linear, a fronteira no espaço das features é linear (hiperplano). Mudar o limiar (ex.: 0,3 para captar mais positivos) desloca a fronteira e troca recall por precisão — útil quando os custos de erro são assimétricos. (4) PERDA: usa-se entropia cruzada / log-loss = −(1/n)·Σ [y·log(p) + (1−y)·log(1−p)], derivada da máxima verossimilhança (Bernoulli), e NÃO o MSE. Razões: (a) com sigmoide, o MSE vira uma superfície NÃO-convexa (mínimos locais) e a entropia cruzada é convexa nos parâmetros → otimização confiável; (b) o gradiente do MSE com sigmoide satura/desaparece quando a predição erra com confiança (perto de 0 ou 1), enquanto a entropia cruzada penaliza fortemente (→ ∞) o erro confiante, mantendo gradiente forte onde mais importa. (5) Diferença para a regressão linear: alvo categórico vs. contínuo; saída passa pela sigmoide (probabilidade limitada a [0,1]) vs. saída linear ilimitada; perda de entropia cruzada/verossimilhança vs. MSE; sem solução fechada (otimiza-se por gradiente/Newton) vs. mínimos quadrados com forma fechada. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: extensão softmax para multiclasse, regularização L2); não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "O nome diz 'regressão', mas para que tarefa a regressão logística é usada — e o que ela produz como saída crua antes de decidir uma classe?",
+      "rubrica": "Boa resposta: é um modelo de CLASSIFICAÇÃO (não previsão de valor contínuo); a saída crua é uma PROBABILIDADE da classe positiva (entre 0 e 1), e só depois um limiar converte essa probabilidade em rótulo. Reconhecer 'classificação' + 'probabilidade' é o núcleo.",
+      "dica": "Pense no tipo do alvo (categoria vs. número) e no que está entre 0 e 1."
+    },
+    {
+      "pergunta": "A regressão logística calcula uma combinação linear z = β0 + β1·x1 + … das features. Por que esse z não pode ser usado direto como probabilidade, e o que a função sigmoide/logística faz com ele?",
+      "rubrica": "Boa resposta: z varia de −∞ a +∞, então não respeita os limites [0,1] de uma probabilidade. A sigmoide σ(z)=1/(1+e^(−z)) 'espreme' qualquer z para o intervalo (0,1), produzindo uma probabilidade; z=0 mapeia para 0,5. Citar que a sigmoide mapeia a reta para [0,1] é o esperado.",
+      "dica": "Uma probabilidade tem que ficar entre 0 e 1; a combinação linear não fica."
+    },
+    {
+      "pergunta": "Diz-se que a regressão logística é 'linear'. Em que escala/quantidade a relação com as features é de fato linear — e o que isso tem a ver com 'log-odds' (logit)?",
+      "rubrica": "Boa resposta: o que é linear nas features é o LOG-ODDS (logit), isto é, log[p/(1−p)] = z = β0 + β1·x1 + … A probabilidade em si é NÃO-linear (passa pela sigmoide). Reconhecer que o modelo é linear na escala de log-odds/logit, não na de probabilidade, é o ponto central.",
+      "dica": "Inverter a sigmoide leva a log[p/(1−p)] = z. O que do lado direito é linear?"
+    },
+    {
+      "pergunta": "Com limiar 0,5, como fica a fronteira de decisão no espaço das features — e por quê? O que muda se você baixar o limiar para, digamos, 0,3?",
+      "rubrica": "Boa resposta: limiar 0,5 corresponde a p ≥ 0,5 ⇔ z ≥ 0; como z é linear nas features, a fronteira é LINEAR (uma reta/hiperplano). Baixar o limiar para 0,3 classifica mais exemplos como positivos: desloca a fronteira, aumenta o recall e tende a reduzir a precisão — escolha guiada pelos custos assimétricos de erro. Reconhecer 'fronteira linear' + 'o limiar move o trade-off' é o esperado.",
+      "dica": "p=0,5 acontece exatamente quando z=0. E z=0 descreve que tipo de superfície?"
+    },
+    {
+      "pergunta": "Por que a regressão logística NÃO usa o erro quadrático médio (MSE) como na regressão linear, e sim a entropia cruzada (log-loss)?",
+      "rubrica": "Boa resposta deve trazer ao menos uma razão sólida: (a) combinado com a sigmoide, o MSE gera uma superfície de perda NÃO-convexa (mínimos locais), enquanto a entropia cruzada (vinda da máxima verossimilhança da Bernoulli) é convexa → otimização confiável; e/ou (b) o gradiente do MSE+sigmoide satura/desaparece em erros confiantes (predição perto de 0 ou 1), ao passo que a entropia cruzada penaliza muito (→∞) o erro confiante, mantendo gradiente útil. Citar 'entropia cruzada / log-loss' e 'convexidade' ou 'penaliza erro confiante' é o núcleo.",
+      "dica": "Pense no formato da superfície de perda (mínimos locais?) e em quão forte é o castigo quando o modelo erra com muita confiança."
+    }
+  ],
+  "ponteiros": [
+    "Andrew Ng — Machine Learning Specialization, Curso 1 (Supervised ML): módulo de classificação com regressão logística — sigmoide, fronteira de decisão e custo de entropia cruzada — https://www.coursera.org/specializations/machine-learning-introduction",
+    "ISL (An Introduction to Statistical Learning), cap. 4 — Classification: seção de Logistic Regression (logit/log-odds, máxima verossimilhança) — https://www.statlearning.com",
+    "Aula da LigIA: Regressão Logística (botão “Ver aula” no painel da trilha)"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "conceptId": "geracao-de-texto",
+  "orientacao": "Um LLM gera texto um token de cada vez, decidindo o próximo a partir de uma distribuição de probabilidade sobre o vocabulário. Antes de olhar a explicação, tente responder cada checagem do seu jeito — recuperar de memória, mesmo com esforço, fixa muito mais que reler. Foque em ENTENDER por que existem várias estratégias de decodificação, não em decorar valores.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Geração de texto em LLMs decoder-only é AUTORREGRESSIVA: o modelo prevê o PRÓXIMO token condicionado a todos os tokens anteriores, ANEXA esse token à sequência e REPETE o processo até um critério de parada (token de fim / comprimento máximo). Pontos de referência por checagem: (1) Autorregressão = laço prever→anexar→repetir; cada passo recebe a sequência inteira até agora e produz UM token, que vira entrada do passo seguinte. (2) A SAÍDA do modelo num passo NÃO é uma palavra pronta, e sim uma DISTRIBUIÇÃO de probabilidade sobre TODO o vocabulário: a última camada produz um logit por token; aplica-se SOFTMAX (logits → probabilidades que somam 1). Uma estratégia de DECODIFICAÇÃO escolhe o próximo token a partir dessa distribuição. (3) GREEDY pega sempre o argmax (token de maior probabilidade) a cada passo: é determinístico e barato, mas tende a texto repetitivo/genérico e pode perder sequências globalmente melhores. AMOSTRAGEM (sampling) sorteia o token segundo as probabilidades, trazendo diversidade. (4) TEMPERATURA escala os logits ANTES do softmax (divide os logits por T): T<1 amplia as diferenças entre logits → distribuição mais 'pontuda', mais conservadora/determinística (concentra no topo); T>1 achata a distribuição → mais uniforme, mais aleatória/criativa (dá mais chance à cauda); T→0 tende ao greedy. Temperatura NÃO muda o ranking dos tokens, só o quão concentrada/espalhada fica a probabilidade. (5) TOP-K e TOP-P (nucleus) cortam a cauda improvável ANTES de amostrar: top-k mantém só os k tokens mais prováveis (k fixo) e renormaliza; top-p mantém o MENOR conjunto de tokens cuja probabilidade acumulada ≥ p (tamanho dinâmico, adapta-se à incerteza do passo) e renormaliza. Ambos evitam sortear tokens muito improváveis que quebram a coerência. (6) A MÁSCARA CAUSAL (triangular) na auto-atenção garante que cada posição só atende a tokens ANTERIORES e a si mesma — pesos para o futuro vão a -∞ antes do softmax, zerando-os; sem isso, prever o próximo token seria trivial (o modelo 'veria' a resposta). (7) Trade-off central: diversidade × coerência — decodificação mais determinística/restritiva (greedy, T baixa, k/p pequenos) dá texto coerente mas repetitivo; mais aleatória (T alta, k/p grandes) dá texto criativo mas com mais risco de incoerência. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Descreva, em uma ou duas frases, o que significa dizer que a geração de texto de um LLM é 'autorregressiva'.",
+      "rubrica": "Boa resposta descreve o laço: o modelo prevê o PRÓXIMO token a partir dos tokens anteriores, ANEXA esse token à sequência e REPETE o processo (até parar). O núcleo é 'um token de cada vez, cada um condicionado aos anteriores e realimentado na entrada'. Não precisa citar critérios de parada.",
+      "dica": "Pense no que o modelo faz com o token que acabou de gerar antes de gerar o seguinte."
+    },
+    {
+      "pergunta": "Em cada passo, a 'saída' do modelo não é diretamente uma palavra. O que ela é de fato, e como os logits viram essa saída?",
+      "rubrica": "Boa resposta: a saída é uma DISTRIBUIÇÃO de probabilidade sobre TODO o vocabulário; o modelo produz um logit por token e o SOFTMAX converte os logits em probabilidades que somam 1. Citar 'distribuição sobre o vocabulário' e 'softmax dos logits' é o esperado. Pode mencionar que uma estratégia de decodificação escolhe o token a partir dessa distribuição.",
+      "dica": "O que precisa acontecer para que os números brutos da última camada virem algo que soma 1?"
+    },
+    {
+      "pergunta": "Compare decodificação GREEDY com AMOSTRAGEM. Como cada uma escolhe o próximo token e qual é a desvantagem típica da greedy?",
+      "rubrica": "Boa resposta: greedy pega sempre o token de MAIOR probabilidade (argmax) — determinístico; amostragem SORTEIA o token segundo as probabilidades — traz diversidade. Desvantagem da greedy: tende a texto repetitivo/genérico (e pode perder sequências globalmente melhores). Reconhecer 'argmax/determinístico' vs 'sorteio/diverso' e ao menos a repetitividade é o ponto.",
+      "dica": "Uma sempre faz a aposta 'mais segura'; a outra deixa o acaso entrar conforme as probabilidades."
+    },
+    {
+      "pergunta": "A temperatura escala os logits antes do softmax. Explique o efeito de uma temperatura BAIXA (<1) versus ALTA (>1) sobre a distribuição e sobre o texto gerado.",
+      "rubrica": "Boa resposta: T<1 amplia as diferenças entre logits → distribuição mais concentrada/'pontuda' → saída mais conservadora/determinística (foco no topo); T>1 achata a distribuição → mais uniforme → saída mais aleatória/criativa (mais chance à cauda). Bônus: notar que T→0 tende ao greedy e que a temperatura não muda o RANKING dos tokens, só o quão espalhada é a probabilidade.",
+      "dica": "Dividir os logits por um número pequeno vs grande: o que isso faz com a distância entre o maior logit e os demais?"
+    },
+    {
+      "pergunta": "Top-k e top-p (nucleus) servem para cortar a cauda improvável antes de amostrar. Qual a diferença entre eles, e por que cortar a cauda ajuda?",
+      "rubrica": "Boa resposta: top-k mantém os k tokens mais prováveis (k FIXO) e renormaliza; top-p mantém o menor conjunto cuja probabilidade ACUMULADA ≥ p (tamanho DINÂMICO, adapta-se à incerteza do passo) e renormaliza. Cortar a cauda impede sortear tokens muito improváveis que quebrariam a coerência (melhora o trade-off diversidade × coerência). Distinguir 'k fixo' de 'p acumulado/dinâmico' é o núcleo.",
+      "dica": "Um corta por quantidade de candidatos; o outro corta por massa de probabilidade acumulada."
+    }
+  ],
+  "ponteiros": [
+    "HuggingFace — LLM Course, cap. 3 (https://huggingface.co/learn/llm-course): pipeline de geração e como o modelo prevê o próximo token",
+    "HuggingFace — LLM Course, cap. 1: modelos decoder-only e o processo autorregressivo (atenção só ao passado / máscara causal)",
+    "Aula da LigIA: Geração de Texto (botão “Ver aula” no painel da trilha)"
+  ]
+}

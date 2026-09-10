@@ -33,3 +33,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Prova que o material de fundamentação do avaliador (o `contexto`
+      # dos loops, que contém respostas de referência) não foi parar no
+      # bundle. Os testes checam o artefato; isto checa o que vai ao browser.
+      - name: Sem gabarito no bundle
+        run: npm run check:secrets

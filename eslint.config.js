@@ -24,7 +24,7 @@ export default [
   ...tseslint.configs.recommended.map((c) => ({ ...c, files: ["**/*.{ts,tsx}"] })),
 
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "module",
@@ -34,7 +34,10 @@ export default [
     plugins: { "react-hooks": reactHooks, "react-refresh": reactRefresh },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "no-unused-vars": ["warn", { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_" }],
+      "no-unused-vars": [
+        "warn",
+        { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_", ignoreRestSiblings: true },
+      ],
       "no-empty": ["warn", { allowEmptyCatch: true }],
     },
   },
@@ -44,7 +47,10 @@ export default [
     rules: {
       // A versão TS-aware substitui a base, que não entende tipos/enums.
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_", ignoreRestSiblings: true },
+      ],
     },
   },
 
