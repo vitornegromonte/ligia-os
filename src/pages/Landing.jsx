@@ -123,7 +123,7 @@ function InitiativeTabs({ research, general }) {
     setSel({ group: next.group, idx: next.idx });
   }
 
-  const EASE = "700ms cubic-bezier(0.32,0.72,0,1)";
+  const EASE = "200ms cubic-bezier(0.32,0.72,0,1)";
 
   return (
     <div className="landing-vtab" style={{ display: "grid", gridTemplateColumns: "260px 1.1fr 1fr", gap: "clamp(32px, 4vw, 56px)", alignItems: "start" }}>
@@ -244,6 +244,30 @@ function InitiativeTabs({ research, general }) {
   );
 }
 
+// Iniciais para tile de avatar (sem foto externa genérica)
+function initialsOf(name) {
+  return (name || "")
+    .split(" ")
+    .filter(Boolean)
+    .map(n => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function MemberAvatar({ person, size = 44 }) {
+  if (person.avatar_url) {
+    return (
+      <img src={person.avatar_url} alt={person.name} width={size} height={size} loading="lazy" decoding="async" style={{ width: size, height: size, flex: "0 0 auto", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--surface)", boxShadow: "0 0 0 1px rgba(255,255,255,0.08)" }} />
+    );
+  }
+  return (
+    <span aria-hidden="true" style={{ width: size, height: size, flex: "0 0 auto", display: "grid", placeItems: "center", borderRadius: "50%", background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--muted)", fontFamily: "var(--font-heading)", fontSize: size * 0.34, fontWeight: 600 }}>
+      {initialsOf(person.name)}
+    </span>
+  );
+}
+
 // Links externos do membro: só renderiza o que existe no perfil.
 function MemberLinks({ person }) {
   const links = [
@@ -260,7 +284,7 @@ function MemberLinks({ person }) {
           style={{
             display: "grid", placeItems: "center", width: 26, height: 26, borderRadius: 9,
             border: "1px solid rgba(255,255,255,0.08)", color: "var(--muted-2)",
-            transition: "color 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1)",
+            transition: "color 200ms cubic-bezier(0.32,0.72,0,1), border-color 200ms cubic-bezier(0.32,0.72,0,1)",
           }}
         >
           <Icon size={12} strokeWidth={1.5} aria-hidden="true" />
@@ -276,7 +300,7 @@ const L = {
   px: "clamp(20px, 4vw, 52px)",
   sectionPad: "clamp(140px, 15vh, 210px) clamp(20px, 4vw, 52px)",
   sectionPadTight: "clamp(96px, 10vh, 144px) clamp(20px, 4vw, 52px)",
-  heroPad: "clamp(96px, 12vh, 150px) clamp(20px, 4vw, 52px) clamp(96px, 10vh, 130px)",
+  heroPad: "clamp(36px, 8vh, 90px) clamp(20px, 4vw, 52px) clamp(96px, 10vh, 130px)",
 };
 
 export default function Landing() {
@@ -597,7 +621,7 @@ export default function Landing() {
     navLink: {
       position: "relative", border: 0, background: "none", color: "var(--muted)", cursor: "pointer",
       fontSize: 13, fontWeight: 500, padding: "6px 2px",
-      fontFamily: "var(--font-body)", transition: "color 700ms cubic-bezier(0.32,0.72,0,1)"
+      fontFamily: "var(--font-body)", transition: "color 200ms cubic-bezier(0.32,0.72,0,1)"
     },
     card: {
       position: "relative", overflow: "hidden",
@@ -605,7 +629,7 @@ export default function Landing() {
       border: "1px solid rgba(255,255,255,0.08)",
       background: "var(--surface)",
       boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)",
-      transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1)"
+      transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), border-color 200ms cubic-bezier(0.32,0.72,0,1), box-shadow 200ms cubic-bezier(0.32,0.72,0,1)"
     },
     bezelShell: {
       padding: 6, borderRadius: 24,
@@ -617,7 +641,7 @@ export default function Landing() {
       marginBottom: 16, borderRadius: 12,
       background: "var(--accent-soft)",
       color: "var(--accent)", border: "1px solid var(--accent-border)",
-      transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1)"
+      transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), border-color 200ms cubic-bezier(0.32,0.72,0,1)"
     },
     primaryBtn: {
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -625,7 +649,7 @@ export default function Landing() {
       color: "#fff", background: "var(--accent)", cursor: "pointer",
       fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
       boxShadow: "0 4px 14px rgba(255,75,31,0.22)",
-      transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1), filter 700ms cubic-bezier(0.32,0.72,0,1)"
+      transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), box-shadow 200ms cubic-bezier(0.32,0.72,0,1), filter 200ms cubic-bezier(0.32,0.72,0,1)"
     },
     primaryDot: {
       display: "grid", placeItems: "center", width: 28, height: 28,
@@ -637,7 +661,7 @@ export default function Landing() {
       borderRadius: 999, color: "var(--text)",
       background: "rgba(255,255,255,0.02)", cursor: "pointer",
       fontSize: 14, fontWeight: 550, fontFamily: "var(--font-body)",
-      transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1)"
+      transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), border-color 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), box-shadow 200ms cubic-bezier(0.32,0.72,0,1)"
     },
     secondaryDot: {
       display: "grid", placeItems: "center", width: 28, height: 28,
@@ -660,7 +684,7 @@ export default function Landing() {
           boxShadow: navScrolled
             ? "inset 0 1px 1px rgba(255,255,255,0.08), 0 18px 60px rgba(0,0,0,0.45)"
             : "inset 0 1px 1px rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.35)",
-          transition: "box-shadow 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1)",
+          transition: "box-shadow 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1)",
         }}>
           <div style={{
             maxWidth: "100%", margin: "0 auto", padding: "0 10px 0 clamp(20px, 4vw, 32px)",
@@ -701,13 +725,13 @@ export default function Landing() {
                   position: "absolute", left: 12, right: 12, height: 1.5, borderRadius: 2,
                   background: "currentColor",
                   transform: menuOpen ? "translateY(0) rotate(45deg)" : "translateY(-4px)",
-                  transition: "transform 700ms cubic-bezier(0.32,0.72,0,1)",
+                  transition: "transform 200ms cubic-bezier(0.32,0.72,0,1)",
                 }} />
                 <span aria-hidden="true" style={{
                   position: "absolute", left: 12, right: 12, height: 1.5, borderRadius: 2,
                   background: "currentColor",
                   transform: menuOpen ? "translateY(0) rotate(-45deg)" : "translateY(4px)",
-                  transition: "transform 700ms cubic-bezier(0.32,0.72,0,1)",
+                  transition: "transform 200ms cubic-bezier(0.32,0.72,0,1)",
                 }} />
               </button>
             </div>
@@ -784,8 +808,9 @@ export default function Landing() {
             <div className="eyebrow-pill hero-enter" style={{ marginBottom: 22, ["--delay"]: "0ms" }}>
               Liga Acadêmica de Inteligência Artificial
             </div>
-            <h1 className="hero-enter" style={{ margin: "0 0 22px", maxWidth: 640, fontSize: "clamp(40px, 6vw, 68px)", lineHeight: 1.04, fontWeight: 500, letterSpacing: "-.035em", ["--delay"]: "90ms" }}>
-              Pessoas que aprendem IA <span className="gradient-text">juntas.</span>
+            <h1 className="hero-enter" style={{ margin: "0 0 22px", maxWidth: 640, fontSize: "clamp(40px, 6vw, 68px)", lineHeight: 1.1, fontWeight: 500, letterSpacing: "-.035em", paddingBottom: "0.08em", ["--delay"]: "90ms" }}>
+              Conexão que inspira o<br />
+              <span className="gradient-text h1-accent">futuro.</span>
             </h1>
             <p className="hero-enter" style={{ margin: "0 0 34px", maxWidth: 520, color: "var(--muted)", fontSize: 15, lineHeight: 1.85, ["--delay"]: "180ms" }}>
               A Ligia é uma liga acadêmica que reúne estudantes e pesquisadores para
@@ -963,7 +988,7 @@ export default function Landing() {
                         background: "var(--bg)",
                         boxShadow: isCenter ? "inset 0 1px 1px rgba(255,255,255,0.04)" : "none",
                         transform: isCenter ? "translateY(-6px)" : "none",
-                        transition: "border-color 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1), transform 700ms cubic-bezier(0.32,0.72,0,1), opacity 700ms cubic-bezier(0.32,0.72,0,1)",
+                        transition: "border-color 450ms cubic-bezier(0.32,0.72,0,1), box-shadow 450ms cubic-bezier(0.32,0.72,0,1), transform 450ms cubic-bezier(0.32,0.72,0,1), opacity 450ms cubic-bezier(0.32,0.72,0,1)",
                         opacity: isCenter ? 1 : 0.85
                       }}>
                         <div style={{
@@ -1009,12 +1034,12 @@ export default function Landing() {
 
               {pastEvents.length > 1 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginTop: 26 }}>
-                <button onClick={() => moveCarousel(-1)} aria-label="Anterior"
+                <button onClick={() => moveCarousel(-1)} aria-label="Anterior" className="carousel-arrow"
                   style={{
                     display: "grid", placeItems: "center", width: 44, height: 44,
                     border: "1px solid var(--line)", borderRadius: 999, cursor: "pointer",
                     background: "rgba(255,255,255,0.02)", color: "var(--text)",
-                    transition: "border-color 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), transform 700ms cubic-bezier(0.32,0.72,0,1)"
+                    transition: "border-color 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), transform 200ms cubic-bezier(0.32,0.72,0,1)"
                   }}>
                   <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
@@ -1022,19 +1047,20 @@ export default function Landing() {
                   {pastEvents.map((ev, idx) => (
                     <button key={ev.id} onClick={() => jumpCarousel(idx)} aria-label={`Ir para ${ev.title}`} aria-current={idx === eventIdx ? "true" : undefined} role="tab"
                       style={{
-                        width: idx === eventIdx ? 22 : 7, height: 7, border: 0, borderRadius: 999,
+                        width: 7, height: 7, border: 0, borderRadius: 999,
                         cursor: "pointer", padding: 0,
-                        background: idx === eventIdx ? "var(--accent)" : "var(--line)",
-                        transition: "width 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1)"
+                        background: "var(--accent)", opacity: idx === eventIdx ? 1 : 0.3,
+                        transform: idx === eventIdx ? "scale(1.6)" : "scale(1)",
+                        transition: "opacity 200ms cubic-bezier(0.32,0.72,0,1), transform 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1)"
                       }} />
                   ))}
                 </div>
-                <button onClick={() => moveCarousel(1)} aria-label="Próximo"
+                <button onClick={() => moveCarousel(1)} aria-label="Próximo" className="carousel-arrow"
                   style={{
                     display: "grid", placeItems: "center", width: 44, height: 44,
                     border: "1px solid var(--line)", borderRadius: 999, cursor: "pointer",
                     background: "rgba(255,255,255,0.02)", color: "var(--text)",
-                    transition: "border-color 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), transform 700ms cubic-bezier(0.32,0.72,0,1)"
+                    transition: "border-color 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), transform 200ms cubic-bezier(0.32,0.72,0,1)"
                   }}>
                   <ChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
@@ -1058,13 +1084,13 @@ export default function Landing() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gap: 28 }}>
+          <div style={{ display: "grid", gap: 40 }}>
             {landingLoading ? (
               <>
                 {[1,2,3].map(s => (
                   <div key={s}>
                     <div className="eyebrow" style={{ marginBottom: 12, opacity: 0.6 }}>&nbsp;</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
                       {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 78, borderRadius: "var(--radius)", border: "1px solid var(--line-soft)" }} />)}
                     </div>
                   </div>
@@ -1073,16 +1099,17 @@ export default function Landing() {
             ) : (
               <>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Professores orientadores</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Professores orientadores</div>
+              <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {professors.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "32px 20px" }}>
                   Em breve, a relação de professores aparece aqui.
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
                   {professors.map(p => (
                     <div key={p.id || p.name} className="landing-card" style={{ ...c.card, display: "flex", alignItems: "center", gap: 13, padding: "16px 18px" }}>
-                      <img src={p.avatar_url || `https://randomuser.me/api/portraits/${String(p.id).charCodeAt(0) % 2 === 0 ? "women" : "men"}/${(parseInt(String(p.id).replace(/\D/g, "")) || 10) % 90 + 1}.jpg`} alt={p.name} width="44" height="44" loading="lazy" decoding="async" style={{ width: 44, height: 44, flex: "0 0 auto", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--surface)", boxShadow: "0 0 0 1px var(--line-soft), 0 1px 3px rgba(0,0,0,0.12)" }} />
+                      <MemberAvatar person={p} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
                         <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 2 }}>{p.discipline}{p.affiliation ? ` · ${p.affiliation}` : ""}</div>
@@ -1095,16 +1122,17 @@ export default function Landing() {
             </div>
 
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Diretoria</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Diretoria</div>
+              <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {directors.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "32px 20px" }}>
                   Em breve, a relação da diretoria aparece aqui.
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
                   {directors.map(d => (
                     <div key={d.id || d.name} className="landing-card" style={{ ...c.card, display: "flex", alignItems: "center", gap: 13, padding: "16px 18px" }}>
-                      <img src={d.avatar_url || `https://randomuser.me/api/portraits/${String(d.id).charCodeAt(0) % 2 === 0 ? "women" : "men"}/${(parseInt(String(d.id).replace(/\D/g, "")) || 10) % 90 + 1}.jpg`} alt={d.name} width="44" height="44" loading="lazy" decoding="async" style={{ width: 44, height: 44, flex: "0 0 auto", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--surface)", boxShadow: "0 0 0 1px var(--line-soft), 0 1px 3px rgba(0,0,0,0.12)" }} />
+                      <MemberAvatar person={d} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.name}</div>
                         <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 2 }}>{d.director_role || "Diretor(a)"}{d.affiliation ? ` · ${d.affiliation}` : ""}</div>
@@ -1117,16 +1145,17 @@ export default function Landing() {
             </div>
 
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Membros</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Membros</div>
+              <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {regularMembers.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "40px 20px" }}>
                   Em breve, a relação de membros aparece aqui.
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
                   {regularMembers.map(m => (
                     <div key={m.id} className="landing-card" style={{ ...c.card, display: "flex", alignItems: "center", gap: 13, padding: "16px 18px" }}>
-                      <img src={m.avatar_url || `https://randomuser.me/api/portraits/${m.id % 2 === 0 ? "women" : "men"}/${(m.id * 7) % 90 + 1}.jpg`} alt={m.name} width="42" height="42" loading="lazy" decoding="async" style={{ width: 42, height: 42, flex: "0 0 auto", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--surface)", boxShadow: "0 0 0 1px var(--line-soft), 0 1px 3px rgba(0,0,0,0.12)" }} />
+                      <MemberAvatar person={m} size={42} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {m.name}
@@ -1361,8 +1390,8 @@ export default function Landing() {
         .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
         @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
         @keyframes heroIn { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
-        .hero-enter { opacity: 0; animation: heroIn 800ms var(--ease-drawer) forwards; animation-delay: var(--delay, 0ms); will-change: transform, opacity; }
-        [data-reveal] { opacity: 0; transform: translateY(28px); filter: blur(6px); transition: opacity 800ms var(--ease-drawer), transform 800ms var(--ease-drawer), filter 800ms var(--ease-drawer); }
+        .hero-enter { opacity: 0; animation: heroIn 800ms var(--ease-drawer) forwards; animation-delay: var(--delay, 0ms); }
+        [data-reveal] { opacity: 0; transform: translateY(28px); filter: blur(6px); transition: opacity 650ms var(--ease-drawer), transform 650ms var(--ease-drawer), filter 650ms var(--ease-drawer); }
         [data-reveal].is-visible { opacity: 1; transform: translateY(0); filter: blur(0); }
         #pilares, #eventos { position: relative; }
         #pilares::before, #eventos::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 10%, rgba(255,75,31,0.05), transparent 38%), radial-gradient(circle at 10% 90%, rgba(255,144,104,0.03), transparent 36%); pointer-events: none; }
@@ -1398,9 +1427,9 @@ export default function Landing() {
         #sobre .landing-card:nth-child(3), #pilares .landing-card:nth-child(3), #iniciativas .landing-initiative:nth-child(3) { transition-delay: 90ms; }
         #sobre .landing-card:nth-child(4), #pilares .landing-card:nth-child(4), #iniciativas .landing-initiative:nth-child(4) { transition-delay: 135ms; }
         .landing-nav-mobile { transform-origin: top; }
-        .landing-menu-open { animation: menuIn 700ms var(--ease-drawer); }
+        .landing-menu-open { animation: menuIn 400ms var(--ease-drawer); }
         @keyframes menuIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .landing-menu-item { opacity: 0; transform: translateY(12px); animation: menuItemIn 700ms var(--ease-drawer) forwards; animation-delay: var(--d, 100ms); }
+        .landing-menu-item { opacity: 0; transform: translateY(12px); animation: menuItemIn 400ms var(--ease-drawer) forwards; animation-delay: var(--d, 100ms); }
         @keyframes menuItemIn { to { opacity: 1; transform: translateY(0); } }
         .landing-menu-item:hover { background: rgba(255,255,255,0.04); color: var(--text) !important; }
         /* Fundo do hero: entrada, aurora e deriva (tudo transform/opacity) */
@@ -1436,8 +1465,8 @@ export default function Landing() {
           .landing-vtab-select { display: block !important; }
         }
         @keyframes vtabIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-        .landing-vtab-media { animation: vtabIn 700ms var(--ease-drawer); }
-        .landing-vtab-info { animation: vtabIn 700ms var(--ease-drawer); }
+        .landing-vtab-media { animation: vtabIn 500ms var(--ease-drawer); }
+        .landing-vtab-info { animation: vtabIn 500ms var(--ease-drawer); }
         .landing-vtab-nav [role="tab"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         .member-link:hover { color: var(--accent) !important; border-color: var(--accent-border) !important; }
         .landing-vtab-nav .vtab-group:first-child .vtab-group-label { padding-top: 6px; }
@@ -1461,6 +1490,7 @@ export default function Landing() {
           .landing-vtab-nav [role="tab"] { transform: none !important; }
         }
         .events-snap::-webkit-scrollbar { display: none; }
+        .carousel-arrow:active { transform: scale(0.95); }
         @media (max-width: 900px) {
           .landing-nav { display: none !important; }
           header button.landing-burger, .landing-burger { display: grid !important; }

@@ -5,7 +5,6 @@ import {
   ChevronLeft, ChevronRight, Users, CircleCheck, BookOpen, Search, Upload
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import { jsPDF } from "jspdf";
 
 const s = {
   topbar: {
@@ -269,6 +268,7 @@ export default function Certificates() {
       const slug = eventName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "evento";
       const data = certData();
       const logos = await loadLogos();
+      const { jsPDF } = await import("jspdf"); // bundle-conditional: só carrega ao exportar
 
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [297, 167] });
 
