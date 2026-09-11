@@ -149,13 +149,27 @@ export default function NeuralHero() {
       mouseRef.current.y += (mouseRef.current.ty - mouseRef.current.y) * 0.04;
       const parallaxX = mouseRef.current.x * 6;
       const parallaxY = mouseRef.current.y * 4;
+      // Cursor em pixels (para repulsão e boost de pulsos)
+      const pmx = (mouseRef.current.x * 0.5 + 0.5) * width;
+      const pmy = (mouseRef.current.y * 0.5 + 0.5) * height;
+      const layerDepth = [0.1, 0.22, 0.3, 0.38];
 
       // Respiração humana: duas ondas sobrepostas + leve deriva X
       nodes.forEach(n => {
         const breath1 = Math.sin(now * n.speed + n.phase) * 1.1;
         const breath2 = Math.cos(now * n.speed2 + n.phase2) * 0.55;
+        const depth = layerDepth[Math.min(n.layer, 3)];
         n.y = n.y0 + breath1 + breath2;
-        n.x = n.x0 + Math.sin(now * n.speed * 0.58 + n.phase) * 0.7 + parallaxX * (n.layer / 3) * 0.18;
+        n.x = n.x0 + Math.sin(now * n.speed * 0.58 + n.phase) * 0.7 + parallaxX * depth;
+        // Repulsão suave do cursor (raio 140px, clamp 10px)
+        const rdx = n.x - pmx;
+        const rdy = n.y - pmy;
+        const dist = Math.hypot(rdx, rdy);
+        if (dist < 140 && dist > 0.01) {
+          const push = (1 - dist / 140) * 10;
+          n.x += (rdx / dist) * push;
+          n.y += (rdy / dist) * push;
+        }
         // leve variação de escala orgânica
         n._scale = 1 + Math.sin(now * 0.00028 + n.breathPhase) * 0.06;
       });
@@ -167,7 +181,13 @@ export default function NeuralHero() {
       });
 
       pulses.forEach(p => {
-        p.p += p.speed * delta;
+        // Boost perto do cursor: arestas próximas aceleram e brilham
+        const ex = (p.edge.a.x + p.edge.b.x) / 2;
+        const ey = (p.edge.a.y + p.edge.b.y) / 2;
+        const ed = Math.hypot(ex - pmx, ey - pmy);
+        const near = ed < 220 ? (1 - ed / 220) : 0;
+        p._boost = near;
+        p.p += p.speed * delta * (1 + near * 0.6);
         if (p.p > 1) p.p -= 1;
       });
 
@@ -201,8 +221,9 @@ export default function NeuralHero() {
         if (alpha < 0.015) return;
 
         const s = 36 * pulse.size * (0.82 + easedFade * 0.45);
-        // halo pré-renderizado
-        ctx.globalAlpha = alpha * 0.72;
+        // halo pré-renderizado (intensifica perto do cursor)
+        const boost = pulse._boost || 0;
+        ctx.globalAlpha = Math.min(1, alpha * (0.72 + boost * 0.28));
         ctx.drawImage(glowSprite, x - s / 2, y - s / 2, s, s);
         ctx.globalAlpha = 1;
 

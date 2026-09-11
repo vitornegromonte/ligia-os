@@ -6,7 +6,7 @@ import {
   ArrowRight, Github, Linkedin,
   GraduationCap, Mail, MapPin,
   BookOpen, Megaphone, Languages, BrainCircuit, ScanEye, Cpu,
-  CalendarDays, ChevronLeft, ChevronRight, Instagram, ExternalLink
+  CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Instagram, ExternalLink
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { fetchProfiles } from "../services/profiles.js";
@@ -127,6 +127,39 @@ function InitiativeTabs({ research, general }) {
 
   return (
     <div className="landing-vtab" style={{ display: "grid", gridTemplateColumns: "260px 1.1fr 1fr", gap: "clamp(32px, 4vw, 56px)", alignItems: "start" }}>
+      <div className="landing-vtab-select" style={{ display: "none" }}>
+        <label
+          htmlFor="vtab-select"
+          style={{ display: "block", fontFamily: "var(--font-heading)", fontSize: 10, fontWeight: 600, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--muted-2)", marginBottom: 8 }}
+        >
+          Escolher iniciativa
+        </label>
+        <span style={{ position: "relative", display: "block" }}>
+          <select
+            id="vtab-select"
+            value={`${current.group}:${current.idx}`}
+            onChange={e => {
+              const [group, idx] = e.target.value.split(":");
+              setSel({ group, idx: Number(idx) });
+            }}
+            style={{
+              width: "100%", height: 52, appearance: "none", WebkitAppearance: "none",
+              padding: "0 44px 0 16px", borderRadius: 14, cursor: "pointer",
+              border: "1px solid rgba(255,255,255,0.08)", background: "var(--surface-2)", color: "var(--text)",
+              fontSize: 14, fontWeight: 550, fontFamily: "var(--font-body)",
+            }}
+          >
+            {groups.map(g => (
+              <optgroup key={g.key} label={g.label}>
+                {g.items.map((item, idx) => (
+                  <option key={item.name} value={`${g.key}:${idx}`}>{item.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }} />
+        </span>
+      </div>
       <div
         className="landing-vtab-nav" role="tablist" aria-label="Pesquisas e iniciativas"
         onKeyDown={e => {
@@ -182,7 +215,7 @@ function InitiativeTabs({ research, general }) {
         ))}
       </div>
 
-      <figure className="landing-vtab-media" key={active.name + "-media"} style={{ margin: "0 0 0 calc(clamp(0px, 1.5vw, 16px) + 70px)", width: "calc(100% + 20px)", maxWidth: "none", padding: 6, borderRadius: 24, background: "transparent", border: "1px solid transparent" }}>
+      <figure className="landing-vtab-media" key={active.name + "-media"} style={{ margin: "0 0 0 calc(clamp(0px, 1.5vw, 16px) + 70px)", maxWidth: "none", padding: 6, borderRadius: 24, background: "transparent", border: "1px solid transparent" }}>
         <span style={{ display: "block", borderRadius: "var(--landing-inner)", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
           <img
             src={active.img} alt={active.name} width="800" height="600" loading="lazy" decoding="async"
@@ -252,6 +285,8 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
   const navSentinelRef = useRef(null);
+  const heroBgRef = useRef(null);
+  const heroSectionRef = useRef(null);
   const [stats, setStats] = useState([
     { value: "—", label: "Membros", color: "#6da87c" },
     { value: "—", label: "Projetos", color: "#6b8eb3" },
@@ -261,6 +296,9 @@ export default function Landing() {
   const [pastEvents, setPastEvents] = useState([]);
   const [members, setMembers] = useState([]);
   const [eventIdx, setEventIdx] = useState(0);
+  const eventIdxRef = useRef(0);
+  const tickRef = useRef(false);
+  const animatingRef = useRef(false);
   const eventsSnapRef = useRef(null);
   const [researchInitiatives, setResearchInitiatives] = useState(fallbackResearch);
   const [generalInitiatives, setGeneralInitiatives] = useState(fallbackInitiatives);
@@ -273,12 +311,23 @@ export default function Landing() {
     const start = el.scrollLeft;
     const delta = targetLeft - start;
     if (Math.abs(delta) < 1) { el.scrollLeft = targetLeft; return; }
+    // Snap desligado no voo programático: evita que o navegador agarre
+    // cards intermediários (o bug do wrap último → segundo).
+    animatingRef.current = true;
+    const prevSnap = el.style.scrollSnapType;
+    el.style.scrollSnapType = "none";
     const startTime = performance.now();
     const animate = (now) => {
       const elapsed = now - startTime;
       const p = Math.min(elapsed / duration, 1);
       el.scrollLeft = start + delta * easeOutCubic(p);
-      if (p < 1) requestAnimationFrame(animate);
+      if (p < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        el.scrollLeft = targetLeft; // trava exata no destino
+        el.style.scrollSnapType = prevSnap || "x proximity";
+        animatingRef.current = false;
+      }
     };
     requestAnimationFrame(animate);
   }
@@ -300,9 +349,9 @@ export default function Landing() {
   }
 
   function moveCarousel(dir) {
-    if (pastEvents.length === 0) return;
+    if (pastEvents.length === 0 || animatingRef.current) return;
     const n = pastEvents.length;
-    const next = (eventIdx + dir + n) % n;
+    const next = (eventIdxRef.current + dir + n) % n;
     jumpCarousel(next);
   }
 
@@ -314,11 +363,21 @@ export default function Landing() {
     if (!target) return;
     const targetLeft = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
     smoothScrollTo(el, targetLeft, 560);
+    eventIdxRef.current = clamped;
     setEventIdx(clamped);
   }
 
   function handleCarouselScroll() {
-    window.requestAnimationFrame(() => setEventIdx(getCenterIdx()));
+    if (tickRef.current || animatingRef.current) return;
+    tickRef.current = true;
+    window.requestAnimationFrame(() => {
+      tickRef.current = false;
+      const next = getCenterIdx();
+      if (next !== eventIdxRef.current) {
+        eventIdxRef.current = next;
+        setEventIdx(next);
+      }
+    });
   }
 
   useEffect(() => {
@@ -337,7 +396,18 @@ export default function Landing() {
   // Removido redirecionamento automático: usuário logado pode visitar a landing.
   // O botão "Abrir Ligia OS" / "Login" já direciona corretamente via goToOS().
 
-  // Navbar glassy: sombra profunda após rolar (IntersectionObserver, sem scroll listener)
+  // Hero: fundo dissolve ao rolar (sem scroll listener, sem re-render)
+  useEffect(() => {
+    const sec = heroSectionRef.current;
+    const bg = heroBgRef.current;
+    if (!sec || !bg || !("IntersectionObserver" in window)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const obs = new IntersectionObserver(([e]) => {
+      bg.style.opacity = Math.max(0, Math.min(1, e.intersectionRatio * 1.4 - 0.15)).toFixed(3);
+    }, { threshold: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1] });
+    obs.observe(sec);
+    return () => obs.disconnect();
+  }, []);
   useEffect(() => {
     const el = navSentinelRef.current;
     if (!el || !("IntersectionObserver" in window)) return;
@@ -370,6 +440,7 @@ export default function Landing() {
   useEffect(() => {
     if (pastEvents.length === 0) return;
     const initial = 0;
+    eventIdxRef.current = initial;
     setEventIdx(initial);
     requestAnimationFrame(() => {
       const el = eventsSnapRef.current;
@@ -549,27 +620,27 @@ export default function Landing() {
       transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1)"
     },
     primaryBtn: {
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 12,
-      height: 52, padding: "6px 6px 6px 26px", border: 0, borderRadius: 999,
+      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
+      height: 44, padding: "4px 4px 4px 20px", border: 0, borderRadius: 999,
       color: "#fff", background: "var(--accent)", cursor: "pointer",
-      fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
+      fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
       boxShadow: "0 4px 14px rgba(255,75,31,0.22)",
       transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1), filter 700ms cubic-bezier(0.32,0.72,0,1)"
     },
     primaryDot: {
-      display: "grid", placeItems: "center", width: 32, height: 32,
+      display: "grid", placeItems: "center", width: 28, height: 28,
       borderRadius: 999, background: "rgba(255,255,255,0.18)", color: "#fff",
     },
     secondaryBtn: {
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 12,
-      height: 52, padding: "6px 6px 6px 26px", border: "1px solid var(--line)",
+      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
+      height: 44, padding: "4px 4px 4px 20px", border: "1px solid var(--line)",
       borderRadius: 999, color: "var(--text)",
       background: "rgba(255,255,255,0.02)", cursor: "pointer",
       fontSize: 14, fontWeight: 550, fontFamily: "var(--font-body)",
       transition: "transform 700ms cubic-bezier(0.32,0.72,0,1), border-color 700ms cubic-bezier(0.32,0.72,0,1), background 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1)"
     },
     secondaryDot: {
-      display: "grid", placeItems: "center", width: 32, height: 32,
+      display: "grid", placeItems: "center", width: 28, height: 28,
       borderRadius: 999, background: "rgba(255,255,255,0.06)", color: "var(--muted)",
     }
   };
@@ -613,15 +684,10 @@ export default function Landing() {
             </nav>
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{
-                display: "inline-flex", alignItems: "center", gap: 10,
-                padding: "5px 5px 5px 18px", height: 42, border: 0, borderRadius: 999,
-                color: "#fff", background: "var(--accent)", cursor: "pointer",
-                fontSize: 13, fontWeight: 600, fontFamily: "var(--font-body)",
-              }}>
-                {session ? "Login" : "Login"}
-                <span className="btn-dot" style={{ display: "grid", placeItems: "center", width: 30, height: 30, borderRadius: 999, background: "rgba(255,255,255,0.18)" }}>
-                  <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" />
+              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+                {session ? "Abrir Ligia OS" : "Login"}
+                <span className="btn-dot" style={c.primaryDot}>
+                  <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                 </span>
               </button>
               <button onClick={() => setMenuOpen(o => !o)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}
@@ -670,22 +736,34 @@ export default function Landing() {
       </div>
 
       {/* HERO — Editorial Split: type left, neural canvas breathing right. No glass blur. */}
-      <section style={{
+      <section ref={heroSectionRef} style={{
         position: "relative", overflow: "hidden",
         background: "var(--bg)",
         isolation: "isolate",
         minHeight: "min(100dvh, 860px)",
         display: "grid", placeItems: "center"
       }}>
-        {/* Camada 1: rede animada — rAF + pausa fora da viewport */}
-        <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 0.8 }}>
-          <Suspense fallback={null}>
-            <NeuralHero />
-          </Suspense>
+        {/* Camadas 0+1: aurora + rede (fade conjunto no scroll) */}
+        <div aria-hidden="true" ref={heroBgRef} style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+          <div className="hero-aurora" style={{ position: "absolute", inset: "-10%", pointerEvents: "none" }}>
+            <span className="hero-aurora-a" style={{
+              position: "absolute", width: "60vmax", height: "60vmax", left: "-12vmax", top: "-18vmax",
+              background: "radial-gradient(circle, rgba(255,75,31,0.055) 0%, transparent 62%)",
+            }} />
+            <span className="hero-aurora-b" style={{
+              position: "absolute", width: "52vmax", height: "52vmax", right: "-14vmax", bottom: "-20vmax",
+              background: "radial-gradient(circle, rgba(255,144,104,0.045) 0%, transparent 62%)",
+            }} />
+          </div>
+          <div className="hero-canvas-enter" style={{ position: "absolute", inset: 0 }}>
+            <Suspense fallback={null}>
+              <NeuralHero />
+            </Suspense>
+          </div>
         </div>
         {/* Camada 2: véu em opacidade apenas — sem backdrop-blur (perf + sem glass) */}
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, zIndex: 1,
+        <div aria-hidden="true" className="hero-veil-drift" style={{
+          position: "absolute", inset: "-4%", zIndex: 1,
           background: `
             radial-gradient(circle at 18% 8%, rgba(15,14,12,0.55) 0%, transparent 46%),
             linear-gradient(180deg, rgba(15,14,12,0.30) 0%, rgba(15,14,12,0.55) 58%, rgba(15,14,12,0.86) 100%),
@@ -693,9 +771,9 @@ export default function Landing() {
             radial-gradient(circle at 15% 90%, rgba(255,144,104,.04), transparent 40%)
           `
         }} />
-        {/* Camada 3: grade sutil */}
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, zIndex: 1, opacity: 0.028,
+        {/* Camada 3: grade sutil à deriva */}
+        <div aria-hidden="true" className="hero-grid-drift" style={{
+          position: "absolute", inset: "-4%", zIndex: 1, opacity: 0.028,
           backgroundImage: "linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
           maskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 94%)",
@@ -729,7 +807,7 @@ export default function Landing() {
               </button>
             </div>
           </div>
-          <div className="hero-enter" style={{ ["--delay"]: "150ms", minWidth: 0 }}>
+          <div className="hero-enter landing-hero-logo" style={{ ["--delay"]: "150ms", minWidth: 0 }}>
             <Suspense fallback={<img src="/media/logo.svg" alt="Ligia" loading="eager" decoding="async" style={{ height: "clamp(240px, 38vh, 400px)", width: "auto", margin: "0 auto", display: "block" }} />}>
               <Logo3D />
             </Suspense>
@@ -829,13 +907,13 @@ export default function Landing() {
       </section>
 
       {/* EVENTOS */}
-      <section id="eventos" style={{ padding: L.sectionPad, background: "var(--surface)" }}>
+      <section id="eventos" data-reveal style={{ padding: L.sectionPad, background: "var(--surface)", scrollMarginTop: "80px" }}>
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
-          <div style={{ maxWidth: 640, marginBottom: 48 }}>
-            <h2 style={{ margin: "0 0 14px", fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.1 }}>
+          <div style={{ maxWidth: 680, marginBottom: 56 }}>
+            <h2 style={{ margin: "0 0 16px", fontSize: "clamp(34px, 4.6vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.05 }}>
               Atividade que já movimentou a liga.
             </h2>
-            <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, lineHeight: 1.8 }}>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: 16, lineHeight: 1.85 }}>
               Workshops, sessões técnicas, maratonas e encontros da comunidade
               registrados na agenda da Ligia.
             </p>
@@ -865,10 +943,12 @@ export default function Landing() {
                   if (e.key === "ArrowRight") { e.preventDefault(); moveCarousel(1); }
                 }}
                 style={{
-                  display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory",
+                  display: "flex", gap: 18, overflowX: "auto", scrollSnapType: "x proximity",
                   scrollbarWidth: "none", msOverflowStyle: "none", borderRadius: 24,
                   overscrollBehaviorX: "contain", WebkitOverflowScrolling: "touch",
-                  scrollPaddingInline: "24px", paddingBottom: 8,
+                  scrollPaddingInline: "24px", padding: "8px 4px 16px",
+                  maskImage: "linear-gradient(90deg, transparent, black 4%, black 96%, transparent)",
+                  WebkitMaskImage: "linear-gradient(90deg, transparent, black 4%, black 96%, transparent)",
                   outline: "none"
                 }}>
                   {pastEvents.map((ev, idx) => {
@@ -876,45 +956,47 @@ export default function Landing() {
                     return (
                       <div key={ev.id} className="landing-card" role="group" aria-roledescription="slide" aria-label={`${idx + 1} de ${pastEvents.length}: ${ev.title}`} style={{
                         display: "flex", flexDirection: "column", overflow: "hidden",
-                        flex: "0 0 calc((100% - 28px) / 3)",
+                        flex: "0 0 calc((100% - 36px) / 3)",
                         scrollSnapAlign: "center",
                         borderRadius: 24,
                         border: isCenter ? "1px solid var(--accent-border)" : "1px solid rgba(255,255,255,0.08)",
                         background: "var(--bg)",
                         boxShadow: isCenter ? "inset 0 1px 1px rgba(255,255,255,0.04)" : "none",
                         transform: isCenter ? "translateY(-6px)" : "none",
-                        transition: "border-color 420ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), box-shadow 420ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), transform 560ms var(--ease-out, cubic-bezier(0.23,1,0.32,1)), opacity 420ms var(--ease-out, cubic-bezier(0.23,1,0.32,1))",
-                        opacity: isCenter ? 1 : 0.82
+                        transition: "border-color 700ms cubic-bezier(0.32,0.72,0,1), box-shadow 700ms cubic-bezier(0.32,0.72,0,1), transform 700ms cubic-bezier(0.32,0.72,0,1), opacity 700ms cubic-bezier(0.32,0.72,0,1)",
+                        opacity: isCenter ? 1 : 0.85
                       }}>
                         <div style={{
-                          position: "relative", aspectRatio: "1 / 1", flex: "0 0 auto",
+                          position: "relative", aspectRatio: "4 / 3", flex: "0 0 auto",
                           display: "grid", placeItems: "center", overflow: "hidden",
-                          background: "var(--surface-2)"
+                          background: "var(--surface-2)",
+                          borderBottom: "1px solid rgba(255,255,255,0.06)"
                         }}>
                           {ev.image_url ? (
-                            <img src={ev.image_url} alt={ev.title} width="400" height="400" loading="lazy" decoding="async"
+                            <img src={ev.image_url} alt={ev.title} width="400" height="300" loading="lazy" decoding="async"
                               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
                           ) : (
                             <div style={{
                               display: "grid", placeItems: "center", width: 46, height: 46,
-                              borderRadius: 12, background: "var(--accent-soft)", color: "var(--accent)"
+                              borderRadius: 12, background: "var(--accent-soft)", color: "var(--accent)",
+                              border: "1px solid var(--accent-border)"
                             }}>
-                              <CalendarDays size={20} aria-hidden="true" />
+                              <CalendarDays size={20} strokeWidth={1.5} aria-hidden="true" />
                             </div>
                           )}
                         </div>
-                        <div style={{ padding: "16px 18px", display: "grid", gap: 8 }}>
-                          <div style={{ fontSize: isCenter ? 15 : 13, fontWeight: 600, lineHeight: 1.4 }}>
+                        <div style={{ padding: "18px 20px 20px", display: "grid", gap: 8, alignContent: "start" }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4 }}>
                             {ev.title}
                           </div>
                           <div style={{ color: "var(--muted-2)", fontSize: 12 }}>
                             {formatEventDate(ev.starts_at)}{ev.location ? ` · ${ev.location}` : ""}
                           </div>
-                          {isCenter && ev.description && (
+                          {ev.description && (
                             <div style={{
-                              color: "var(--muted)", fontSize: 12, lineHeight: 1.6,
-                              display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
-                              overflow: "hidden"
+                              color: "var(--muted)", fontSize: 12.5, lineHeight: 1.65,
+                              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                              overflow: "hidden", minHeight: 41
                             }}>
                               {ev.description}
                             </div>
@@ -925,6 +1007,7 @@ export default function Landing() {
                   })}
                 </div>
 
+              {pastEvents.length > 1 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginTop: 26 }}>
                 <button onClick={() => moveCarousel(-1)} aria-label="Anterior"
                   style={{
@@ -956,6 +1039,7 @@ export default function Landing() {
                   <ChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               </div>
+              )}
             </>
           )}
         </div>
@@ -1104,7 +1188,7 @@ export default function Landing() {
                 style={{ display: "grid", gap: 10, padding: 18, borderRadius: "var(--radius)", border: "1px solid rgba(255,255,255,0.08)", background: "var(--surface)", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)" }}
               >
                 <label htmlFor="newsletter-email" style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: ".04em", textTransform: "uppercase" }}>Seu melhor e-mail</label>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="newsletter-row" style={{ display: "flex", gap: 8 }}>
                   <input
                     id="newsletter-email"
                     type="email"
@@ -1112,9 +1196,9 @@ export default function Landing() {
                     placeholder="voce@exemplo.com"
                     value={newsletterEmail}
                     onChange={e => setNewsletterEmail(e.target.value)}
-                    style={{ flex: 1, height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", color: "var(--text)", fontSize: 13 }}
+                    style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, outline: "none", background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
                   />
-                  <button type="submit" className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, height: 52, whiteSpace: "nowrap", padding: "6px 6px 6px 22px" }}>
+                  <button type="submit" className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, whiteSpace: "nowrap", padding: "6px 6px 6px 22px" }}>
                     Assinar
                     <span className="btn-dot" style={c.primaryDot}>
                       <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
@@ -1126,9 +1210,12 @@ export default function Landing() {
                 </div>
               </form>
 
-              <a href="https://boletimligia.substack.com/" target="_blank" rel="noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, height: 42, borderRadius: "var(--radius-sm)", border: "1px solid var(--line)", background: "transparent", color: "var(--muted)", fontSize: 13, fontWeight: 500, textDecoration: "none" }}>
-                Ler no Substack <ExternalLink size={14} strokeWidth={1.5} aria-hidden="true" />
+              <a href="https://boletimligia.substack.com/" target="_blank" rel="noreferrer" className="landing-btn-secondary btn-island group"
+                style={{ ...c.secondaryBtn, textDecoration: "none", whiteSpace: "nowrap" }}>
+                Ler no Substack
+                <span className="btn-dot" style={c.secondaryDot}>
+                  <ExternalLink size={14} strokeWidth={1.5} aria-hidden="true" />
+                </span>
               </a>
             </div>
           </div>
@@ -1316,7 +1403,38 @@ export default function Landing() {
         .landing-menu-item { opacity: 0; transform: translateY(12px); animation: menuItemIn 700ms var(--ease-drawer) forwards; animation-delay: var(--d, 100ms); }
         @keyframes menuItemIn { to { opacity: 1; transform: translateY(0); } }
         .landing-menu-item:hover { background: rgba(255,255,255,0.04); color: var(--text) !important; }
-        /* Abas verticais sincronizadas */
+        /* Fundo do hero: entrada, aurora e deriva (tudo transform/opacity) */
+        @keyframes heroCanvasIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 0.8; transform: scale(1); } }
+        .hero-canvas-enter { opacity: 0; animation: heroCanvasIn 1200ms var(--ease-drawer) forwards; }
+        @keyframes auroraA { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4vmax, 3vmax, 0) scale(1.12); } }
+        .hero-aurora-a { animation: auroraA 26s cubic-bezier(0.45, 0, 0.35, 1) infinite; will-change: transform; }
+        @keyframes auroraB { 0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); } 50% { transform: translate3d(-3vmax, -4vmax, 0) scale(1); } }
+        .hero-aurora-b { animation: auroraB 32s cubic-bezier(0.45, 0, 0.35, 1) infinite; will-change: transform; }
+        @keyframes veilDrift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(1.5%, 1%, 0); } }
+        .hero-veil-drift { animation: veilDrift 30s cubic-bezier(0.45, 0, 0.35, 1) infinite; }
+        @keyframes gridDrift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(-1.5%, -1%, 0); } }
+        .hero-grid-drift { animation: gridDrift 36s cubic-bezier(0.45, 0, 0.35, 1) infinite; }
+        @media (max-width: 820px) {
+          .hero-aurora-b { display: none; }
+        }
+        /* Abas verticais: largura extra da mídia só no desktop (evita overflow) */
+        @media (min-width: 961px) {
+          .landing-vtab-media { width: calc(100% + 20px); }
+        }
+        /* Degrau tablet: pills no topo + mídia/infos lado a lado */
+        @media (max-width: 1100px) and (min-width: 721px) {
+          .landing-vtab { grid-template-columns: 1fr 1fr !important; }
+          .landing-vtab-nav { grid-column: 1 / -1 !important; display: flex !important; flex-direction: row; gap: 8px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+          .landing-vtab-nav .vtab-group { display: contents !important; }
+          .landing-vtab-nav .vtab-group-label { display: none !important; }
+          .landing-vtab-nav [role="tab"] { flex: 0 0 auto; min-height: 44px; scroll-snap-align: start; }
+          .landing-vtab-nav [role="tab"] > span:last-child { max-width: 200px; }
+        }
+        /* Mobile: dropdown nativo no lugar da tablist */
+        @media (max-width: 720px) {
+          .landing-vtab-nav { display: none !important; }
+          .landing-vtab-select { display: block !important; }
+        }
         @keyframes vtabIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         .landing-vtab-media { animation: vtabIn 700ms var(--ease-drawer); }
         .landing-vtab-info { animation: vtabIn 700ms var(--ease-drawer); }
@@ -1336,6 +1454,8 @@ export default function Landing() {
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-enter, [data-reveal] { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; }
+          .hero-canvas-enter { animation: none !important; opacity: 0.8 !important; transform: none !important; }
+          .hero-aurora-a, .hero-aurora-b, .hero-veil-drift, .hero-grid-drift { animation: none !important; }
           .landing-card:hover, .landing-btn-primary:hover, .landing-btn-secondary:hover { transform: none !important; }
           .landing-vtab-media, .landing-vtab-info, .landing-menu-item, .landing-menu-open { animation: none !important; }
           .landing-vtab-nav [role="tab"] { transform: none !important; }
@@ -1348,16 +1468,14 @@ export default function Landing() {
         }
         @media (max-width: 960px) {
           .landing-hero-grid { grid-template-columns: 1fr !important; text-align: left; }
+          .landing-hero-logo { order: -1; }
           .landing-hero-card { max-width: 560px; }
           .landing-frentes { grid-template-columns: 1fr !important; }
+          .landing-frentes-feature, .landing-frentes-rest { grid-column: span 1 !important; }
+        }
+        @media (max-width: 720px) {
           .landing-vtab { grid-template-columns: 1fr !important; }
           .landing-vtab-media, .landing-vtab-info { margin-left: 0 !important; }
-          .landing-vtab-nav { display: flex !important; flex-direction: row; gap: 8px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
-          .landing-vtab-nav .vtab-group { display: contents !important; }
-          .landing-vtab-nav .vtab-group-label { display: none !important; }
-          .landing-vtab-nav [role="tab"] { flex: 0 0 auto; scroll-snap-align: start; white-space: nowrap; }
-          .landing-frentes { grid-template-columns: 1fr !important; }
-          .landing-frentes-feature, .landing-frentes-rest { grid-column: span 1 !important; }
         }
         @media (max-width: 760px) {
           .landing-footer-grid { grid-template-columns: 1fr 1fr !important; }
@@ -1365,6 +1483,10 @@ export default function Landing() {
         }
         @media (max-width: 880px) {
           .landing-newsletter { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .newsletter-row { flex-direction: column !important; }
+          .newsletter-row .landing-btn-primary { width: 100%; justify-content: center; }
         }
         @media (max-width: 820px) {
           .events-snap > * { flex: 0 0 100% !important; }

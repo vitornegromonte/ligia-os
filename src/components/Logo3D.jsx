@@ -181,13 +181,15 @@ export default function Logo3D({ height = "clamp(240px, 38vh, 400px)" }) {
           return disposeAll;
         }
 
-        function draw() {
+        function draw(now) {
           raf = requestAnimationFrame(draw);
           if (!visible.current) return;
           mouse.x += (mouse.tx - mouse.x) * 0.03;
           mouse.y += (mouse.ty - mouse.y) * 0.03;
           group.rotation.y = baseYaw + mouse.x * 0.12;
           group.rotation.x = baseTilt + mouse.y * 0.08;
+          // Respiração da luz, fora de fase com a rede (0.0004 vs 0.00021)
+          key.intensity = 1.0 + Math.sin((now || 0) * 0.0004) * 0.15;
           renderer.render(scene, camera);
         }
         raf = requestAnimationFrame(draw);
