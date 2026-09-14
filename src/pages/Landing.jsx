@@ -308,6 +308,7 @@ export default function Landing() {
   const { session } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
   const navSentinelRef = useRef(null);
   const heroBgRef = useRef(null);
   const heroSectionRef = useRef(null);
@@ -437,6 +438,22 @@ export default function Landing() {
     if (!el || !("IntersectionObserver" in window)) return;
     const obs = new IntersectionObserver(([e]) => setNavScrolled(!e.isIntersecting), { threshold: 0 });
     obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Item ativo da topbar = seção que cruza o meio da viewport.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
+    const sections = navLinks
+      .map(link => document.getElementById(link.id))
+      .filter(Boolean);
+    if (sections.length === 0) return;
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) setActiveSection(e.target.id);
+      });
+    }, { rootMargin: "-50% 0px -50% 0px", threshold: 0 });
+    sections.forEach(sec => obs.observe(sec));
     return () => obs.disconnect();
   }, []);
 
@@ -673,7 +690,7 @@ export default function Landing() {
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)" }}>
       <a href="#sobre" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }} onFocus={e => { const s=e.currentTarget.style; s.left="16px"; s.top="16px"; s.width="auto"; s.height="auto"; s.padding="8px 16px"; s.background="var(--accent)"; s.color="#fff"; s.zIndex="100"; s.borderRadius="8px"; }} onBlur={e => { const s=e.currentTarget.style; s.left="-9999px"; s.top="auto"; s.width="1px"; s.height="1px"; s.overflow="hidden"; }}>Pular para conteúdo</a>
 
-      {/* NAV — floating island pill, detached */}
+      {/* NAV — pill único (blur), logo + links + login juntos */}
       <div style={{ position: "sticky", top: 0, zIndex: 40, paddingTop: 18, paddingLeft: 16, paddingRight: 16, pointerEvents: "none" }}>
         <header className="landing-island" style={{
           pointerEvents: "auto",
@@ -692,27 +709,21 @@ export default function Landing() {
           }}>
             <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               style={{ display: "flex", alignItems: "center", gap: 11, border: 0, background: "none", cursor: "pointer", padding: 0 }}>
-              <img src="/media/logo.svg" alt="Ligia" width="30" height="30" decoding="async" fetchPriority="high" style={{ height: 30, width: "auto" }} />
-              <span style={{
-                fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 600,
-                letterSpacing: "-.02em", color: "var(--text)"
-              }}>Ligia</span>
+              <img src="/media/logo_ligia.png" alt="Ligia" height="30" decoding="async" fetchPriority="high" style={{ height: 30, width: "auto" }} />
             </button>
 
-            <nav className="landing-nav" style={{ display: "flex", gap: 24, marginLeft: 32, alignItems: "center" }}>
+            <nav className="landing-nav" style={{ display: "flex", gap: 24, marginLeft: "auto", marginRight: "auto", alignItems: "center" }}>
               {navLinks.map(link => (
-                <a key={link.id} href={`#${link.id}`} onClick={e => { e.preventDefault(); scrollTo(link.id); }} className="landing-nav-link" style={c.navLink}>
+                <a key={link.id} href={`#${link.id}`} onClick={e => { e.preventDefault(); scrollTo(link.id); }}
+                  className={`landing-nav-link${activeSection === link.id ? " is-active" : ""}`} style={c.navLink}>
                   {link.label}
                 </a>
               ))}
             </nav>
 
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13, padding: "0 22px" }}>
                 {session ? "Abrir Ligia OS" : "Login"}
-                <span className="btn-dot" style={c.primaryDot}>
-                  <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
-                </span>
               </button>
               <button onClick={() => setMenuOpen(o => !o)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}
                 className="landing-burger"
@@ -1399,8 +1410,8 @@ export default function Landing() {
         #pilares, #iniciativas, #eventos, #membros, #newsletter, #participe { content-visibility: auto; contain-intrinsic-size: 900px 800px; }
         .landing-nav-link { transform-origin: var(--transform-origin, center); }
         .landing-nav-link::after { content: ""; position: absolute; left: 2px; right: 2px; bottom: -2px; height: 2px; background: var(--accent); border-radius: 999px; transform: scaleX(0); transform-origin: left; transition: transform 200ms var(--ease-out); }
-        .landing-nav-link:hover::after, .landing-nav-link:focus-visible::after { transform: scaleX(1); }
-        .landing-nav-link:hover { color: var(--text) !important; }
+        .landing-nav-link:hover::after, .landing-nav-link:focus-visible::after, .landing-nav-link.is-active::after { transform: scaleX(1); }
+        .landing-nav-link:hover, .landing-nav-link.is-active { color: var(--text) !important; }
         .landing-card { position: relative; transform-origin: var(--transform-origin, center); transition: transform 200ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 200ms var(--ease-out); }
         .landing-card:active { transform: scale(0.97); }
         @media (hover: hover) and (pointer: fine) {
