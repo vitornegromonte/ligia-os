@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { LanguageProvider } from "./contexts/LanguageContext.jsx";
 import Layout from "./components/Layout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -30,6 +31,7 @@ const fallback = (
 
 export default function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <Suspense fallback={fallback}>
         <Routes>
@@ -60,5 +62,6 @@ export default function App() {
         </Routes>
       </Suspense>
     </AuthProvider>
+    </LanguageProvider>
   );
 }

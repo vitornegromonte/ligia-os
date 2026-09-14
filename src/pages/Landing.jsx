@@ -9,6 +9,8 @@ import {
   CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Instagram, ExternalLink
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useLanguage } from "../contexts/LanguageContext.jsx";
+import { format } from "../i18n/translations.js";
 import { fetchProfiles } from "../services/profiles.js";
 import { fetchProjects } from "../services/projects.js";
 import { fetchEvents } from "../services/events.js";
@@ -16,74 +18,31 @@ import { fetchInitiatives } from "../services/initiatives.js";
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
 
-const teams = [
-  { name: "NLP", icon: Languages, desc: "Processamento de linguagem natural, modelos de linguagem e recuperação de informação." },
-  { name: "ML", icon: BrainCircuit, desc: "Aprendizado de máquina clássico, deep learning e experimentação acadêmica." },
-  { name: "CV", icon: ScanEye, desc: "Visão computacional, detecção, segmentação e geração de imagens." },
-  { name: "Comunicação", icon: Megaphone, desc: "Conteúdo, eventos, divulgação científica e parcerias da liga." },
+// Ícones fixos; nome/descrição vêm do dicionário de traduções (t.atuacao.teams.<key>).
+const teamIcons = { nlp: Languages, ml: BrainCircuit, cv: ScanEye, comunicacao: Megaphone };
+
+// Ícones fixos; título/descrição vêm do dicionário (t.pillars.<key>).
+const pillarIcons = { estudar: BookOpen, construir: Cpu, divulgar: Megaphone };
+const pillarKeys = ["estudar", "construir", "divulgar"];
+
+// Imagens fixas; nome/descrição/time vêm do dicionário (t.fallbackResearch[i] / t.fallbackInitiatives[i]).
+const fallbackResearchImages = [
+  "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1000&q=70",
+  "https://images.unsplash.com/photo-1538113300105-e51e4560b4aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aHVtYW4lMjBoZWFydCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1000&q=70",
+  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=70",
+];
+const fallbackInitiativesImages = [
+  "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1000&q=70",
+  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=70",
 ];
 
-const pillars = [
-  { icon: BookOpen, title: "Estudar", desc: "Cursos, grupos de estudo e sessões técnicas sobre IA." },
-  { icon: Cpu, title: "Construir", desc: "Projetos de pesquisa aplicada e desafios reais em equipe." },
-  { icon: Megaphone, title: "Divulgar", desc: "Conteúdo, eventos e extensão para a comunidade." },
-];
+const navLinkIds = ["sobre", "iniciativas", "eventos", "membros", "newsletter", "contato"];
 
-const fallbackResearch = [
-  {
-    name: "Cell Tracking Challenge",
-    team: "CV",
-    desc: "Participação no desafio internacional de rastreamento de células em imagens de microscopia: detecção, segmentação e associação temporal de trajetórias.",
-    img: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1000&q=70",
-  },
-  {
-    name: "Segmentação de Gordura Epicárdica",
-    team: "CV",
-    desc: "Segmentação automática de tecido adiposo epicárdico e pericárdico em imagens de TC cardíaca com deep learning, para análise de risco cardiovascular.",
-    img: "https://images.unsplash.com/photo-1538113300105-e51e4560b4aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aHVtYW4lMjBoZWFydCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fDB8fHww",
-  },
-  {
-    name: "xAI para Detecção de Ataques Adversariais",
-    team: "ML",
-    desc: "Uso de explicações (eXplainable AI) para detectar e mitigar ataques adversariais em modelos de linguagem de grande porte.",
-    img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1000&q=70",
-  },
-  {
-    name: "Conjunto de Dados de Notícias Falsas",
-    team: "NLP",
-    desc: "Construção de um conjunto de dados nacional em português para pesquisa em detecção de notícias falsas e desinformação.",
-    img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=70",
-  },
-];
-
-const fallbackInitiatives = [
-  {
-    name: "Projeto Ágora",
-    team: "Iniciativa",
-    desc: "Espaço de discussão e troca de conhecimento aberto a toda a comunidade acadêmica.",
-    img: "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1000&q=70",
-  },
-  {
-    name: "Cursos e oficinas",
-    team: "Iniciativa",
-    desc: "Trilhas de formação e oficinas técnicas em IA para estudantes de todas as graduações.",
-    img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=70",
-  },
-];
-
-const navLinks = [
-  { id: "sobre", label: "Sobre" },
-  { id: "iniciativas", label: "Iniciativas" },
-  { id: "eventos", label: "Eventos" },
-  { id: "membros", label: "Membros" },
-  { id: "newsletter", label: "Newsletter" },
-  { id: "contato", label: "Contato" },
-];
-
-function formatEventDate(iso) {
+function formatEventDate(iso, locale = "pt-BR") {
   if (!iso) return "";
   try {
-    return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
   } catch {
     return "";
   }
@@ -92,9 +51,10 @@ function formatEventDate(iso) {
 // Abas verticais sincronizadas: nav (esq) + visual (centro) + infos (dir).
 // Um estado só; as três áreas atualizam juntas. Tema dark.
 function InitiativeTabs({ research, general }) {
+  const { t } = useLanguage();
   const groups = [
-    { key: "pesquisas", label: "Pesquisas", items: research || [] },
-    { key: "iniciativas", label: "Iniciativas", items: general || [] },
+    { key: "pesquisas", label: t.iniciativas.groupResearch, items: research || [] },
+    { key: "iniciativas", label: t.iniciativas.groupInitiatives, items: general || [] },
   ].filter(g => g.items.length > 0);
   const [sel, setSel] = useState({ group: groups[0]?.key || "pesquisas", idx: 0 });
 
@@ -102,7 +62,7 @@ function InitiativeTabs({ research, general }) {
   if (flat.length === 0) {
     return (
       <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, border: "1px solid rgba(255,255,255,0.08)", borderRadius: "var(--landing-inner)", background: "var(--surface)" }}>
-        Em breve, as iniciativas da liga aparecem aqui.
+        {t.iniciativas.empty}
       </div>
     );
   }
@@ -113,7 +73,7 @@ function InitiativeTabs({ research, general }) {
     if (team === "NLP") return Languages;
     if (team === "ML") return BrainCircuit;
     if (team === "CV") return ScanEye;
-    if (team === "Comunicação") return Megaphone;
+    if (team === t.atuacao.teams.comunicacao.name) return Megaphone;
     return BookOpen;
   };
 
@@ -132,7 +92,7 @@ function InitiativeTabs({ research, general }) {
           htmlFor="vtab-select"
           style={{ display: "block", fontFamily: "var(--font-heading)", fontSize: 10, fontWeight: 600, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--muted-2)", marginBottom: 8 }}
         >
-          Escolher iniciativa
+          {t.iniciativas.chooseLabel}
         </label>
         <span style={{ position: "relative", display: "block" }}>
           <select
@@ -161,7 +121,7 @@ function InitiativeTabs({ research, general }) {
         </span>
       </div>
       <div
-        className="landing-vtab-nav" role="tablist" aria-label="Pesquisas e iniciativas"
+        className="landing-vtab-nav" role="tablist" aria-label={t.iniciativas.tabsAriaLabel}
         onKeyDown={e => {
           if (e.key === "ArrowDown") { e.preventDefault(); move(1); }
           if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
@@ -270,9 +230,10 @@ function MemberAvatar({ person, size = 44 }) {
 
 // Links externos do membro: só renderiza o que existe no perfil.
 function MemberLinks({ person }) {
+  const { t } = useLanguage();
   const links = [
-    person.github && { href: person.github, label: `GitHub de ${person.name}`, Icon: Github },
-    person.linkedin && { href: person.linkedin, label: `LinkedIn de ${person.name}`, Icon: Linkedin },
+    person.github && { href: person.github, label: format(t.membros.githubOf, { name: person.name }), Icon: Github },
+    person.linkedin && { href: person.linkedin, label: format(t.membros.linkedinOf, { name: person.name }), Icon: Linkedin },
   ].filter(Boolean);
   if (links.length === 0) return null;
   return (
@@ -306,6 +267,12 @@ const L = {
 export default function Landing() {
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { t, lang, toggleLang } = useLanguage();
+  const navLinks = navLinkIds.map(id => ({ id, label: t.nav[id] }));
+  const pillars = pillarKeys.map(key => ({ key, icon: pillarIcons[key], ...t.pillars[key] }));
+  const teams = Object.entries(teamIcons).map(([key, icon]) => ({ key, icon, ...t.atuacao.teams[key] }));
+  const fallbackResearch = t.fallbackResearch.map((item, i) => ({ ...item, img: fallbackResearchImages[i] }));
+  const fallbackInitiatives = t.fallbackInitiatives.map((item, i) => ({ ...item, img: fallbackInitiativesImages[i] }));
   const [menuOpen, setMenuOpen] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
@@ -406,12 +373,13 @@ export default function Landing() {
   }
 
   useEffect(() => {
-    document.title = "Ligia — Liga Acadêmica de Inteligência Artificial";
     // Abertura sempre no topo: sem restauração automática do navegador
     if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
     window.scrollTo({ top: 0, behavior: "instant" });
     loadStats();
   }, []);
+
+  useEffect(() => { document.title = t.meta.title; }, [t]);
 
   // Garante o topo após o conteúdo assíncrono hidratar (imagens alteram a altura)
   useEffect(() => {
@@ -556,8 +524,8 @@ export default function Landing() {
           ]);
           profiles = pRes.status === "fulfilled" && !pRes.value.error ? (pRes.value.data || []).map(m => ({
             id: m.id, name: m.name, avatar_url: m.avatar_url || "", category: m.category || "membro",
-            director_role: m.director_role || "", discipline: m.discipline || m.team || "Geral",
-            affiliation: m.affiliation || "", team: m.team || "Geral",
+            director_role: m.director_role || "", discipline: m.discipline || m.team || t.misc.generalTeam,
+            affiliation: m.affiliation || "", team: m.team || t.misc.generalTeam,
             github: m.github || "", linkedin: m.linkedin || "",
           })) : [];
           projects = prRes.status === "fulfilled" && !prRes.value.error ? (prRes.value.data || []).map(m => ({
@@ -565,7 +533,7 @@ export default function Landing() {
           })) : [];
           events = eRes.status === "fulfilled" && !eRes.value.error ? (eRes.value.data || []) : [];
           initiatives = iRes.status === "fulfilled" && !iRes.value.error ? (iRes.value.data || []).map(m => ({
-            id: m.id, name: m.name, team: m.team || "Iniciativa", description: m.description || "", image_url: m.image_url || "",
+            id: m.id, name: m.name, team: m.team || t.misc.initiativeTeam, description: m.description || "", image_url: m.image_url || "",
           })) : [];
           // Fallback se tabela vazia / erro RLS → tenta serviço genérico
           if (profiles.length === 0) profiles = await fetchProfiles({ limit: 24 }).catch(() => []);
@@ -595,11 +563,11 @@ export default function Landing() {
         if (projects.length > 0) {
           const fromDb = projects
             .filter(p => p.team)
-            .map(p => ({ name: p.name, team: p.team || "Geral", desc: p.description || "", img: p.image_url || fallbackResearch[0].img }));
+            .map(p => ({ name: p.name, team: p.team || t.misc.generalTeam, desc: p.description || "", img: p.image_url || fallbackResearchImages[0] }));
           if (fromDb.length > 0) { setResearchInitiatives(fromDb); nextResearch = fromDb; }
         }
         if (initiatives.length > 0) {
-          const gen = initiatives.map(i => ({ name: i.name, team: i.team || "Iniciativa", desc: i.description || "", img: i.image_url || fallbackInitiatives[0].img }));
+          const gen = initiatives.map(i => ({ name: i.name, team: i.team || t.misc.initiativeTeam, desc: i.description || "", img: i.image_url || fallbackInitiativesImages[0] }));
           if (gen.length > 0) { setGeneralInitiatives(gen); nextGeneral = gen; }
         }
 
@@ -688,7 +656,7 @@ export default function Landing() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)" }}>
-      <a href="#sobre" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }} onFocus={e => { const s=e.currentTarget.style; s.left="16px"; s.top="16px"; s.width="auto"; s.height="auto"; s.padding="8px 16px"; s.background="var(--accent)"; s.color="#fff"; s.zIndex="100"; s.borderRadius="8px"; }} onBlur={e => { const s=e.currentTarget.style; s.left="-9999px"; s.top="auto"; s.width="1px"; s.height="1px"; s.overflow="hidden"; }}>Pular para conteúdo</a>
+      <a href="#sobre" style={{ position: "absolute", left: "-9999px", top: "auto", width: 1, height: 1, overflow: "hidden" }} onFocus={e => { const s=e.currentTarget.style; s.left="16px"; s.top="16px"; s.width="auto"; s.height="auto"; s.padding="8px 16px"; s.background="var(--accent)"; s.color="#fff"; s.zIndex="100"; s.borderRadius="8px"; }} onBlur={e => { const s=e.currentTarget.style; s.left="-9999px"; s.top="auto"; s.width="1px"; s.height="1px"; s.overflow="hidden"; }}>{t.skipToContent}</a>
 
       {/* NAV — pill único (blur), logo + links + login juntos */}
       <div style={{ position: "sticky", top: 0, zIndex: 40, paddingTop: 18, paddingLeft: 16, paddingRight: 16, pointerEvents: "none" }}>
@@ -723,9 +691,23 @@ export default function Landing() {
 
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13, padding: "0 22px" }}>
-                {session ? "Abrir Ligia OS" : "Login"}
+                {session ? t.openOS : t.login}
               </button>
-              <button onClick={() => setMenuOpen(o => !o)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}
+              <button
+                onClick={toggleLang}
+                aria-label={lang === "pt" ? "Switch to English" : "Mudar para português"}
+                className="btn-island group"
+                style={{
+                  display: "grid", placeItems: "center", width: 44, height: 44,
+                  border: 0, borderRadius: 999, background: "rgba(255,255,255,0.06)",
+                  color: "var(--text)", cursor: "pointer",
+                  fontSize: 12.5, fontWeight: 600, fontFamily: "var(--font-body)", letterSpacing: ".02em",
+                  transition: "background 200ms cubic-bezier(0.32,0.72,0,1), transform 200ms cubic-bezier(0.32,0.72,0,1)",
+                }}
+              >
+                {lang === "pt" ? "EN" : "PT"}
+              </button>
+              <button onClick={() => setMenuOpen(o => !o)} aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu} aria-expanded={menuOpen}
                 className="landing-burger"
                 style={{
                   display: "none", placeItems: "center", width: 42, height: 42,
@@ -814,39 +796,41 @@ export default function Landing() {
           maskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 94%)",
           WebkitMaskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 94%)"
         }} />
+        {/* Camada 4: modelo 3D — mesmo container full-bleed do resto do fundo
+            da Hero (não uma caixinha própria), pra não sobrar um "quadrado"
+            visível na borda do canvas. Posição/escala calculadas por fração
+            (anchorX/Y, heightFraction), não em pixels/unidades fixas. */}
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
+          <Suspense fallback={null}>
+            <Logo3D fill anchorX={0.66} anchorY={0.53} heightFraction={0.42} modelOpacity={0.95} />
+          </Suspense>
+        </div>
         <div className="landing-hero-grid" style={{ maxWidth: L.maxW, margin: "0 auto", padding: L.heroPad, position: "relative", zIndex: 2, width: "100%", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px, 5vw, 72px)", alignItems: "center", textAlign: "left" }}>
           <div style={{ minWidth: 0 }}>
             <div className="eyebrow-pill hero-enter" style={{ marginBottom: 22, ["--delay"]: "0ms" }}>
-              Liga Acadêmica de Inteligência Artificial
+              {t.hero.eyebrow}
             </div>
             <h1 className="hero-enter" style={{ margin: "0 0 22px", maxWidth: 640, fontSize: "clamp(40px, 6vw, 68px)", lineHeight: 1.1, fontWeight: 500, letterSpacing: "-.035em", paddingBottom: "0.08em", ["--delay"]: "90ms" }}>
-              Conexão que inspira o<br />
-              <span className="gradient-text h1-accent">futuro.</span>
+              {t.hero.titleLine1}<br />
+              <span className="gradient-text h1-accent">{t.hero.titleAccent}</span>
             </h1>
             <p className="hero-enter" style={{ margin: "0 0 34px", maxWidth: 520, color: "var(--muted)", fontSize: 15, lineHeight: 1.85, ["--delay"]: "180ms" }}>
-              A Ligia é uma liga acadêmica que reúne estudantes e pesquisadores para
-              estudar, construir e divulgar inteligência artificial, com pesquisa,
-              projetos e extensão em quatro frentes de atuação.
+              {t.hero.desc}
             </p>
             <div className="hero-enter" style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", ["--delay"]: "270ms" }}>
               <button onClick={() => scrollTo("participe")} className="landing-btn-primary btn-island group" style={c.primaryBtn}>
-                Processo Seletivo
+                {t.hero.ctaPrimary}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                 </span>
               </button>
               <button onClick={() => scrollTo("sobre")} className="landing-btn-secondary btn-island group" style={c.secondaryBtn}>
-                Conhecer a Ligia
+                {t.hero.ctaSecondary}
                 <span className="btn-dot" style={c.secondaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                 </span>
               </button>
             </div>
-          </div>
-          <div className="hero-enter landing-hero-logo" style={{ ["--delay"]: "150ms", minWidth: 0 }}>
-            <Suspense fallback={<img src="/media/logo.svg" alt="Ligia" loading="eager" decoding="async" style={{ height: "clamp(240px, 38vh, 400px)", width: "auto", margin: "0 auto", display: "block" }} />}>
-              <Logo3D offsetX={0.1} />
-            </Suspense>
           </div>
         </div>
       </section>
@@ -856,20 +840,17 @@ export default function Landing() {
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={{ maxWidth: 640, marginBottom: 48 }}>
             <h2 style={{ margin: "0 0 14px", fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.1 }}>
-              Uma comunidade acadêmica<br />dedicada à inteligência artificial.
+              {t.about.titleLine1}<br />{t.about.titleLine2}
             </h2>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 15, lineHeight: 1.85 }}>
-              Vinculada ao Centro de Informática da UFPE, a Ligia aproxima quem quer aprender e quem
-              quer construir. Por meio de grupos de estudo, projetos de pesquisa e
-              ações de divulgação, transformamos interesse em IA em formação
-              prática e produção acadêmica.
+              {t.about.desc}
             </p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))", gap: 18 }}>
             {pillars.map(p => (
               <div
-                key={p.title}
+                key={p.key}
                 style={{
                   padding: 6, borderRadius: 24,
                   border: "1px solid transparent",
@@ -894,19 +875,18 @@ export default function Landing() {
       <section id="pilares" data-reveal style={{ padding: L.sectionPad, background: "#E4CEC8", color: "#241914", scrollMarginTop: "80px" }}>
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={{ maxWidth: 680, marginBottom: 56 }}>
-            <div className="eyebrow-pill eyebrow-pill-light" style={{ marginBottom: 20 }}>Frentes de atuação</div>
+            <div className="eyebrow-pill eyebrow-pill-light" style={{ marginBottom: 20 }}>{t.atuacao.eyebrow}</div>
             <h2 style={{ margin: "0 0 16px", fontSize: "clamp(34px, 4.6vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.05, color: "#241914" }}>
-              Estudar, construir e divulgar.
+              {t.atuacao.title}
             </h2>
             <p style={{ margin: 0, color: "#5c5447", fontSize: 16, lineHeight: 1.85 }}>
-              Quatro frentes guiam todas as atividades da liga, da formação técnica
-              à extensão para o público.
+              {t.atuacao.desc}
             </p>
           </div>
 
           <div className="landing-frentes" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, alignItems: "stretch" }}>
             {teams.map(team => (
-              <div key={team.name} style={{ padding: 6, borderRadius: 24, background: "transparent", border: "1px solid transparent" }}>
+              <div key={team.key} style={{ padding: 6, borderRadius: 24, background: "transparent", border: "1px solid transparent" }}>
                 <div className="landing-card" style={{ ...c.card, height: "100%", padding: 26, background: "#F2E7DD", border: "1px solid rgba(36,25,20,0.10)", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.5)" }}>
                   <div style={{ ...c.iconTile, width: 42, height: 42, borderRadius: 12, marginBottom: 18 }}>
                     <team.icon size={18} strokeWidth={1.5} aria-hidden="true" />
@@ -927,11 +907,10 @@ export default function Landing() {
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={{ maxWidth: 680, marginBottom: 56 }}>
             <h2 style={{ margin: "0 0 16px", fontSize: "clamp(34px, 4.6vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.05 }}>
-              Pesquisa, desenvolvimento e comunidade.
+              {t.iniciativas.title}
             </h2>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 16, lineHeight: 1.85 }}>
-              Das frentes de pesquisa aos produtos e espaços da comunidade, veja
-              o que a Ligia constrói hoje.
+              {t.iniciativas.desc}
             </p>
           </div>
 
@@ -947,11 +926,10 @@ export default function Landing() {
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={{ maxWidth: 680, marginBottom: 56 }}>
             <h2 style={{ margin: "0 0 16px", fontSize: "clamp(34px, 4.6vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.05 }}>
-              Atividade que já movimentou a liga.
+              {t.eventos.title}
             </h2>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 16, lineHeight: 1.85 }}>
-              Workshops, sessões técnicas, maratonas e encontros da comunidade
-              registrados na agenda da Ligia.
+              {t.eventos.desc}
             </p>
           </div>
 
@@ -963,7 +941,7 @@ export default function Landing() {
             </div>
           ) : pastEvents.length === 0 ? (
             <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "40px 20px" }}>
-              Nenhum evento passado registrado ainda.
+              {t.eventos.empty}
             </div>
           ) : (
             <>
@@ -972,7 +950,7 @@ export default function Landing() {
                 onScroll={handleCarouselScroll}
                 className="events-snap"
                 aria-roledescription="carousel"
-                aria-label="Eventos passados"
+                aria-label={t.eventos.carouselAriaLabel}
                 tabIndex={0}
                 onKeyDown={e => {
                   if (e.key === "ArrowLeft") { e.preventDefault(); moveCarousel(-1); }
@@ -990,7 +968,7 @@ export default function Landing() {
                   {pastEvents.map((ev, idx) => {
                     const isCenter = idx === eventIdx;
                     return (
-                      <div key={ev.id} className="landing-card" role="group" aria-roledescription="slide" aria-label={`${idx + 1} de ${pastEvents.length}: ${ev.title}`} style={{
+                      <div key={ev.id} className="landing-card" role="group" aria-roledescription="slide" aria-label={format(t.eventos.slideAriaLabel, { idx: idx + 1, total: pastEvents.length, title: ev.title })} style={{
                         display: "flex", flexDirection: "column", overflow: "hidden",
                         flex: "0 0 calc((100% - 36px) / 3)",
                         scrollSnapAlign: "center",
@@ -1026,7 +1004,7 @@ export default function Landing() {
                             {ev.title}
                           </div>
                           <div style={{ color: "var(--muted-2)", fontSize: 12 }}>
-                            {formatEventDate(ev.starts_at)}{ev.location ? ` · ${ev.location}` : ""}
+                            {formatEventDate(ev.starts_at, t.dateLocale)}{ev.location ? ` · ${ev.location}` : ""}
                           </div>
                           {ev.description && (
                             <div style={{
@@ -1045,7 +1023,7 @@ export default function Landing() {
 
               {pastEvents.length > 1 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginTop: 26 }}>
-                <button onClick={() => moveCarousel(-1)} aria-label="Anterior" className="carousel-arrow"
+                <button onClick={() => moveCarousel(-1)} aria-label={t.eventos.prev} className="carousel-arrow"
                   style={{
                     display: "grid", placeItems: "center", width: 44, height: 44,
                     border: "1px solid var(--line)", borderRadius: 999, cursor: "pointer",
@@ -1054,9 +1032,9 @@ export default function Landing() {
                   }}>
                   <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
-                <div style={{ display: "flex", gap: 6 }} role="tablist" aria-label="Eventos">
+                <div style={{ display: "flex", gap: 6 }} role="tablist" aria-label={t.eventos.dotsAriaLabel}>
                   {pastEvents.map((ev, idx) => (
-                    <button key={ev.id} onClick={() => jumpCarousel(idx)} aria-label={`Ir para ${ev.title}`} aria-current={idx === eventIdx ? "true" : undefined} role="tab"
+                    <button key={ev.id} onClick={() => jumpCarousel(idx)} aria-label={format(t.eventos.goTo, { title: ev.title })} aria-current={idx === eventIdx ? "true" : undefined} role="tab"
                       style={{
                         width: 7, height: 7, border: 0, borderRadius: 999,
                         cursor: "pointer", padding: 0,
@@ -1066,7 +1044,7 @@ export default function Landing() {
                       }} />
                   ))}
                 </div>
-                <button onClick={() => moveCarousel(1)} aria-label="Próximo" className="carousel-arrow"
+                <button onClick={() => moveCarousel(1)} aria-label={t.eventos.next} className="carousel-arrow"
                   style={{
                     display: "grid", placeItems: "center", width: 44, height: 44,
                     border: "1px solid var(--line)", borderRadius: 999, cursor: "pointer",
@@ -1087,11 +1065,10 @@ export default function Landing() {
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={{ maxWidth: 640, marginBottom: 48 }}>
             <h2 style={{ margin: "0 0 14px", fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.1 }}>
-              Professores, diretores e membros.
+              {t.membros.title}
             </h2>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 15, lineHeight: 1.85 }}>
-              A comunidade é conduzida por uma diretoria, apoiada por professores
-              orientadores e formada por estudantes e pesquisadores.
+              {t.membros.desc}
             </p>
           </div>
 
@@ -1110,11 +1087,11 @@ export default function Landing() {
             ) : (
               <>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Professores orientadores</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{t.membros.professors}</div>
               <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {professors.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "32px 20px" }}>
-                  Em breve, a relação de professores aparece aqui.
+                  {t.membros.emptyProfessors}
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
@@ -1133,11 +1110,11 @@ export default function Landing() {
             </div>
 
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Diretoria</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{t.membros.directors}</div>
               <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {directors.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "32px 20px" }}>
-                  Em breve, a relação da diretoria aparece aqui.
+                  {t.membros.emptyDirectors}
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
@@ -1146,7 +1123,7 @@ export default function Landing() {
                       <MemberAvatar person={d} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.name}</div>
-                        <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 2 }}>{d.director_role || "Diretor(a)"}{d.affiliation ? ` · ${d.affiliation}` : ""}</div>
+                        <div style={{ color: "var(--muted-2)", fontSize: 11, marginTop: 2 }}>{d.director_role || t.membros.directorFallbackRole}{d.affiliation ? ` · ${d.affiliation}` : ""}</div>
                       </div>
                       <MemberLinks person={d} />
                     </div>
@@ -1156,11 +1133,11 @@ export default function Landing() {
             </div>
 
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Membros</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{t.membros.members}</div>
               <div aria-hidden="true" style={{ width: 32, height: 2, borderRadius: 999, background: "var(--accent)", opacity: 0.8, marginBottom: 14 }} />
               {regularMembers.length === 0 ? (
                 <div style={{ ...c.card, color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "40px 20px" }}>
-                  Em breve, a relação de membros aparece aqui.
+                  {t.membros.emptyMembers}
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
@@ -1202,17 +1179,17 @@ export default function Landing() {
           }} className="landing-newsletter">
             <div>
               <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 3.6vw, 40px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.1 }}>
-                Bastidores de IA,<br />sem o ruído.
+                {t.newsletter.titleLine1}<br />{t.newsletter.titleLine2}
               </h2>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, lineHeight: 1.85, maxWidth: 520 }}>
-                No Substack da Ligia compartilhamos artigos e reflexões sobre inteligência artificial, direto no seu e-mail. Gratuita, feita pela comunidade.
+                {t.newsletter.desc}
               </p>
               <div style={{ display: "flex", gap: 8, marginTop: 18, flexWrap: "wrap", alignItems: "center", color: "var(--muted-2)", fontSize: 12 }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Mail size={13} strokeWidth={1.5} style={{ color: "var(--accent)" }} /> Sem spam</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Mail size={13} strokeWidth={1.5} style={{ color: "var(--accent)" }} /> {t.newsletter.noSpam}</span>
                 <span style={{ opacity: 0.5 }}>·</span>
-                <span>Edições quinzenais</span>
+                <span>{t.newsletter.biweekly}</span>
                 <span style={{ opacity: 0.5 }}>·</span>
-                <span>Cancele quando quiser</span>
+                <span>{t.newsletter.cancelAnytime}</span>
               </div>
             </div>
 
@@ -1227,32 +1204,32 @@ export default function Landing() {
                 }}
                 style={{ display: "grid", gap: 10, padding: 18, borderRadius: "var(--radius)", border: "1px solid rgba(255,255,255,0.08)", background: "var(--surface)", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)" }}
               >
-                <label htmlFor="newsletter-email" style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: ".04em", textTransform: "uppercase" }}>Seu melhor e-mail</label>
+                <label htmlFor="newsletter-email" style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: ".04em", textTransform: "uppercase" }}>{t.newsletter.emailLabel}</label>
                 <div className="newsletter-row" style={{ display: "flex", gap: 8 }}>
                   <input
                     id="newsletter-email"
                     type="email"
                     required
-                    placeholder="voce@exemplo.com"
+                    placeholder={t.newsletter.emailPlaceholder}
                     value={newsletterEmail}
                     onChange={e => setNewsletterEmail(e.target.value)}
                     style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, outline: "none", background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
                   />
                   <button type="submit" className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, whiteSpace: "nowrap", padding: "6px 6px 6px 22px" }}>
-                    Assinar
+                    {t.newsletter.subscribe}
                     <span className="btn-dot" style={c.primaryDot}>
                       <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                     </span>
                   </button>
                 </div>
                 <div style={{ color: "var(--muted-2)", fontSize: 11, lineHeight: 1.6 }}>
-                  Ao assinar você concorda em receber e-mails da Ligia via Substack. Abra no Substack para confirmar sua inscrição.
+                  {t.newsletter.disclaimer}
                 </div>
               </form>
 
               <a href="https://boletimligia.substack.com/" target="_blank" rel="noreferrer" className="landing-btn-secondary btn-island group"
                 style={{ ...c.secondaryBtn, textDecoration: "none", whiteSpace: "nowrap" }}>
-                Ler no Substack
+                {t.newsletter.readOnSubstack}
                 <span className="btn-dot" style={c.secondaryDot}>
                   <ExternalLink size={14} strokeWidth={1.5} aria-hidden="true" />
                 </span>
@@ -1275,26 +1252,25 @@ export default function Landing() {
             boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)",
             position: "relative", overflow: "hidden"
           }}>
-            <div className="eyebrow-pill" style={{ marginBottom: 20 }}>Processo seletivo aberto</div>
+            <div className="eyebrow-pill" style={{ marginBottom: 20 }}>{t.participe.eyebrow}</div>
             <h2 style={{
               margin: "0 auto 14px", maxWidth: 600,
               fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.08
             }}>
-              Faça parte da Ligia.
+              {t.participe.title}
             </h2>
             <p style={{ margin: "0 auto 32px", maxWidth: 480, color: "var(--muted)", fontSize: 15, lineHeight: 1.85 }}>
-              Membros participam de grupos de estudo, projetos de pesquisa e
-              eventos, com acesso a lideranças técnicas de IA do mundo todo.
+              {t.participe.desc}
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
               <Link to="/processo-seletivo" className="landing-btn-primary btn-island group" style={c.primaryBtn}>
-                Processo Seletivo
+                {t.participe.ctaPrimary}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                 </span>
               </Link>
               <button onClick={goToOS} className="landing-btn-secondary btn-island group" style={c.secondaryBtn}>
-                {session ? "Sou membro" : "Sou membro"}
+                {t.participe.ctaSecondary}
                 <span className="btn-dot" style={c.secondaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
                 </span>
@@ -1318,12 +1294,11 @@ export default function Landing() {
                 </span>
               </div>
               <p style={{ margin: 0, color: "var(--muted-2)", fontSize: 13, lineHeight: 1.7, maxWidth: 260 }}>
-                Liga Acadêmica de Inteligência Artificial. Estudar, construir e
-                divulgar IA em comunidade.
+                {t.footer.tagline}
               </p>
             </div>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>A liga</div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>{t.footer.colLeague}</div>
               <div style={{ display: "grid", gap: 8 }}>
                 {navLinks.map(link => (
                   <a key={link.id} href={`#${link.id}`} onClick={e => { e.preventDefault(); scrollTo(link.id); }} style={{
@@ -1333,15 +1308,15 @@ export default function Landing() {
               </div>
             </div>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Times</div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>{t.footer.colTeams}</div>
               <div style={{ display: "grid", gap: 8 }}>
-                {teams.map(t => (
-                  <span key={t.name} style={{ color: "var(--muted-2)", fontSize: 13 }}>{t.name}</span>
+                {teams.map(team => (
+                  <span key={team.key} style={{ color: "var(--muted-2)", fontSize: 13 }}>{team.name}</span>
                 ))}
               </div>
             </div>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Contato</div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>{t.footer.colContact}</div>
               <div style={{ display: "grid", gap: 10, color: "var(--muted-2)", fontSize: 13 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                   <Mail size={14} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--accent)" }} /> ligia@cin.ufpe.br
@@ -1354,7 +1329,7 @@ export default function Landing() {
                     href="https://instagram.com/ligia.ufpe"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Instagram da Ligia"
+                    aria-label={t.footer.instagramAria}
                     style={{ display: "grid", placeItems: "center", width: 32, height: 32, borderRadius: 12, background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--muted)", cursor: "pointer" }}
                   >
                     <Instagram size={15} aria-hidden="true" />
@@ -1364,7 +1339,7 @@ export default function Landing() {
                     href="https://github.com/ligia-ufpe"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Instagram da Ligia"
+                    aria-label={t.footer.githubAria}
                     style={{ display: "grid", placeItems: "center", width: 32, height: 32, borderRadius: 12, background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--muted)", cursor: "pointer" }}
                   >
                     <Github size={15} aria-hidden="true" />
@@ -1374,7 +1349,7 @@ export default function Landing() {
                     href="https://www.linkedin.com/company/ligia/"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Instagram da Ligia"
+                    aria-label={t.footer.linkedinAria}
                     style={{ display: "grid", placeItems: "center", width: 32, height: 32, borderRadius: 12, background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--muted)", cursor: "pointer" }}
                   >
                     <Linkedin size={15} aria-hidden="true" />
@@ -1390,8 +1365,8 @@ export default function Landing() {
             display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
             color: "var(--muted-3)", fontSize: 12
           }}>
-            <span>© {new Date().getFullYear()} Ligia. Todos os direitos reservados.</span>
-            <span>Conexão que inspira o futuro.</span>
+            <span>{format(t.footer.copyright, { year: new Date().getFullYear() })}</span>
+            <span>{t.footer.bottomTagline}</span>
           </div>
         </div>
       </footer>
@@ -1509,7 +1484,6 @@ export default function Landing() {
         }
         @media (max-width: 960px) {
           .landing-hero-grid { grid-template-columns: 1fr !important; text-align: left; }
-          .landing-hero-logo { order: -1; }
           .landing-hero-card { max-width: 560px; }
           .landing-frentes { grid-template-columns: 1fr !important; }
           .landing-frentes-feature, .landing-frentes-rest { grid-column: span 1 !important; }
