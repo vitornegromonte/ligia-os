@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-// Logo Ligia em 3D: SVG extrudado com material vidro (eco do glazzy da navbar).
+// Logo Ligia em 3D: modelo .glb autoral (substitui o antigo SVG extrudado).
 // three.js é importado dinamicamente para não pesar o bundle inicial.
 // Fallback: SVG chapado (loading, erro ou prefers-reduced-motion).
 
 const SVG_URL = "/media/logo.svg";
+const GLB_URL = "/media/models/logo.glb";
 
-export default function Logo3D({ height = "clamp(240px, 38vh, 400px)" }) {
+export default function Logo3D({ height = "clamp(240px, 38vh, 400px)", offsetX = 0 }) {
   const mountRef = useRef(null);
   const [failed, setFailed] = useState(false);
 
@@ -26,13 +27,12 @@ export default function Logo3D({ height = "clamp(240px, 38vh, 400px)" }) {
     async function init() {
       try {
         const THREE = await import("three");
-        const { SVGLoader } = await import("three/examples/jsm/loaders/SVGLoader.js");
+        const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
         const { RoomEnvironment } = await import("three/examples/jsm/environments/RoomEnvironment.js");
         if (cancelled || !mountRef.current) return;
 
-        const res = await fetch(SVG_URL);
-        if (!res.ok) throw new Error("logo fetch failed");
-        const svgText = await res.text();
+        const loader = new GLTFLoader();
+        const gltf = await loader.loadAsync(GLB_URL);
         if (cancelled) return;
 
         const width = mount.clientWidth || 480;
@@ -61,82 +61,48 @@ export default function Logo3D({ height = "clamp(240px, 38vh, 400px)" }) {
         scene.add(new THREE.AmbientLight(0xffffff, 0.35));
         if ("environmentIntensity" in scene) scene.environmentIntensity = 0.8;
 
-        // Liquid glass laranja Ligia — vertex-color gradient matching the 2D logo.
-        const colorTop = new THREE.Color(0xff4b1f);
-        const colorBot = new THREE.Color(0xff9068);
-        const glassMat = new THREE.MeshPhysicalMaterial({
-          metalness: 0,
-          roughness: 0.2,
-          transmission: 1,
-          thickness: 1.0,
-          ior: 1.5,
-          transparent: true,
-          attenuationColor: new THREE.Color(0xff6b3f),
-          attenuationDistance: 1.0,
-          clearcoat: 0.1,
-          clearcoatRoughness: 0.2,
-          envMapIntensity: 0.7,
-          specularIntensity: 0.8,
-          vertexColors: true,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        });
-        if ("dispersion" in glassMat) glassMat.dispersion = 0.5;
-
-        // 1. Extruda todos os shapes SEM centralizar (preserva o encaixe).
-        const loader = new SVGLoader();
-        const svg = loader.parse(svgText);
-        const geos = [];
-        svg.paths.forEach((path) => {
-          path.toShapes(true).forEach((shape) => {
-            geos.push(
-              new THREE.ExtrudeGeometry(shape, {
-                depth: 18,
-                bevelEnabled: true,
-                bevelThickness: 3,
-                bevelSize: 3,
-                bevelSegments: 4,
-                curveSegments: 24,
-              })
-            );
-          });
-        });
-        if (geos.length === 0) throw new Error("no shapes");
-
-        // 2. Centro COMBINADO de todas as geometrias.
-        const box = new THREE.Box3();
-        geos.forEach((g) => {
-          g.computeBoundingBox();
-          box.union(g.boundingBox);
-        });
-        const center = box.getCenter(new THREE.Vector3());
-        const yRange = box.max.y - box.min.y || 1;
-
-        // 3. Centraliza tudo pelo mesmo offset, faz o flip Y no bake
-        // e pinta vertex colors com gradiente vertical (topo→base).
-        const group = new THREE.Group();
-        geos.forEach((geo) => {
-          geo.translate(-center.x, -center.y, -center.z);
-          geo.scale(1, -1, 1);
-          const pos = geo.attributes.position;
-          const colors = new Float32Array(pos.count * 3);
-          for (let i = 0; i < pos.count; i++) {
-            const y = pos.getY(i);
-            const t = (y + yRange / 2) / yRange;
-            const c = colorTop.clone().lerp(colorBot, t);
-            colors[i * 3] = c.r;
-            colors[i * 3 + 1] = c.g;
-            colors[i * 3 + 2] = c.b;
+        // Modelo autoral (.glb): usa os materiais/texturas embutidos no arquivo.
+        const aligned = new THREE.Group();
+        aligned.add(gltf.scene);
+        let meshNode = null;
+        aligned.traverse((o) => {
+          if (o.isMesh) {
+            o.material.envMapIntensity = 0.9;
+            o.material.side = THREE.DoubleSide;
+            if (!meshNode) meshNode = o;
           }
-          geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-          group.add(new THREE.Mesh(geo, glassMat));
         });
 
-        // 4. Normaliza: altura ≈ 3.0 unidades.
-        const fit = new THREE.Box3().setFromObject(group);
-        const size = fit.getSize(new THREE.Vector3());
-        group.scale.setScalar(3.0 / Math.max(size.y, 0.001));
+        // `centered` absorve só a translação de centralização (em unidades
+        // não escaladas); `group` é o que gira com o mouse. Assim o pivô de
+        // rotação fica exatamente no centro visual do modelo, não em algum
+        // ponto deslocado — girar não faz o modelo "orbitar" fora do lugar.
+        const centered = new THREE.Group();
+        centered.add(aligned);
+
+        const group = new THREE.Group();
+        group.add(centered);
         scene.add(group);
+
+        // Anula a orientação de exportação do node (o Blender/exporter pode
+        // ter salvo o modelo de lado); realinha para frente = +Z, cima = +Y.
+        if (meshNode) {
+          group.updateMatrixWorld(true);
+          const worldQuat = new THREE.Quaternion();
+          meshNode.getWorldQuaternion(worldQuat);
+          aligned.quaternion.copy(worldQuat).invert();
+        }
+
+        // Centraliza pela bounding box e normaliza: altura ≈ 3.0 unidades.
+        group.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(aligned);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        centered.position.copy(center).multiplyScalar(-1);
+
+        const scaleFactor = 3.0 / Math.max(size.y, 0.001);
+        group.scale.setScalar(scaleFactor);
+        group.position.set(offsetX, 0, 0);
 
         const observer = new IntersectionObserver(
           (entries) => { visible.current = entries[0]?.isIntersecting ?? true; },
@@ -166,15 +132,22 @@ export default function Logo3D({ height = "clamp(240px, 38vh, 400px)" }) {
           observer.disconnect();
           window.removeEventListener("mousemove", onMove);
           window.removeEventListener("resize", onResize);
-          group.traverse((o) => o.geometry && o.geometry.dispose());
-          glassMat.dispose();
+          group.traverse((o) => {
+            if (!o.isMesh) return;
+            o.geometry?.dispose();
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            mats.forEach((m) => {
+              Object.values(m).forEach((v) => v?.isTexture && v.dispose());
+              m.dispose();
+            });
+          });
           pmrem.dispose();
           renderer.dispose();
           renderer.domElement.remove();
         }
 
         const baseTilt = 0.12;
-        const baseYaw = 0.45;
+        const baseYaw = Math.PI;
         if (reduceMotion) {
           group.rotation.set(baseTilt, baseYaw, 0);
           renderer.render(scene, camera);

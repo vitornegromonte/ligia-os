@@ -834,7 +834,7 @@ export default function Landing() {
           </div>
           <div className="hero-enter landing-hero-logo" style={{ ["--delay"]: "150ms", minWidth: 0 }}>
             <Suspense fallback={<img src="/media/logo.svg" alt="Ligia" loading="eager" decoding="async" style={{ height: "clamp(240px, 38vh, 400px)", width: "auto", margin: "0 auto", display: "block" }} />}>
-              <Logo3D />
+              <Logo3D offsetX={0.1} />
             </Suspense>
           </div>
         </div>
