@@ -71,6 +71,8 @@ export default function Nivelamento() {
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState({});
   const [autoRelato, setAutoRelato] = useState({});
+  /** Texto livre das opções "Outro", por pergunta do auto-relato. */
+  const [textosOutro, setTextosOutro] = useState({});
   const [seed, setSeed] = useState("");
   // Uma forma por questão, sorteada ao começar e guardada no rascunho: voltar
   // à página no meio do teste não troca as questões debaixo do aluno.
@@ -99,6 +101,7 @@ export default function Nivelamento() {
         setPasso(r.passo ?? 0);
         setRespostas(r.respostas ?? {});
         setAutoRelato(r.autoRelato ?? {});
+        setTextosOutro(r.textosOutro ?? {});
         const s = r.seed || String(Date.now());
         setSeed(s);
         const salva = questoesPorIds(NIVELAMENTO, r.prova ?? []);
@@ -119,12 +122,12 @@ export default function Nivelamento() {
     try {
       sessionStorage.setItem(
         RASCUNHO_KEY,
-        JSON.stringify({ passo, respostas, autoRelato, seed, prova: prova.map((q) => q.id) }),
+        JSON.stringify({ passo, respostas, autoRelato, textosOutro, seed, prova: prova.map((q) => q.id) }),
       );
     } catch {
       /* storage cheio ou indisponível: segue sem rascunho */
     }
-  }, [passo, respostas, autoRelato, seed, prova, resultado]);
+  }, [passo, respostas, autoRelato, textosOutro, seed, prova, resultado]);
 
   // Foco no título a cada passo, para o leitor de tela anunciar a pergunta nova.
   useEffect(() => {
@@ -183,6 +186,7 @@ export default function Nivelamento() {
     setResultado(null);
     setRespostas({});
     setAutoRelato({});
+    setTextosOutro({});
     setPasso(0);
     const s = String(Date.now());
     setSeed(s);
@@ -249,6 +253,9 @@ export default function Nivelamento() {
                     tipo={q.tipo}
                     selected={autoRelato[q.id] ?? []}
                     onSelect={(next) => setAutoRelato((s) => ({ ...s, [q.id]: next }))}
+                    maxEscolhas={q.maxEscolhas}
+                    textoOutro={textosOutro[q.id]}
+                    onTextoOutro={(t) => setTextosOutro((s) => ({ ...s, [q.id]: t }))}
                   />
                 ))}
               </div>

@@ -30,11 +30,16 @@ const CompetenciaSchema = z.enum(COMPETENCIA_IDS);
  */
 export type OpcaoConteudo = { texto: string; naoSei: boolean; equivoco: string | null };
 
-/** Opção de auto-relato normalizada: pode declarar competência (prior) ou ser exclusiva. */
+/**
+ * Opção de auto-relato normalizada: pode declarar competência (prior), ser
+ * exclusiva ("Nenhum destes") ou ser "Outro", que abre um campo de texto
+ * opcional para o aluno dizer qual.
+ */
 export type OpcaoAutoRelato = {
   texto: string;
   competencia: CompetenciaId | null;
   exclusiva: boolean;
+  outro: boolean;
 };
 
 const OpcaoConteudoSchema = z
@@ -59,21 +64,25 @@ const OpcaoAutoRelatoSchema = z
       texto: z.string().min(1),
       competencia: CompetenciaSchema.optional(),
       exclusiva: z.boolean().optional(),
+      outro: z.boolean().optional(),
     }),
   ])
   .transform((op): OpcaoAutoRelato =>
     typeof op === "string"
-      ? { texto: op, competencia: null, exclusiva: false }
+      ? { texto: op, competencia: null, exclusiva: false, outro: false }
       : {
           texto: op.texto,
           competencia: op.competencia ?? null,
           exclusiva: op.exclusiva ?? false,
+          outro: op.outro ?? false,
         },
   );
 
 export const PerguntaAutoRelatoSchema = z.object({
   id: z.string().min(1),
   tipo: z.enum(["single", "multi"]),
+  /** Limite de marcações numa pergunta `multi` (ex.: "até 2 áreas"). Ausente = sem limite. */
+  maxEscolhas: z.number().int().min(1).optional(),
   pergunta: z.string().min(1),
   opcoes: z.array(OpcaoAutoRelatoSchema).min(2),
 });
@@ -179,6 +188,17 @@ export function ehQuestaoCodigo(q: FormaQuestao): boolean {
  * tela ofereceria confirmar a dispensa com zero questões).
  */
 function checarConteudo(c: NivelamentoContent): void {
+  for (const p of c.auto_relato) {
+    if (p.maxEscolhas !== undefined && p.tipo !== "multi") {
+      throw new Error(`Auto-relato ${p.id}: maxEscolhas só vale em pergunta multi.`);
+    }
+    if (p.opcoes.some((o) => o.outro && o.exclusiva)) {
+      throw new Error(`Auto-relato ${p.id}: "Outro" não pode ser exclusiva.`);
+    }
+    if (p.opcoes.filter((o) => o.outro).length > 1) {
+      throw new Error(`Auto-relato ${p.id}: no máximo uma opção "Outro" por pergunta.`);
+    }
+  }
   const ids = new Set<string>();
   for (const q of [...c.mcq, ...c.codigo.questoes]) {
     if (ids.has(q.id)) throw new Error(`Questão ${q.id}: id repetido.`);

@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
   "auto_relato": [
     {
@@ -27,7 +27,7 @@
         "C / C++",
         "Java",
         "R",
-        "Outra",
+        { "texto": "Outra", "outro": true },
         { "texto": "Nenhuma destas", "exclusiva": true }
       ]
     },
@@ -40,13 +40,15 @@
         "TensorFlow / Keras",
         "scikit-learn",
         "HuggingFace",
+        { "texto": "Outro", "outro": true },
         { "texto": "Nenhum destes", "exclusiva": true }
       ]
     },
     {
       "id": "ar4",
-      "tipo": "single",
-      "pergunta": "Área de maior interesse?",
+      "tipo": "multi",
+      "maxEscolhas": 2,
+      "pergunta": "Suas áreas de maior interesse?",
       "opcoes": [
         "Visão (CV)",
         "NLP / LLMs",
@@ -54,14 +56,20 @@
         "Teoria / Matemática",
         "MLOps / Engenharia",
         "Safety / Alinhamento",
-        "Ainda não sei"
+        { "texto": "Outra", "outro": true },
+        { "texto": "Ainda não sei", "exclusiva": true }
       ]
     },
     {
       "id": "ar5",
-      "tipo": "single",
-      "pergunta": "Seu objetivo principal na trilha?",
-      "opcoes": ["TCC / pesquisa", "Estágio / mercado", "Curiosidade / base", "Outro"]
+      "tipo": "multi",
+      "pergunta": "Seus objetivos principais na trilha?",
+      "opcoes": [
+        "TCC / pesquisa",
+        "Estágio / mercado",
+        "Curiosidade / base",
+        { "texto": "Outro", "outro": true }
+      ]
     }
   ],
   "mcq": [
@@ -856,7 +864,10 @@
           "id": "n-dl-fundamentos-1b",
           "pergunta": "A função de ativação ReLU é definida como:",
           "opcoes": [
-            { "texto": "1 / (1 + e^(−x))", "equivoco": "Essa é a sigmoide, que espreme a saída entre 0 e 1." },
+            {
+              "texto": "1 / (1 + e^(−x))",
+              "equivoco": "Essa é a sigmoide, que espreme a saída entre 0 e 1."
+            },
             "max(0, x)",
             {
               "texto": "x²",

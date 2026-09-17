@@ -44,6 +44,14 @@ describe("shell.css — regressões que já custaram caro", () => {
   });
 });
 
+describe("aprender.css — regressões", () => {
+  it("o rodapé fixo do nivelamento não pinta fundo por cima do gradiente do body", () => {
+    const regra = read("aprender.css").match(/\.nv-rodape\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(regra).toContain("background: transparent");
+    expect(regra).toContain("backdrop-filter");
+  });
+});
+
 describe("tokens.css — contrato de marca (style.md)", () => {
   const tokens = read("tokens.css");
 

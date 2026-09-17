@@ -267,12 +267,36 @@ describe("auto-relato", () => {
     }
   });
 
-  it("perguntas single (ar4/ar5) não têm opção exclusiva", () => {
-    for (const id of ["ar4", "ar5"]) {
+  it("áreas (ar4) aceitam até 2, com 'Ainda não sei' exclusiva no fim", () => {
+    const ar4 = content.auto_relato.find((x) => x.id === "ar4")!;
+    expect(ar4.tipo).toBe("multi");
+    expect(ar4.maxEscolhas).toBe(2);
+    expect(ar4.opcoes[ar4.opcoes.length - 1]).toMatchObject({ texto: "Ainda não sei", exclusiva: true });
+  });
+
+  it("objetivos (ar5) aceitam todos, sem exclusiva", () => {
+    const ar5 = content.auto_relato.find((x) => x.id === "ar5")!;
+    expect(ar5.tipo).toBe("multi");
+    expect(ar5.maxEscolhas).toBeUndefined();
+    expect(ar5.opcoes.some((o) => o.exclusiva)).toBe(false);
+  });
+
+  it("linguagens, frameworks, áreas e objetivos têm exatamente um 'Outro'", () => {
+    for (const id of ["ar2", "ar3", "ar4", "ar5"]) {
       const p = content.auto_relato.find((x) => x.id === id)!;
-      expect(p.tipo, id).toBe("single");
-      expect(p.opcoes.some((o) => o.exclusiva), id).toBe(false);
+      expect(p.opcoes.filter((o) => o.outro), id).toHaveLength(1);
     }
+  });
+
+  it("recusa maxEscolhas em pergunta single e 'Outro' exclusiva", () => {
+    const base = structuredClone(raw) as { auto_relato: Record<string, unknown>[] };
+    const single = structuredClone(base);
+    single.auto_relato[0] = { ...single.auto_relato[0], tipo: "single", maxEscolhas: 2 };
+    expect(() => loadNivelamentoContent(single)).toThrow(/maxEscolhas/);
+    const outroExclusiva = structuredClone(base);
+    const ar2 = outroExclusiva.auto_relato.find((p) => p.id === "ar2") as { opcoes: unknown[] };
+    ar2.opcoes[ar2.opcoes.length - 1] = { texto: "Nenhuma destas", exclusiva: true, outro: true };
+    expect(() => loadNivelamentoContent(outroExclusiva)).toThrow(/Outro/);
   });
 });
 

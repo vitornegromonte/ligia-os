@@ -74,6 +74,75 @@ describe("QuestionCard single: inalterado", () => {
   });
 });
 
+describe("QuestionCard multi: limite de escolhas", () => {
+  const AREAS: OpcaoRenderizavel[] = [
+    { texto: "CV" },
+    { texto: "NLP" },
+    { texto: "RL" },
+    { texto: "Ainda não sei", exclusiva: true },
+  ];
+
+  function comLimite(selected: number[]) {
+    const onSelect = vi.fn();
+    render(
+      <QuestionCard pergunta="Áreas?" opcoes={AREAS} tipo="multi" selected={selected} onSelect={onSelect} maxEscolhas={2} />,
+    );
+    return { onSelect };
+  }
+
+  it("mostra a dica e, abaixo do limite, deixa tudo habilitado", () => {
+    comLimite([0]);
+    expect(screen.getByText("Escolha até 2.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "RL" })).toBeEnabled();
+  });
+
+  it("no limite, desabilita as não marcadas mas não a exclusiva nem as marcadas", () => {
+    const { onSelect } = comLimite([0, 1]);
+    expect(screen.getByRole("button", { name: "RL" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "CV" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Ainda não sei" }));
+    expect(onSelect).toHaveBeenCalledWith([3]);
+  });
+});
+
+describe("QuestionCard: texto de \"Outro\"", () => {
+  const LINGUAGENS: OpcaoRenderizavel[] = [
+    { texto: "Python" },
+    { texto: "Outra", outro: true },
+  ];
+
+  function comOutro(selected: number[], texto = "") {
+    const onTextoOutro = vi.fn();
+    render(
+      <QuestionCard
+        pergunta="Linguagens?"
+        opcoes={LINGUAGENS}
+        tipo="multi"
+        selected={selected}
+        onSelect={() => {}}
+        textoOutro={texto}
+        onTextoOutro={onTextoOutro}
+      />,
+    );
+    return { onTextoOutro };
+  }
+
+  it("o campo só aparece com \"Outro\" marcada", () => {
+    comOutro([0]);
+    expect(screen.queryByLabelText("Qual? (opcional)")).toBeNull();
+  });
+
+  it("com \"Outro\" marcada, o campo aparece, não é obrigatório e repassa o texto", () => {
+    const { onTextoOutro } = comOutro([1], "Rust");
+    const campo = screen.getByLabelText("Qual? (opcional)");
+    expect(campo).toHaveValue("Rust");
+    expect(campo).not.toBeRequired();
+    expect(campo).toHaveAttribute("maxLength", "80");
+    fireEvent.change(campo, { target: { value: "Go" } });
+    expect(onTextoOutro).toHaveBeenCalledWith("Go");
+  });
+});
+
 describe("QuestionCard: a11y", () => {
   it("aria-pressed reflete a seleção atual", () => {
     setup("multi", [0, 2]);
