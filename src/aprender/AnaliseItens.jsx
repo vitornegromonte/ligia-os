@@ -5,7 +5,7 @@ import { PageHeader } from "../ui/PageHeader.tsx";
 import { Card } from "../ui/Card.tsx";
 import { Chip } from "../ui/Chip.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
-import { NIVELAMENTO, MODULOS } from "./dados.ts";
+import { NIVELAMENTO, MODULOS, CONCEITOS } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import {
   analisarItens,
@@ -15,6 +15,14 @@ import {
   P_FACIL,
   RPB_MINIMO,
 } from "../lib/analise-itens.ts";
+import {
+  prereqsPorCompetencia,
+  simularAdaptativo,
+  CASOS_MINIMOS,
+  ESCONDIDO_CANDIDATA_MAX,
+  ESCONDIDO_REVISAO_MAX,
+  RODADAS_MINIMAS,
+} from "../lib/adaptativo.ts";
 import { loadPretestV2 } from "../lib/pretest-storage.ts";
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
@@ -42,6 +50,13 @@ const TIPOS = [
 
 const FORMAS = new Map([...NIVELAMENTO.mcq, ...NIVELAMENTO.codigo.questoes].map((q) => [q.id, q]));
 const pct = (v) => (v === null ? "—" : `${Math.round(v * 100)}%`);
+const PREREQS = prereqsPorCompetencia(CONCEITOS);
+
+const VEREDITO = {
+  "dados-insuficientes": `Dados insuficientes: a simulação só recomenda com ${RODADAS_MINIMAS}+ rodadas completas e ${CASOS_MINIMOS}+ competências puladas.`,
+  "regra-segura": "Com estes dados, a regra esconderia pouco conhecimento. Dá para considerar ligar.",
+  "regra-esconde-demais": "Com estes dados, a regra esconderia conhecimento demais. Não ligar.",
+};
 
 /**
  * Análise de itens do nivelamento, para staff (rota só de admin).
@@ -87,6 +102,10 @@ export default function AnaliseItens() {
 
   const analise = useMemo(
     () => (rodadas ? analisarItens(NIVELAMENTO, rodadas) : null),
+    [rodadas],
+  );
+  const simulacao = useMemo(
+    () => (rodadas ? simularAdaptativo(NIVELAMENTO, rodadas, PREREQS) : null),
     [rodadas],
   );
 
@@ -168,6 +187,29 @@ export default function AnaliseItens() {
                 </li>
               ))}
             </ul>
+          </Card>
+        )}
+
+        {simulacao && (
+          <Card style={{ marginBottom: 18 }} data-simulacao>
+            <h2 className="ai-titulo">Teste adaptativo (simulação, não está ligado)</h2>
+            <p className="ai-legenda">
+              Regra: pular as questões de uma competência quando um pré-requisito dela, pelo grafo da
+              trilha, ficou abaixo de 40. Simulada sobre as rodadas completas: quanto encurtaria o teste
+              e quantas vezes esconderia alguém que ia bem na competência pulada.
+            </p>
+            <dl className="ai-metricas">
+              <div><dt>Rodadas completas</dt><dd>{simulacao.rodadasCompletas}</dd></div>
+              <div><dt>Com pulo</dt><dd>{simulacao.rodadasComPulo}</dd></div>
+              <div><dt>Questões poupadas</dt><dd>{simulacao.questoesPoupadas.toFixed(1)}</dd></div>
+              <div><dt>Esconde ≥ 40</dt><dd>{pct(simulacao.escondidoRevisao)}</dd></div>
+              <div><dt>Esconde ≥ 75</dt><dd>{pct(simulacao.escondidoCandidata)}</dd></div>
+            </dl>
+            <p className="ai-legenda" style={{ marginTop: 10 }}>
+              {VEREDITO[simulacao.veredito]} Limites: até {pct(ESCONDIDO_CANDIDATA_MAX)} dos pulos
+              escondendo candidata à dispensa e {pct(ESCONDIDO_REVISAO_MAX)} escondendo nota de
+              revisão.
+            </p>
           </Card>
         )}
 

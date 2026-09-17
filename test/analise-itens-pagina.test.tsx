@@ -49,6 +49,9 @@ describe("Análise do nivelamento — página", () => {
     expect(within(card).getByText("100%")).toBeInTheDocument();
     expect(within(card).getByText(/1 com a escolha registrada/)).toBeInTheDocument();
     expect(within(card).getByText("1 · 100%")).toBeInTheDocument();
+    // Simulação do adaptativo aparece, sem recomendar nada com uma rodada.
+    expect(screen.getByText(/Teste adaptativo \(simulação, não está ligado\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Dados insuficientes/)).toBeInTheDocument();
   });
 });
 
