@@ -70,7 +70,25 @@ function main() {
     process.exit(1);
   }
 
+  // O modo de preview sem login (ProtectedRoute) só pode existir no servidor
+  // de dev. Se qualquer marca dele chegar ao dist, o `DEV && ...` deixou de
+  // ser dobrado em código morto — e a rota protegida teria um desvio no ar.
+  const MARCAS_SEM_LOGIN = ["sem-login", "Preview sem login"];
+  const desvios = [];
+  for (const arquivo of alvos) {
+    const conteudo = readFileSync(arquivo, "utf8");
+    for (const marca of MARCAS_SEM_LOGIN) {
+      if (conteudo.includes(marca)) desvios.push({ arquivo: arquivo.replace(`${raiz}/`, ""), marca });
+    }
+  }
+  if (desvios.length > 0) {
+    console.error(`\nMODO SEM LOGIN NO BUNDLE DE PRODUÇÃO — ${desvios.length} ocorrência(s):\n`);
+    for (const d of desvios) console.error(`  ${d.arquivo}  <-  "${d.marca}"`);
+    process.exit(1);
+  }
+
   console.log(`bundle limpo — ${sentinelas.length} contextos conferidos em ${alvos.length} arquivos do dist.`);
+  console.log("sem desvio de login no bundle de produção.");
 }
 
 main();

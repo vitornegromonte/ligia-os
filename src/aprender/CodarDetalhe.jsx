@@ -98,6 +98,9 @@ export default function CodarDetalhe() {
   }
 
   const conceitos = conceitosDaTarefa(tarefa.slug);
+  // Sem nenhum teste executado e com erro: o problema foi rodar, não o código.
+  const naoRodou =
+    !!resultado && !resultado.success && !(resultado.tests?.length) && !resultado.total && !!resultado.error;
 
   return (
     <div>
@@ -210,17 +213,25 @@ export default function CodarDetalhe() {
             {resultado && (
               <div className="cd-resultado">
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontWeight: 600 }}>
-                  {resultado.success ? (
+                  {/* Nenhum teste rodou (juiz fora, sem conta, timeout): isso é
+                      falha de EXECUÇÃO, não do aluno. Mostrar "Ainda não 0/0"
+                      aqui faria ele achar que errou. */}
+                  {naoRodou ? (
+                    <><AlertTriangle size={16} aria-hidden style={{ color: "var(--warning)" }} />
+                      <span style={{ color: "var(--warning)" }}>Não foi possível rodar os testes</span></>
+                  ) : resultado.success ? (
                     <><CheckCircle2 size={16} aria-hidden style={{ color: "var(--success)" }} />
                       <span style={{ color: "var(--success)" }}>Passou</span></>
                   ) : (
                     <><XCircle size={16} aria-hidden style={{ color: "var(--danger)" }} />
                       <span style={{ color: "var(--danger)" }}>Ainda não</span></>
                   )}
+                  {!naoRodou && (
                   <span style={{ marginLeft: "auto", color: "var(--muted)", fontWeight: 400 }}>
                     {resultado.passed ?? 0}/{resultado.total ?? 0}
                     {resultado.total_time_ms ? ` · ${Math.round(resultado.total_time_ms)}ms` : ""}
                   </span>
+                  )}
                 </div>
 
                 {/* Honestidade: a submissão não entrou no histórico. Antes isso
@@ -255,7 +266,9 @@ export default function CodarDetalhe() {
                   </div>
                 ))}
 
-                {resultado.error && <pre className="cd-saida">{resultado.error}</pre>}
+                {resultado.error && (naoRodou
+                  ? <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>{resultado.error}</p>
+                  : <pre className="cd-saida">{resultado.error}</pre>)}
                 {resultado.traceback && <pre className="cd-saida">{resultado.traceback}</pre>}
                 {resultado.stderr && <pre className="cd-saida">{resultado.stderr}</pre>}
               </div>

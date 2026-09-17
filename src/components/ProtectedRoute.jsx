@@ -1,9 +1,42 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
+/**
+ * Modo de preview sem login, para navegar a interface sem um Supabase.
+ *
+ * Duas travas, e as duas precisam valer: `import.meta.env.DEV` e o modo
+ * `sem-login` (`npm run dev:sem-login`). O Vite substitui `DEV` por `false`
+ * no `vite build`, então este ramo inteiro é código morto em produção e o
+ * minificador o remove — nenhuma variável de ambiente no deploy o religa.
+ * `scripts/check-bundle-secrets.mjs` confere isso no dist.
+ */
+const SEM_LOGIN = import.meta.env.DEV && import.meta.env.MODE === "sem-login";
+
+function AvisoSemLogin() {
+  return (
+    <div role="status" style={{
+      position: "fixed", right: 12, bottom: 12, zIndex: 300,
+      padding: "6px 12px", borderRadius: 999,
+      border: "1px solid var(--warning)", background: "var(--review-bg)",
+      color: "var(--warning)", fontSize: 11, fontWeight: 600, pointerEvents: "none"
+    }}>
+      Preview sem login · dados só neste navegador
+    </div>
+  );
+}
+
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { session, profile, loading } = useAuth();
   const location = useLocation();
+
+  if (SEM_LOGIN) {
+    return (
+      <>
+        {children}
+        <AvisoSemLogin />
+      </>
+    );
+  }
 
   if (loading) {
     return <div style={{ minHeight: "100vh", background: "var(--bg)" }} />;
