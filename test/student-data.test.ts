@@ -28,8 +28,9 @@ const pretest = (): PretestResultV2 => ({
     },
     starNodes: ["regularizacao"],
     dispensaveisSugeridos: [
-      { modulo: "M0", competencia: "matematica", sugestao: "pre-marcada", conceitosFracos: [] },
+      { modulo: "M0", competencia: "matematica", conceitosFracos: [] },
     ],
+    candidatasDispensa: [],
     mensagem: "Matemática em dia!",
   },
   dispensasConfirmadas: ["M0"],

@@ -122,6 +122,24 @@ describe("mergeNivelamento — rodada mais recente vence", () => {
     expect(mergeNivelamento(null, n)).toBe(n);
     expect(mergeNivelamento(null, null)).toBeNull();
   });
+
+  it("mesma rodada: vence a versão com mais resultados (a etapa 2 só acrescenta)", () => {
+    const antes = { ...nivelamento("2026-09-17T10:00:00.000Z"), resultados: { a: "acerto" } };
+    const depois = {
+      ...antes,
+      resultados: { a: "acerto", b: "erro" },
+    } as unknown as PretestResultV2;
+    expect(mergeNivelamento(antes as PretestResultV2, depois)?.resultados).toEqual(depois.resultados);
+    expect(mergeNivelamento(depois, antes as PretestResultV2)?.resultados).toEqual(depois.resultados);
+  });
+
+  it("mesma rodada: dispensas confirmadas se unem, em ordem estável", () => {
+    const base = nivelamento("2026-09-17T10:00:00.000Z");
+    const a = { ...base, dispensasConfirmadas: ["M1"] } as PretestResultV2;
+    const b = { ...base, dispensasConfirmadas: ["M0"] } as PretestResultV2;
+    expect(mergeNivelamento(a, b)).toEqual(mergeNivelamento(b, a));
+    expect(mergeNivelamento(a, b)?.dispensasConfirmadas).toEqual(["M0", "M1"]);
+  });
 });
 
 describe("mergeEstado", () => {

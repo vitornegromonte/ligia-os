@@ -72,6 +72,8 @@ export const PerguntaAutoRelatoSchema = z.object({
 export const QuestaoMCQSchema = z.object({
   id: z.string().min(1),
   competencia: CompetenciaSchema,
+  /** 1 = matriz (todo aluno); 2 = confirmação de dispensa (opcional). */
+  etapa: z.union([z.literal(1), z.literal(2)]).default(1),
   dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   conceitos: z.array(z.string().min(1)).min(1),
   pergunta: z.string().min(1),
@@ -98,15 +100,27 @@ export type NivelamentoContent = z.infer<typeof NivelamentoContentSchema>;
 
 /**
  * Integridade que o schema sozinho não pega: `correta` precisa existir e não
- * pode apontar pra opção "Não sei" (senão o gabarito premiaria a desistência).
+ * pode apontar pra opção "Não sei" (senão o gabarito premiaria a desistência);
+ * ids são únicos; e toda competência avaliada na etapa 1 tem etapa 2 (senão a
+ * tela ofereceria confirmar a dispensa com zero questões).
  */
 function checarConteudo(c: NivelamentoContent): void {
+  const ids = new Set<string>();
   for (const q of c.mcq) {
+    if (ids.has(q.id)) throw new Error(`Questão ${q.id}: id repetido.`);
+    ids.add(q.id);
     if (q.correta >= q.opcoes.length) {
       throw new Error(`Questão ${q.id}: correta=${q.correta} fora do intervalo de opções.`);
     }
     if (q.opcoes[q.correta].naoSei) {
       throw new Error(`Questão ${q.id}: correta aponta pra opção "Não sei".`);
+    }
+  }
+  for (const { id } of COMPETENCIAS) {
+    const temEtapa1 = c.mcq.some((q) => q.competencia === id && q.etapa === 1);
+    const temEtapa2 = c.mcq.some((q) => q.competencia === id && q.etapa === 2);
+    if (temEtapa1 && !temEtapa2) {
+      throw new Error(`Competência ${id}: tem questões na etapa 1 e nenhuma na etapa 2.`);
     }
   }
 }
@@ -133,12 +147,24 @@ export function priorDeAr1(ar1: PerguntaAutoRelato, selecionados: number[]): Pri
   return prior;
 }
 
+/** Questões de uma etapa, opcionalmente só das competências dadas, na ordem do conteúdo. */
+export function questoesDaEtapa(
+  c: NivelamentoContent,
+  etapa: 1 | 2,
+  competencias?: readonly CompetenciaId[],
+): QuestaoMCQ[] {
+  return c.mcq.filter(
+    (q) => q.etapa === etapa && (!competencias || competencias.includes(q.competencia)),
+  );
+}
+
 /** Projeta as MCQ no contrato da engine — sem gabarito, sem enunciado. */
-export function questoesParaEngine(c: NivelamentoContent): QuestaoNivelamento[] {
-  return c.mcq.map((q) => ({
+export function questoesParaEngine(questoes: readonly QuestaoMCQ[]): QuestaoNivelamento[] {
+  return questoes.map((q) => ({
     id: q.id,
     competencia: q.competencia,
     dificuldade: q.dificuldade,
     conceitos: q.conceitos,
+    etapa: q.etapa,
   }));
 }

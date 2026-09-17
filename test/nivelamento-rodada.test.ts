@@ -1,0 +1,133 @@
+import { describe, it, expect } from "vitest";
+import raw from "@/content/nivelamento.json";
+import type { CompetenciaId } from "@/lib/competencias";
+import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
+import {
+  loadNivelamentoContent,
+  questoesDaEtapa,
+  questoesParaEngine,
+  type QuestaoMCQ,
+} from "@/lib/nivelamento-content";
+import {
+  aplicarEtapa2,
+  competenciasComEtapa2,
+  corrigir,
+  resumoEtapa2,
+  rodadaCompativel,
+} from "@/lib/nivelamento-rodada";
+import type { PretestResultV2 } from "@/lib/pretest-storage";
+
+const conteudo = loadNivelamentoContent(raw);
+const naoSei = (q: QuestaoMCQ) => q.opcoes.findIndex((o) => o.naoSei);
+const errada = (q: QuestaoMCQ) => q.opcoes.findIndex((o, i) => !o.naoSei && i !== q.correta);
+
+/** Rodada da etapa 1 com as competências dadas gabaritadas e o resto em "Não sei". */
+function rodadaCom(gabaritadas: CompetenciaId[]): PretestResultV2 {
+  const questoes = questoesDaEtapa(conteudo, 1);
+  const respostas = Object.fromEntries(
+    questoes.map((q) => [q.id, gabaritadas.includes(q.competencia) ? q.correta : naoSei(q)]),
+  );
+  const resultados = corrigir(questoes, respostas);
+  const matriz = scoreCompetencias(questoesParaEngine(questoes), resultados, {});
+  return {
+    version: 2,
+    contentVersion: conteudo.version,
+    matriz,
+    resultados,
+    autoRelato: {},
+    recomendacao: recomendar(matriz),
+    dispensasConfirmadas: [],
+    ts: "2026-09-17T12:00:00.000Z",
+  };
+}
+
+function respostasDaEtapa2(competencia: CompetenciaId, escolher: (q: QuestaoMCQ) => number) {
+  return Object.fromEntries(
+    questoesDaEtapa(conteudo, 2, [competencia]).map((q) => [q.id, escolher(q)]),
+  );
+}
+
+describe("corrigir", () => {
+  it("acerto, erro e 'Não sei'; sem resposta conta como 'Não sei'", () => {
+    const [a, b, c, d] = questoesDaEtapa(conteudo, 1, ["matematica"]);
+    const r = corrigir([a, b, c, d], { [a.id]: a.correta, [b.id]: errada(b), [c.id]: naoSei(c) });
+    expect(r).toEqual({ [a.id]: "acerto", [b.id]: "erro", [c.id]: "nao-sei", [d.id]: "nao-sei" });
+  });
+});
+
+describe("aplicarEtapa2", () => {
+  it("gabaritar a confirmação torna o módulo dispensável sem mexer no radar", () => {
+    const rodada = rodadaCom(["matematica"]);
+    expect(rodada.recomendacao.estados.matematica).toBe("dispensa-a-confirmar");
+
+    const nova = aplicarEtapa2(
+      conteudo,
+      rodada,
+      ["matematica"],
+      respostasDaEtapa2("matematica", (q) => q.correta),
+    );
+    expect(nova.recomendacao.estados.matematica).toBe("dispensavel");
+    expect(nova.recomendacao.dispensaveisSugeridos.map((d) => d.modulo)).toEqual(["M0"]);
+    expect(nova.matriz).toEqual(rodada.matriz);
+    expect(nova.ts).toBe(rodada.ts);
+    expect(competenciasComEtapa2(conteudo, nova)).toEqual(["matematica"]);
+  });
+
+  it("'Não sei' na confirmação inteira reprova e aponta os conceitos", () => {
+    const nova = aplicarEtapa2(
+      conteudo,
+      rodadaCom(["matematica"]),
+      ["matematica"],
+      respostasDaEtapa2("matematica", naoSei),
+    );
+    expect(nova.recomendacao.estados.matematica).toBe("revisao-dirigida");
+    expect(nova.recomendacao.fronteira).toBe("M0");
+    const resumo = resumoEtapa2(conteudo, nova).matematica!;
+    expect(resumo.aprovada).toBe(false);
+    expect(nova.recomendacao.starNodes).toEqual(resumo.conceitosFracos);
+    expect(resumo.conceitosFracos.length).toBeGreaterThan(0);
+  });
+
+  it("não deixa refazer a confirmação na mesma rodada", () => {
+    const reprovada = aplicarEtapa2(
+      conteudo,
+      rodadaCom(["matematica"]),
+      ["matematica"],
+      respostasDaEtapa2("matematica", naoSei),
+    );
+    const deNovo = aplicarEtapa2(
+      conteudo,
+      reprovada,
+      ["matematica"],
+      respostasDaEtapa2("matematica", (q) => q.correta),
+    );
+    expect(deNovo.resultados).toEqual(reprovada.resultados);
+    expect(deNovo.recomendacao.estados.matematica).toBe("revisao-dirigida");
+  });
+
+  it("confirmar um módulo não mexe nos outros candidatos", () => {
+    const rodada = rodadaCom(["matematica", "ml-classico"]);
+    const nova = aplicarEtapa2(
+      conteudo,
+      rodada,
+      ["ml-classico"],
+      respostasDaEtapa2("ml-classico", (q) => q.correta),
+    );
+    expect(nova.recomendacao.estados.matematica).toBe("dispensa-a-confirmar");
+    expect(nova.recomendacao.estados["ml-classico"]).toBe("dispensavel");
+    expect(nova.recomendacao.fronteira).toBe("M0");
+  });
+});
+
+describe("rodadaCompativel", () => {
+  it("aceita rodada cujas questões existem no conteúdo", () => {
+    expect(rodadaCompativel(conteudo, rodadaCom([]))).toBe(true);
+  });
+
+  it("recusa nulo, rodada migrada do v1 (sem resultados) e questão que saiu do banco", () => {
+    expect(rodadaCompativel(conteudo, null)).toBe(false);
+    expect(rodadaCompativel(conteudo, { ...rodadaCom([]), resultados: {} })).toBe(false);
+    const sumiu = { ...rodadaCom([]), resultados: { "n-inexistente-1": "acerto" as const } };
+    expect(rodadaCompativel(conteudo, sumiu)).toBe(false);
+  });
+});

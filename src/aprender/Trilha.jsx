@@ -158,6 +158,12 @@ export default function Trilha() {
                 </p>
               )}
 
+              {(recomendacao.candidatasDispensa?.length ?? 0) > 0 && (
+                <Link to="/aprender/nivelamento?ver=resultado"
+                  style={{ display: "inline-block", marginTop: 10, marginRight: 16, color: "var(--accent-hover)", fontSize: 12, fontWeight: 600 }}>
+                  Confirmar dispensa de {recomendacao.candidatasDispensa.map((d) => d.modulo).join(", ")} →
+                </Link>
+              )}
               <Link to="/aprender/nivelamento"
                 style={{ display: "inline-block", marginTop: 10, color: "var(--muted)", fontSize: 12 }}>
                 Refazer nivelamento →

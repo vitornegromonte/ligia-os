@@ -209,7 +209,7 @@ Rotas novas, todas dentro do `Layout` e **sem gate de papel**:
 | Rota | Página |
 |---|---|
 | `/aprender` | Trilha — skill tree, progresso, banner do nivelamento |
-| `/aprender/nivelamento` | Wizard + resultado (matriz, estrelas, dispensa) |
+| `/aprender/nivelamento` | Wizard + resultado (matriz, estrelas, confirmação de dispensa); `?ver=resultado` reabre a última rodada |
 | `/aprender/c/:conceptId` | **Hub da lição** |
 | `/aprender/styleguide` | Referência viva do design system |
 

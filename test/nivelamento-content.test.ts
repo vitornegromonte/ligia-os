@@ -4,6 +4,7 @@ import rawConcepts from "@/content/concepts.json";
 import {
   loadNivelamentoContent,
   priorDeAr1,
+  questoesDaEtapa,
   questoesParaEngine,
 } from "@/lib/nivelamento-content";
 import { COMPETENCIAS, type CompetenciaId } from "@/lib/competencias";
@@ -23,30 +24,36 @@ const moduloDaCompetencia = new Map<CompetenciaId, string>(
 );
 
 describe("banco de questões — estrutura", () => {
-  it("tem 20 questões, 4 por competência", () => {
-    expect(content.mcq).toHaveLength(20);
+  it.each([1, 2] as const)("etapa %i tem 20 questões, 4 por competência", (etapa) => {
+    const qs = questoesDaEtapa(content, etapa);
+    expect(qs).toHaveLength(20);
     for (const { id } of COMPETENCIAS) {
-      const qs = content.mcq.filter((q) => q.competencia === id);
-      expect(qs, `competência ${id}`).toHaveLength(4);
+      expect(questoesDaEtapa(content, etapa, [id]), `competência ${id}`).toHaveLength(4);
     }
   });
 
-  it("cada competência tem o multiset de dificuldades {1,2,2,3}", () => {
-    for (const { id } of COMPETENCIAS) {
-      const difs = content.mcq
-        .filter((q) => q.competencia === id)
-        .map((q) => q.dificuldade)
-        .sort();
-      expect(difs, `competência ${id}`).toEqual([1, 2, 2, 3]);
-    }
-  });
+  it.each([1, 2] as const)(
+    "etapa %i: cada competência tem o multiset de dificuldades {1,2,2,3}",
+    (etapa) => {
+      // Mesmo multiset nas duas etapas: a nota acumulada pesa as duas por igual.
+      for (const { id } of COMPETENCIAS) {
+        const difs = questoesDaEtapa(content, etapa, [id]).map((q) => q.dificuldade).sort();
+        expect(difs, `competência ${id}`).toEqual([1, 2, 2, 3]);
+      }
+    },
+  );
 
-  it("ids são únicos e seguem o padrão n-<competencia>-<n>", () => {
+  it("ids são únicos e seguem o padrão n-<competencia>-<n> (etapa 2: n-<competencia>-e2-<n>)", () => {
     const ids = content.mcq.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const q of content.mcq) {
-      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-[1-4]$`));
+      const sufixo = q.etapa === 2 ? "e2-[1-4]" : "[1-4]";
+      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-${sufixo}$`));
     }
+  });
+
+  it("questão sem etapa no JSON é da etapa 1", () => {
+    expect(content.mcq.find((q) => q.id === "n-matematica-1")?.etapa).toBe(1);
   });
 });
 
@@ -165,10 +172,10 @@ describe("priorDeAr1", () => {
 
 describe("questoesParaEngine", () => {
   it("expõe só o que a engine precisa — sem gabarito", () => {
-    const qs = questoesParaEngine(content);
-    expect(qs).toHaveLength(20);
+    const qs = questoesParaEngine(content.mcq);
+    expect(qs).toHaveLength(40);
     for (const q of qs) {
-      expect(Object.keys(q).sort()).toEqual(["competencia", "conceitos", "dificuldade", "id"]);
+      expect(Object.keys(q).sort()).toEqual(["competencia", "conceitos", "dificuldade", "etapa", "id"]);
     }
   });
 });
@@ -179,5 +186,19 @@ describe("loadNivelamentoContent", () => {
     expect(() =>
       loadNivelamentoContent({ ...(raw as object), mcq: [{ id: "x" }] }),
     ).toThrow();
+  });
+
+  const mcqCru = (raw as { mcq: { id: string; competencia: string; etapa?: number }[] }).mcq;
+
+  it("recusa competência com etapa 1 e sem etapa 2", () => {
+    const semEtapa2 = mcqCru.filter((q) => !(q.competencia === "dl-aplicado" && q.etapa === 2));
+    expect(() => loadNivelamentoContent({ ...(raw as object), mcq: semEtapa2 })).toThrow(
+      /dl-aplicado.*etapa 2/,
+    );
+  });
+
+  it("recusa id repetido", () => {
+    const repetido = [...mcqCru, mcqCru[0]];
+    expect(() => loadNivelamentoContent({ ...(raw as object), mcq: repetido })).toThrow(/repetido/);
   });
 });

@@ -1,6 +1,6 @@
 {
   "version": "2",
-  "note": "Banco do nivelamento v2. As 20 MCQ pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}); o auto-relato calibra o prior e a mensagem, não o gate de dispensa. Toda MCQ tem 'Não sei' na última posição — admitir a dúvida vale mais que chutar.",
+  "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Toda MCQ tem 'Não sei' na última posição.",
   "auto_relato": [
     {
       "id": "ar1",
@@ -126,6 +126,64 @@
       "correta": 0
     },
     {
+      "id": "n-matematica-e2-1",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["algebra-linear-basica"],
+      "pergunta": "Uma matriz A tem formato 3×2 e um vetor x tem 2 componentes. O produto A·x é:",
+      "opcoes": [
+        "Um vetor com 2 componentes",
+        "Um vetor com 3 componentes",
+        "Uma matriz 2×3",
+        "Indefinido, porque os formatos não são compatíveis",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-matematica-e2-2",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["probabilidade-basica"],
+      "pergunta": "Uma moeda honesta deu cara 5 vezes seguidas. A probabilidade de dar cara no 6º lançamento é:",
+      "opcoes": [
+        "Menor que 50%, porque agora coroa está “devendo”",
+        "Maior que 50%, porque a moeda está numa sequência",
+        "50%, porque cada lançamento é independente dos anteriores",
+        "1/64, a chance de sair cara 6 vezes seguidas",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-matematica-e2-3",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["gradiente", "calculo-vetorial"],
+      "pergunta": "Para f(x, y) = x² + 3y, o gradiente no ponto (1, 2) é:",
+      "opcoes": [
+        "(2, 3)",
+        "(1, 3)",
+        "(2, 6)",
+        "7, o valor de f nesse ponto",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-matematica-e2-4",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["calculo-vetorial", "gradiente"],
+      "pergunta": "Para L(w) = (wx − y)², com x = 2 e y = 1, quanto vale dL/dw em w = 1?",
+      "opcoes": ["1", "2", "8", "4", { "texto": "Não sei", "naoSei": true }],
+      "correta": 3
+    },
+    {
       "id": "n-ml-classico-1",
       "competencia": "ml-classico",
       "dificuldade": 1,
@@ -184,6 +242,70 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0
+    },
+    {
+      "id": "n-ml-classico-e2-1",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["regressao-linear"],
+      "pergunta": "Na regressão linear y = wx + b, o que o coeficiente w indica?",
+      "opcoes": [
+        "O valor previsto de y quando x é zero",
+        "O erro médio das previsões do modelo",
+        "A correlação entre x e y, sempre entre −1 e 1",
+        "Quanto y muda, em média, quando x aumenta uma unidade",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-ml-classico-e2-2",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["train-val-test", "overfitting"],
+      "pergunta": "Você testou 50 combinações de hiperparâmetros e ficou com a de melhor nota no conjunto de teste. Qual o problema?",
+      "opcoes": [
+        "Nenhum: o conjunto de teste existe justamente para escolher o melhor modelo",
+        "A nota no teste deixa de ser uma estimativa honesta, porque o teste entrou na escolha",
+        "50 combinações são poucas para encontrar um modelo realmente bom",
+        "O treino fica mais lento, porque cada combinação precisa ser treinada de novo",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-ml-classico-e2-3",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["knn"],
+      "pergunta": "Por que normalizar as features antes de usar k-NN?",
+      "opcoes": [
+        "Porque, sem isso, a distância fica dominada pelas features de maior escala",
+        "Porque o k-NN só aceita valores de entrada entre 0 e 1",
+        "Para o treino do k-NN convergir em menos épocas",
+        "Para reduzir o número de vizinhos necessários para classificar",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-ml-classico-e2-4",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["regularizacao", "overfitting"],
+      "pergunta": "Se você aumenta demais a força da regularização (λ), o que tende a acontecer?",
+      "opcoes": [
+        "O modelo decora o treino e piora na validação",
+        "O erro de treino cai a zero",
+        "Nada relevante: a regularização só afeta o tempo de treino",
+        "O modelo fica simples demais e erra tanto no treino quanto na validação",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
     },
     {
       "id": "n-dl-fundamentos-1",
@@ -246,6 +368,70 @@
       "correta": 3
     },
     {
+      "id": "n-dl-fundamentos-e2-1",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["gradient-descent"],
+      "pergunta": "Uma época de treino corresponde a:",
+      "opcoes": [
+        "Uma única atualização dos pesos",
+        "Uma passada completa pelo conjunto de treino",
+        "O processamento de um mini-batch",
+        "O tempo até a loss parar de cair",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-dl-fundamentos-e2-2",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["batchnorm"],
+      "pergunta": "O que a batch normalization faz numa camada da rede?",
+      "opcoes": [
+        "Normaliza o dataset inteiro uma única vez, antes de o treino começar, com média e desvio globais",
+        "Divide o dataset em mini-batches de mesmo tamanho, para os gradientes terem escala parecida",
+        "Normaliza as ativações com a média e a variância do mini-batch, com escala e deslocamento aprendidos",
+        "Zera ao acaso parte das ativações a cada passo, para a rede não depender de neurônios específicos",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-dl-fundamentos-e2-3",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["ativacoes", "backprop"],
+      "pergunta": "Por que redes profundas com sigmoide nas camadas ocultas costumam treinar mal?",
+      "opcoes": [
+        "A derivada da sigmoide é pequena, e o gradiente encolhe ao atravessar muitas camadas",
+        "A sigmoide não é diferenciável em zero, o que interrompe o backpropagation",
+        "A sigmoide gera valores negativos que cancelam os gradientes entre camadas",
+        "A sigmoide só funciona na camada de saída; nas ocultas, ela zera as ativações",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-dl-fundamentos-e2-4",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["backprop", "mlp"],
+      "pergunta": "Se todos os pesos de uma MLP começarem com o mesmo valor, o que acontece no treino?",
+      "opcoes": [
+        "O treino converge mais rápido, porque parte de um ponto equilibrado",
+        "Os neurônios de uma mesma camada recebem gradientes iguais e continuam idênticos entre si",
+        "A rede passa a se comportar como um modelo linear",
+        "Os gradientes explodem já nas primeiras iterações",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
       "id": "n-dl-aplicado-1",
       "competencia": "dl-aplicado",
       "dificuldade": 1,
@@ -306,6 +492,64 @@
       "correta": 2
     },
     {
+      "id": "n-dl-aplicado-e2-1",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["dataloaders", "pytorch"],
+      "pergunta": "Um lote de imagens em PyTorch tem formato (32, 3, 224, 224). O que é o 32?",
+      "opcoes": [
+        "O número de canais de cor",
+        "A altura de cada imagem",
+        "O número de imagens no lote",
+        "O número de classes do problema",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-dl-aplicado-e2-2",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["pytorch"],
+      "pergunta": "No loop de treino em PyTorch, por que chamar optimizer.zero_grad() a cada passo?",
+      "opcoes": [
+        "Para reiniciar os pesos do modelo antes de cada novo mini-batch",
+        "Para liberar a memória da GPU ocupada pelo passo anterior",
+        "Para desligar o dropout enquanto o lote é processado",
+        "Porque backward() soma os gradientes novos aos antigos em vez de substituí-los",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
+    },
+    {
+      "id": "n-dl-aplicado-e2-3",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["cnn"],
+      "pergunta": "Uma convolução 3×3, com stride 1 e sem padding, aplicada a uma imagem 32×32 gera um mapa de:",
+      "opcoes": ["30×30", "32×32", "29×29", "10×10", { "texto": "Não sei", "naoSei": true }],
+      "correta": 0
+    },
+    {
+      "id": "n-dl-aplicado-e2-4",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["pytorch"],
+      "pergunta": "Para que serve chamar model.eval() antes de avaliar um modelo em PyTorch?",
+      "opcoes": [
+        "Congela os pesos, para que não sejam atualizados durante a avaliação",
+        "Faz camadas como dropout e batch norm se comportarem como na inferência",
+        "Desliga o cálculo de gradientes, economizando memória durante a avaliação",
+        "Calcula e registra automaticamente as métricas de avaliação",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
       "id": "n-transformers-llms-1",
       "competencia": "transformers-llms",
       "dificuldade": 1,
@@ -364,6 +608,70 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 1
+    },
+    {
+      "id": "n-transformers-llms-e2-1",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["embeddings"],
+      "pergunta": "Num modelo de linguagem, o embedding de um token é:",
+      "opcoes": [
+        "O índice do token no vocabulário",
+        "Um vetor aprendido que representa o token",
+        "A frequência do token nos dados de treino",
+        "Uma versão comprimida do texto de entrada",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1
+    },
+    {
+      "id": "n-transformers-llms-e2-2",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["geracao-de-texto"],
+      "pergunta": "Na geração de texto, aumentar a temperatura da amostragem tende a:",
+      "opcoes": [
+        "Deixar as respostas mais determinísticas",
+        "Aumentar o tamanho máximo da resposta",
+        "Tornar a escolha dos próximos tokens mais aleatória e variada",
+        "Fazer o modelo considerar um contexto mais longo",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2
+    },
+    {
+      "id": "n-transformers-llms-e2-3",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["atencao", "transformer"],
+      "pergunta": "Na atenção, para que servem os vetores Q (query), K (key) e V (value)?",
+      "opcoes": [
+        "Q é comparado com K para dar os pesos da atenção, que então combinam os V",
+        "São três camadas empilhadas, aplicadas em sequência em cada bloco do Transformer",
+        "Representam, respectivamente, os tokens de entrada, os de saída e o vocabulário",
+        "Normalizam, comprimem e decodificam os embeddings antes da camada de saída",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0
+    },
+    {
+      "id": "n-transformers-llms-e2-4",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["geracao-de-texto", "transformer"],
+      "pergunta": "Por que um modelo gerador como o GPT usa máscara causal na atenção?",
+      "opcoes": [
+        "Para esconder os tokens de preenchimento (padding) quando as frases têm tamanhos diferentes",
+        "Para reduzir o custo quadrático da atenção em sequências longas",
+        "Para impedir que o modelo repita a mesma palavra várias vezes seguidas",
+        "Para cada posição só enxergar os tokens anteriores, como na geração, em que o futuro ainda não existe",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3
     }
   ],
   "colab": {

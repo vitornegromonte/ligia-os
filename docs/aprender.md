@@ -8,7 +8,7 @@ plataforma Next.js que vivia em repositório separado.
 | Rota | O que é |
 |---|---|
 | `/aprender` | A trilha: 29 conceitos em 6 módulos, com estado e progresso |
-| `/aprender/nivelamento` | Wizard de nivelamento e o resultado (matriz, dispensa) |
+| `/aprender/nivelamento` | Wizard de nivelamento e o resultado (matriz, confirmação de dispensa em duas etapas); `?ver=resultado` reabre a última rodada |
 | `/aprender/c/:conceptId` | **Hub da lição** — material, aula, prática conceitual e de código |
 | `/aprender/c/:conceptId/praticar` | Prática de recuperação, corrigida pelo avaliador |
 | `/aprender/codar` | Catálogo dos 41 exercícios de PyTorch |

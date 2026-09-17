@@ -85,6 +85,12 @@ export function mergeLoops(
  * Nivelamento: o local guarda só a rodada corrente, e vence a de `ts` mais
  * recente. O banco mantém o histórico de todas as rodadas (`pretest_results` é
  * append-only), então nada se perde do lado durável.
+ *
+ * Mesma rodada (`ts` igual) em duas versões acontece porque a rodada cresce
+ * depois de salva: a etapa 2 acrescenta resultados e confirmar a dispensa
+ * acrescenta módulos. As duas coisas só crescem, então vence a versão com mais
+ * resultados e as dispensas se unem. Sem isso, o dispositivo que ficou com a
+ * versão velha a empurraria de volta por cima da nova.
  */
 export function mergeNivelamento(
   local: PretestResultV2 | null,
@@ -92,7 +98,19 @@ export function mergeNivelamento(
 ): PretestResultV2 | null {
   if (!local) return remoto;
   if (!remoto) return local;
-  return local.ts.localeCompare(remoto.ts) >= 0 ? local : remoto;
+  const porTs = local.ts.localeCompare(remoto.ts);
+  if (porTs !== 0) return porTs > 0 ? local : remoto;
+
+  const tamanho = (n: PretestResultV2) => Object.keys(n.resultados ?? {}).length;
+  // Desempate final por conteúdo: sem ele a escolha dependeria da ordem dos argumentos.
+  const base =
+    tamanho(local) !== tamanho(remoto)
+      ? tamanho(local) > tamanho(remoto) ? local : remoto
+      : JSON.stringify(local) >= JSON.stringify(remoto) ? local : remoto;
+  const dispensasConfirmadas = [
+    ...new Set([...local.dispensasConfirmadas, ...remoto.dispensasConfirmadas]),
+  ].sort();
+  return { ...base, dispensasConfirmadas };
 }
 
 /** Aplica as quatro regras acima de uma vez. */

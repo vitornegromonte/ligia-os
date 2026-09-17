@@ -2,13 +2,19 @@ import { describe, it, expect } from "vitest";
 import { COMPETENCIAS, competenciaDoModulo } from "@/lib/competencias";
 import type { CompetenciaId } from "@/lib/competencias";
 import {
+  avaliarEtapa2,
   COLAB_BONUS,
+  MENSAGEM_A_CONFIRMAR,
   MENSAGENS_FRONTEIRA,
   PRIOR_BOOST,
   recomendar,
   scoreCompetencias,
 } from "@/lib/nivelamento";
-import type { QuestaoNivelamento, ResultadoQuestao } from "@/lib/nivelamento";
+import type {
+  QuestaoNivelamento,
+  ResultadoEtapa2,
+  ResultadoQuestao,
+} from "@/lib/nivelamento";
 
 // ---------------------------------------------------------------------------
 // Fixtures sintéticas — a engine não conhece o conteúdo real; aqui montamos
@@ -21,8 +27,19 @@ function q(
   competencia: CompetenciaId,
   dificuldade: 1 | 2 | 3,
   conceitos: string[],
+  etapa: 1 | 2 = 1,
 ): QuestaoNivelamento {
-  return { id, competencia, dificuldade, conceitos };
+  return { id, competencia, dificuldade, conceitos, etapa };
+}
+
+/** Etapa 2 aprovada (ou não) sem precisar montar questões — pros testes de recomendar. */
+function etapa2Feita(aprovada: boolean, conceitosFracos: string[] = []): ResultadoEtapa2 {
+  return { aprovada, mcqScoreAcumulado: aprovada ? 100 : 50, acertos: 0, total: 8, conceitosFracos };
+}
+
+/** Todas as competências dadas aprovadas na etapa 2. */
+function aprovadas(...ids: CompetenciaId[]): Partial<Record<CompetenciaId, ResultadoEtapa2>> {
+  return Object.fromEntries(ids.map((id) => [id, etapa2Feita(true)]));
 }
 
 /** 4 questões da competência com as dificuldades dadas; 1 conceito único por questão. */
@@ -205,7 +222,7 @@ describe("PRIOR_BOOST", () => {
     });
     expect(m.matematica.mcqScore).toBeCloseTo(71.43, 1);
     expect(m.matematica.score).toBeCloseTo(76.43, 1); // exibido ≥ 75…
-    const rec = recomendar(m, { prior });
+    const rec = recomendar(m);
     expect(rec.estados.matematica).toBe("revisao-dirigida"); // …mas o gate usa SÓ mcqScore
   });
 });
@@ -280,37 +297,132 @@ describe("confiança", () => {
 });
 
 // ---------------------------------------------------------------------------
-// recomendar — dispensa em 2 níveis
+// Dispensa em duas etapas
 // ---------------------------------------------------------------------------
 
-describe("dispensa em 2 níveis", () => {
-  it("4/4 → dispensável pré-marcada, sem conceitos fracos", () => {
+describe("etapa 1 só candidata o módulo", () => {
+  it("4/4 → dispensa-a-confirmar: nada é dispensável sem a etapa 2", () => {
     const { questoes, resultados } = bateria({ matematica: 4 });
-    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {});
-    expect(rec.estados.matematica).toBe("dispensavel");
-    expect(rec.dispensaveisSugeridos).toContainEqual({
-      modulo: "M0",
-      competencia: "matematica",
-      sugestao: "pre-marcada",
-      conceitosFracos: [],
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}));
+    expect(rec.estados.matematica).toBe("dispensa-a-confirmar");
+    expect(rec.candidatasDispensa).toEqual([
+      { modulo: "M0", competencia: "matematica", conceitosFracos: [] },
+    ]);
+    expect(rec.dispensaveisSugeridos).toEqual([]);
+  });
+
+  it("3/4 = 75 também candidata, com o conceito errado listado — sem precisar de auto-relato", () => {
+    const { questoes, resultados } = bateria({ "ml-classico": 3 });
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}));
+    expect(rec.estados["ml-classico"]).toBe("dispensa-a-confirmar");
+    expect(rec.candidatasDispensa).toContainEqual({
+      modulo: "M1",
+      competencia: "ml-classico",
+      conceitosFracos: ["ml-classico-c4"],
     });
   });
 
-  it("3/4 = 75 sem prior → NÃO dispensável; com prior → desmarcada com o conceito errado listado", () => {
-    const { questoes, resultados } = bateria({ "ml-classico": 3 }); // mcq 75, confianca media
-    const semPrior = recomendar(scoreCompetencias(questoes, resultados, {}), {});
-    expect(semPrior.estados["ml-classico"]).toBe("revisao-dirigida");
-    expect(semPrior.dispensaveisSugeridos).toEqual([]);
+  it("o auto-relato não muda estado nenhum", () => {
+    const { questoes, resultados } = bateria({ matematica: 3, "ml-classico": 2 });
+    const prior = { matematica: true, "ml-classico": true } as const;
+    const semPrior = recomendar(scoreCompetencias(questoes, resultados, {}));
+    const comPrior = recomendar(scoreCompetencias(questoes, resultados, { prior }));
+    expect(comPrior.estados).toEqual(semPrior.estados);
+  });
 
-    const prior = { "ml-classico": true } as const;
-    const comPrior = recomendar(scoreCompetencias(questoes, resultados, { prior }), { prior });
-    expect(comPrior.estados["ml-classico"]).toBe("dispensavel");
-    expect(comPrior.dispensaveisSugeridos).toContainEqual({
-      modulo: "M1",
-      competencia: "ml-classico",
-      sugestao: "desmarcada",
-      conceitosFracos: ["ml-classico-c4"], // o diálogo lista o que errou
+  it("candidata bloqueia a fronteira e troca a mensagem pela de confirmação", () => {
+    const { questoes, resultados } = bateria({ matematica: 4, "ml-classico": 1 });
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}));
+    expect(rec.fronteira).toBe("M0");
+    expect(rec.mensagem).toBe(MENSAGEM_A_CONFIRMAR);
+  });
+});
+
+describe("avaliarEtapa2", () => {
+  /** Etapa 1 e etapa 2 de matemática com pesos {1,2,2,3} cada. */
+  function duasEtapas() {
+    const e1 = [1, 2, 2, 3].map((d, i) =>
+      q(`m1-${i}`, "matematica", d as 1 | 2 | 3, [`e1-c${i}`], 1),
+    );
+    const e2 = [1, 2, 2, 3].map((d, i) =>
+      q(`m2-${i}`, "matematica", d as 1 | 2 | 3, [`e2-c${i}`], 2),
+    );
+    return { e1, e2, todas: [...e1, ...e2] };
+  }
+
+  it("scoreCompetencias ignora a etapa 2: o radar é só da etapa 1", () => {
+    const { e1, todas } = duasEtapas();
+    const r = resultadosDe(todas, [
+      "acerto", "acerto", "acerto", "acerto",
+      "erro", "erro", "erro", "erro",
+    ]);
+    expect(scoreCompetencias(todas, r, {})).toEqual(scoreCompetencias(e1, r, {}));
+  });
+
+  it("aprova pela nota acumulada: 4/4 na etapa 1 compensa errar a difícil da etapa 2", () => {
+    const { todas } = duasEtapas();
+    const r = resultadosDe(todas, [
+      "acerto", "acerto", "acerto", "acerto",
+      "acerto", "acerto", "acerto", "erro",
+    ]); // 13/16 = 81.25
+    const e = avaliarEtapa2(todas, r).matematica!;
+    expect(e.mcqScoreAcumulado).toBeCloseTo(81.25, 2);
+    expect(e.aprovada).toBe(true);
+    expect(e.conceitosFracos).toEqual(["e2-c3"]);
+  });
+
+  it("reprova abaixo de 75 acumulado e junta os fracos das duas etapas", () => {
+    const { todas } = duasEtapas();
+    const r = resultadosDe(todas, [
+      "erro", "acerto", "acerto", "acerto", // etapa 1: 7/8
+      "acerto", "erro", "nao-sei", "acerto", // etapa 2: 4/8 → acumulado 11/16
+    ]);
+    const e = avaliarEtapa2(todas, r).matematica!;
+    expect(e.mcqScoreAcumulado).toBeCloseTo(68.75, 2);
+    expect(e.aprovada).toBe(false);
+    expect(e.conceitosFracos).toEqual(["e1-c0", "e2-c1", "e2-c2"]);
+  });
+
+  it("nunca aprova quem não foi candidato na etapa 1, mesmo gabaritando a etapa 2", () => {
+    const { todas } = duasEtapas();
+    const r = resultadosDe(todas, [
+      "acerto", "acerto", "erro", "erro", // etapa 1: 3/8
+      "acerto", "acerto", "acerto", "acerto",
+    ]);
+    // acumulado 11/16 < 75 de qualquer forma; o caso sem etapa 1 prova a regra
+    expect(avaliarEtapa2(todas, r).matematica!.aprovada).toBe(false);
+    const soEtapa2 = todas.filter((x) => x.etapa === 2);
+    expect(avaliarEtapa2(soEtapa2, r).matematica!.aprovada).toBe(false);
+  });
+
+  it("só aparece competência que tem questão de etapa 2 na lista", () => {
+    const { e1 } = duasEtapas();
+    expect(avaliarEtapa2(e1, {})).toEqual({});
+  });
+});
+
+describe("recomendar com a etapa 2", () => {
+  it("aprovada → dispensavel, sugerida com os fracos das duas etapas", () => {
+    const { questoes, resultados } = bateria({ matematica: 4 });
+    const m = scoreCompetencias(questoes, resultados, {});
+    const rec = recomendar(m, { etapa2: { matematica: etapa2Feita(true, ["gradiente"]) } });
+    expect(rec.estados.matematica).toBe("dispensavel");
+    expect(rec.dispensaveisSugeridos).toEqual([
+      { modulo: "M0", competencia: "matematica", conceitosFracos: ["gradiente"] },
+    ]);
+    expect(rec.candidatasDispensa).toEqual([]);
+  });
+
+  it("reprovada → revisao-dirigida na fronteira, com ⭐ nos fracos acumulados", () => {
+    const { questoes, resultados } = bateria({ matematica: 4 });
+    const m = scoreCompetencias(questoes, resultados, {});
+    const rec = recomendar(m, {
+      etapa2: { matematica: etapa2Feita(false, ["gradiente", "probabilidade-basica"]) },
     });
+    expect(rec.estados.matematica).toBe("revisao-dirigida");
+    expect(rec.fronteira).toBe("M0");
+    expect(rec.starNodes).toEqual(["gradiente", "probabilidade-basica"]);
+    expect(rec.mensagem).toBe(MENSAGENS_FRONTEIRA.M0);
   });
 });
 
@@ -327,7 +439,9 @@ describe("fronteira", () => {
       "dl-aplicado": 4,
       "transformers-llms": 4,
     });
-    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {});
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {
+      etapa2: aprovadas("matematica", "ml-classico", "dl-aplicado", "transformers-llms"),
+    });
     expect(rec.fronteira).toBe("M2");
     expect(rec.estados["dl-fundamentos"]).toBe("revisao-dirigida");
     expect(rec.starNodes).toEqual(["dl-fundamentos-c3", "dl-fundamentos-c4"]);
@@ -342,7 +456,9 @@ describe("fronteira", () => {
       "dl-aplicado": 4,
       "transformers-llms": 4,
     });
-    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {});
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {
+      etapa2: aprovadas(...COMPETENCIAS.map((c) => c.id)),
+    });
     expect(rec.fronteira).toBe("M5");
     expect(rec.starNodes).toEqual([]);
     expect(rec.mensagem).toBe(
@@ -359,7 +475,9 @@ describe("fronteira", () => {
       "dl-aplicado": 4,
       "transformers-llms": 4,
     });
-    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {});
+    const rec = recomendar(scoreCompetencias(questoes, resultados, {}), {
+      etapa2: aprovadas("matematica", "dl-fundamentos", "dl-aplicado", "transformers-llms"),
+    });
     expect(rec.estados["ml-classico"]).toBe("sem-evidencia");
     expect(rec.fronteira).toBe("M1");
     expect(rec.starNodes).toEqual([]); // sem questões, sem fracos
