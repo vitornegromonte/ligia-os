@@ -48,7 +48,7 @@ export default function RevisaoQuestoes({ conteudo, rodada }) {
                 cobrem os mesmos assuntos, a revisão abre depois dela.
               </p>
             ) : (
-              <ListaRevisao questoes={questoes} resultados={rodada.resultados} />
+              <ListaRevisao questoes={questoes} rodada={rodada} />
             )}
           </details>
         );
@@ -62,18 +62,20 @@ export default function RevisaoQuestoes({ conteudo, rodada }) {
               {codigo.filter((q) => rodada.resultados[q.id] === "acerto").length} de {codigo.length}
             </span>
           </summary>
-          <ListaRevisao questoes={codigo} resultados={rodada.resultados} />
+          <ListaRevisao questoes={codigo} rodada={rodada} />
         </details>
       )}
     </div>
   );
 }
 
-function ListaRevisao({ questoes, resultados }) {
+function ListaRevisao({ questoes, rodada }) {
   return (
     <ol className="nv-revisao__lista">
       {questoes.map((q) => {
-        const resultado = resultados[q.id];
+        const resultado = rodada.resultados[q.id];
+        // Rodada anterior ao campo `respostas` não sabe qual alternativa foi marcada.
+        const marcada = resultado === "erro" ? q.opcoes[rodada.respostas?.[q.id]] : undefined;
         const { rotulo, Icone } = STATUS[resultado] ?? STATUS["nao-sei"];
         return (
           <li key={q.id} className="nv-revisao__item" data-questao={q.id}>
@@ -86,6 +88,11 @@ function ListaRevisao({ questoes, resultados }) {
               <pre className="nv-codigo" style={{ marginTop: 8, fontSize: 12 }}>
                 <code>{q.codigo}</code>
               </pre>
+            )}
+            {marcada && (
+              <p className="nv-revisao__equivoco">
+                Você marcou <strong>“{marcada.texto}”</strong>.{marcada.equivoco ? ` ${marcada.equivoco}` : ""}
+              </p>
             )}
             <p className="nv-revisao__certa">
               Resposta: <strong>{q.opcoes[q.correta].texto}</strong>

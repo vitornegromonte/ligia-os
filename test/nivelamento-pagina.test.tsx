@@ -93,6 +93,35 @@ describe("Nivelamento — página", () => {
     for (const c of Object.values(salvo.matriz)) expect(c.score).toBe(0);
   });
 
+  it("na revisão, erro com alternativa registrada mostra o que foi marcado e o equívoco", () => {
+    const prova = montarProva(NIVELAMENTO, 1, { seed: "teste" });
+    const alvo = prova.find((q) => q.competencia === "ml-classico")!;
+    const errada = alvo.opcoes.findIndex((o, i) => i !== alvo.correta && !o.naoSei);
+    const escolhas = Object.fromEntries(
+      prova.map((q) => [q.id, q.id === alvo.id ? errada : q.opcoes.findIndex((o) => o.naoSei)]),
+    );
+    const resultados = corrigir(prova, escolhas);
+    const matriz = scoreCompetencias(questoesParaEngine(prova), resultados, {});
+    savePretestV2({
+      version: 2,
+      contentVersion: NIVELAMENTO.version,
+      matriz,
+      resultados,
+      respostas: escolhas,
+      autoRelato: {},
+      recomendacao: recomendar(matriz),
+      dispensasConfirmadas: [],
+      ts: "2026-09-17T12:00:00.000Z",
+    });
+    renderizar("/aprender/nivelamento?ver=resultado");
+    const item = document.querySelector(`[data-questao="${alvo.id}"]`)!;
+    expect(item).toHaveTextContent(`Você marcou “${alvo.opcoes[errada].texto}”.`);
+    expect(item).toHaveTextContent(alvo.opcoes[errada].equivoco!);
+    // "Não sei" não é erro: não aponta equívoco.
+    const outra = prova.find((q) => q.competencia === "matematica")!;
+    expect(document.querySelector(`[data-questao="${outra.id}"] .nv-revisao__equivoco`)).toBeNull();
+  });
+
   it("sem rodada salva, ?ver=resultado cai no wizard", () => {
     renderizar("/aprender/nivelamento?ver=resultado");
     expect(screen.getByRole("button", { name: /Começar/ })).toBeInTheDocument();

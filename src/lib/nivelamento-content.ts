@@ -22,8 +22,13 @@ import type { PriorAutoRelato, QuestaoNivelamento } from "./nivelamento";
 const COMPETENCIA_IDS = COMPETENCIAS.map((c) => c.id) as [CompetenciaId, ...CompetenciaId[]];
 const CompetenciaSchema = z.enum(COMPETENCIA_IDS);
 
-/** Opção de MCQ já normalizada. `naoSei` = a opção honesta ("Não sei"). */
-export type OpcaoConteudo = { texto: string; naoSei: boolean };
+/**
+ * Opção de MCQ já normalizada. `naoSei` = a opção honesta ("Não sei").
+ * `equivoco` = o engano típico de quem marca esta alternativa errada, mostrado
+ * na revisão do resultado (concept inventories: cada distrator corresponde a
+ * um equívoco conhecido).
+ */
+export type OpcaoConteudo = { texto: string; naoSei: boolean; equivoco: string | null };
 
 /** Opção de auto-relato normalizada: pode declarar competência (prior) ou ser exclusiva. */
 export type OpcaoAutoRelato = {
@@ -35,12 +40,16 @@ export type OpcaoAutoRelato = {
 const OpcaoConteudoSchema = z
   .union([
     z.string().min(1),
-    z.object({ texto: z.string().min(1), naoSei: z.boolean().optional() }),
+    z.object({
+      texto: z.string().min(1),
+      naoSei: z.boolean().optional(),
+      equivoco: z.string().min(1).optional(),
+    }),
   ])
   .transform((op): OpcaoConteudo =>
     typeof op === "string"
-      ? { texto: op, naoSei: false }
-      : { texto: op.texto, naoSei: op.naoSei ?? false },
+      ? { texto: op, naoSei: false, equivoco: null }
+      : { texto: op.texto, naoSei: op.naoSei ?? false, equivoco: op.equivoco ?? null },
   );
 
 const OpcaoAutoRelatoSchema = z
@@ -179,6 +188,9 @@ function checarConteudo(c: NivelamentoContent): void {
     }
     if (q.opcoes[q.correta].naoSei) {
       throw new Error(`Questão ${q.id}: correta aponta pra opção "Não sei".`);
+    }
+    if (q.opcoes[q.correta].equivoco || q.opcoes.some((o) => o.naoSei && o.equivoco)) {
+      throw new Error(`Questão ${q.id}: equívoco só cabe em alternativa errada.`);
     }
   }
   const ativas = c.mcq.filter((q) => !q.aposentada);

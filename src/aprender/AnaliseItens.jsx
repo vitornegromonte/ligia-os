@@ -245,6 +245,7 @@ function ItemAnalise({ item }) {
                   <span className="ai-alternativas__texto">
                     {i === forma.correta && <Check size={12} aria-label="correta" style={{ color: "var(--success)", marginRight: 4 }} />}
                     {o.texto}
+                    {o.equivoco && <span className="ai-alternativas__equivoco">{o.equivoco}</span>}
                   </span>
                   <span className="ai-alternativas__barra" aria-hidden>
                     <span style={{ width: `${Math.round(fracao * 100)}%` }} />

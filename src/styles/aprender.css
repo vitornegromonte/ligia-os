@@ -289,6 +289,16 @@
 .nv-revisao__status--erro { color: var(--danger); }
 .nv-revisao__status--nao-sei { color: var(--warning); }
 .nv-revisao__pergunta { margin: 6px 0 0; font-size: 14px; line-height: 1.5; }
+.nv-revisao__equivoco {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--danger);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--danger-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.nv-revisao__equivoco strong { font-weight: 600; }
 .nv-revisao__certa { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .nv-revisao__certa strong { color: var(--text); font-weight: 600; }
 .nv-revisao__explicacao { margin: 6px 0 0; font-size: 13px; line-height: 1.65; }
@@ -339,6 +349,7 @@
   font-size: 12px;
 }
 .ai-alternativas__texto { min-width: 0; overflow-wrap: anywhere; }
+.ai-alternativas__equivoco { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
 .ai-alternativas__barra { height: 6px; overflow: hidden; border-radius: 999px; background: var(--surface-3); }
 .ai-alternativas__barra span { display: block; height: 100%; background: var(--accent); }
 .ai-alternativas__valor { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }

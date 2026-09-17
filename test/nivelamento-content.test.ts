@@ -184,6 +184,35 @@ describe("leitura de código", () => {
   });
 });
 
+describe("banco de questões — equívocos dos distratores", () => {
+  const ativas = () =>
+    [...content.mcq, ...content.codigo.questoes].filter((q) => !q.aposentada);
+
+  it("toda alternativa errada de questão ativa diz qual é o equívoco", () => {
+    for (const q of ativas()) {
+      q.opcoes.forEach((o, i) => {
+        if (i === q.correta || o.naoSei) return;
+        expect(o.equivoco?.length ?? 0, `${q.id} [${i}] ${o.texto}`).toBeGreaterThan(20);
+      });
+    }
+  });
+
+  it("a certa e o 'Não sei' não têm equívoco", () => {
+    for (const q of ativas()) {
+      expect(q.opcoes[q.correta].equivoco, q.id).toBeNull();
+      expect(q.opcoes.find((o) => o.naoSei)?.equivoco, q.id).toBeNull();
+    }
+  });
+
+  it("recusa equívoco na alternativa certa", () => {
+    const cru = structuredClone(raw) as { mcq: { opcoes: unknown[]; correta: number }[] };
+    const q = cru.mcq.find((x) => !("aposentada" in x))!;
+    const certa = q.opcoes[q.correta];
+    q.opcoes[q.correta] = { texto: typeof certa === "string" ? certa : (certa as { texto: string }).texto, equivoco: "não deveria estar aqui" };
+    expect(() => loadNivelamentoContent(cru)).toThrow(/equívoco/);
+  });
+});
+
 describe("banco de questões — explicações", () => {
   it("toda MCQ explica a resposta em texto curto", () => {
     for (const q of content.mcq) {
