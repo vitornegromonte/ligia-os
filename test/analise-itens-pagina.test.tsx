@@ -5,7 +5,7 @@ import { NIVELAMENTO } from "@/aprender/dados";
 import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
 import { questoesParaEngine } from "@/lib/nivelamento-content";
 import { corrigir, montarProva, respostasDe } from "@/lib/nivelamento-rodada";
-import { savePretestV2 } from "@/lib/pretest-storage";
+import { savePerfil, savePretestV2 } from "@/lib/pretest-storage";
 
 afterEach(() => {
   vi.doUnmock("../src/contexts/AuthContext.jsx");
@@ -30,6 +30,7 @@ describe("Análise do nivelamento — página", () => {
       dispensasConfirmadas: [],
       ts: "2026-09-17T12:00:00.000Z",
     });
+    savePerfil({ autoRelato: { ar4: [0] }, textosOutro: {}, contentVersion: NIVELAMENTO.version, atualizadoEm: "2026-09-17T12:00:00.000Z" });
 
     vi.resetModules();
     vi.doMock("../src/contexts/AuthContext.jsx", () => ({
@@ -49,6 +50,8 @@ describe("Análise do nivelamento — página", () => {
     expect(within(card).getByText("100%")).toBeInTheDocument();
     expect(within(card).getByText(/1 com a escolha registrada/)).toBeInTheDocument();
     expect(within(card).getByText("1 · 100%")).toBeInTheDocument();
+    // "Quem respondeu" mostra o perfil local.
+    expect(screen.getByText(/Quem respondeu · 1 pessoa/)).toBeInTheDocument();
     // Simulação do adaptativo aparece, sem recomendar nada com uma rodada.
     expect(screen.getByText(/Teste adaptativo \(simulação, não está ligado\)/)).toBeInTheDocument();
     expect(screen.getByText(/Dados insuficientes/)).toBeInTheDocument();
@@ -76,5 +79,34 @@ describe("Sidebar — item de staff", () => {
     await sidebarCom("membro");
     expect(screen.queryByRole("link", { name: /Análise do nivelamento/ })).toBeNull();
     expect(screen.getByRole("link", { name: /Trilha/ })).toBeInTheDocument();
+  });
+});
+
+describe("Membros — seção de nivelamento para admin", () => {
+  it("mostra as respostas com os rótulos do conteúdo e o texto de \"Outro\"", async () => {
+    const { PerfilAprendizVisao } = await import("../src/aprender/PerfilAprendizAdmin.jsx");
+    const ar2 = NIVELAMENTO.auto_relato.find((p) => p.id === "ar2")!;
+    const iOutra = ar2.opcoes.findIndex((o) => o.outro);
+    render(
+      <PerfilAprendizVisao
+        carregando={false}
+        erro={null}
+        perfil={{
+          auto_relato: { ar2: [0, iOutra] },
+          textos_outro: { ar2: "Rust" },
+          content_version: NIVELAMENTO.version,
+          updated_at: "2026-09-17T12:00:00.000Z",
+        }}
+      />,
+    );
+    const secao = document.querySelector("[data-perfil-aprendiz]") as HTMLElement;
+    expect(secao).toHaveTextContent(`${ar2.opcoes[0].texto}, ${ar2.opcoes[iOutra].texto} (Rust)`);
+    expect(secao).not.toHaveTextContent("rótulos podem ter mudado");
+  });
+
+  it("sem perfil, diz que a pessoa ainda não respondeu", async () => {
+    const { PerfilAprendizVisao } = await import("../src/aprender/PerfilAprendizAdmin.jsx");
+    render(<PerfilAprendizVisao carregando={false} erro={null} perfil={null} />);
+    expect(screen.getByText("Ainda não respondeu o nivelamento.")).toBeInTheDocument();
   });
 });

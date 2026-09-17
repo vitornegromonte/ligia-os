@@ -80,6 +80,49 @@ export type AnaliseItens = {
   formasDesiguais: FormasDesiguais[];
 };
 
+// ---------------------------------------------------------------------------
+// "Quem é você" — resumo dos perfis
+// ---------------------------------------------------------------------------
+
+export type PerfilParaResumo = {
+  autoRelato: Record<string, number[]>;
+  textosOutro?: Record<string, string> | null;
+};
+
+export type ResumoPergunta = {
+  id: string;
+  pergunta: string;
+  /** Quantas pessoas marcaram cada opção, na ordem do conteúdo. */
+  contagens: { texto: string; n: number }[];
+  /** Pessoas que marcaram ao menos uma opção nesta pergunta. */
+  respondentes: number;
+  /** Textos escritos em "Outro". */
+  outros: string[];
+};
+
+/** Conta as respostas do auto-relato de todos os perfis, por pergunta e opção. */
+export function resumirPerfis(
+  conteudo: NivelamentoContent,
+  perfis: readonly PerfilParaResumo[],
+): { pessoas: number; perguntas: ResumoPergunta[] } {
+  const perguntas = conteudo.auto_relato.map((p): ResumoPergunta => {
+    const contagens = p.opcoes.map((o) => ({ texto: o.texto, n: 0 }));
+    let respondentes = 0;
+    const outros: string[] = [];
+    for (const perfil of perfis) {
+      const marcadas = (perfil.autoRelato?.[p.id] ?? []).filter(
+        (i) => Number.isInteger(i) && i >= 0 && i < contagens.length,
+      );
+      if (marcadas.length) respondentes += 1;
+      for (const i of new Set(marcadas)) contagens[i].n += 1;
+      const texto = perfil.textosOutro?.[p.id]?.trim();
+      if (texto) outros.push(texto);
+    }
+    return { id: p.id, pergunta: p.pergunta, contagens, respondentes, outros };
+  });
+  return { pessoas: perfis.length, perguntas };
+}
+
 function tipoDe(q: FormaQuestao): TipoItem {
   if (!ehQuestaoMCQ(q)) return "codigo";
   return q.etapa === 2 ? "etapa2" : "etapa1";

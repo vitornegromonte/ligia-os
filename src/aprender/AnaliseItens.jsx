@@ -9,6 +9,7 @@ import { NIVELAMENTO, MODULOS, CONCEITOS } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import {
   analisarItens,
+  resumirPerfis,
   N_CORRELACAO,
   N_MINIMO,
   P_DIFICIL,
@@ -23,7 +24,7 @@ import {
   ESCONDIDO_REVISAO_MAX,
   RODADAS_MINIMAS,
 } from "../lib/adaptativo.ts";
-import { loadPretestV2 } from "../lib/pretest-storage.ts";
+import { loadPerfil, loadPretestV2 } from "../lib/pretest-storage.ts";
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
 
@@ -71,6 +72,9 @@ const VEREDITO = {
  */
 export default function AnaliseItens() {
   const [rodadas, setRodadas] = useState(null);
+  /** Perfis do "quem é você", no formato de resumirPerfis. */
+  const [perfis, setPerfis] = useState(null);
+  const [erroPerfis, setErroPerfis] = useState(null);
   const [origem, setOrigem] = useState("banco");
   const [erro, setErro] = useState(null);
   const [tipo, setTipo] = useState("etapa1");
@@ -82,6 +86,8 @@ export default function AnaliseItens() {
       const local = loadPretestV2();
       setOrigem("local");
       setRodadas(local ? [local] : []);
+      const perfil = loadPerfil();
+      setPerfis(perfil ? [perfil] : []);
       return;
     }
     let vivo = true;
@@ -95,6 +101,18 @@ export default function AnaliseItens() {
       }
       setRodadas(data ?? []);
     })();
+    (async () => {
+      const { data, error } = await supabase
+        .from("learner_profiles")
+        .select("auto_relato, textos_outro");
+      if (!vivo) return;
+      if (error) {
+        setErroPerfis(error.message);
+        setPerfis([]);
+        return;
+      }
+      setPerfis((data ?? []).map((r) => ({ autoRelato: r.auto_relato, textosOutro: r.textos_outro })));
+    })();
     return () => {
       vivo = false;
     };
@@ -104,6 +122,7 @@ export default function AnaliseItens() {
     () => (rodadas ? analisarItens(NIVELAMENTO, rodadas) : null),
     [rodadas],
   );
+  const resumo = useMemo(() => (perfis ? resumirPerfis(NIVELAMENTO, perfis) : null), [perfis]);
   const simulacao = useMemo(
     () => (rodadas ? simularAdaptativo(NIVELAMENTO, rodadas, PREREQS) : null),
     [rodadas],
@@ -145,6 +164,52 @@ export default function AnaliseItens() {
             Não foi possível ler as rodadas: {erro}. Se a mensagem cita a coluna “respostas”, falta
             aplicar a migração 0104.
           </p>
+        )}
+
+        {resumo && (
+          <Card style={{ marginBottom: 18 }} data-quem-respondeu>
+            <h2 className="ai-titulo">
+              Quem respondeu · {resumo.pessoas} {resumo.pessoas === 1 ? "pessoa" : "pessoas"}
+            </h2>
+            <p className="ai-legenda">
+              Respostas mais recentes do “quem é você”, inclusive de quem não terminou o nivelamento.
+              Cada pessoa aparece no próprio perfil em Membros.
+            </p>
+            {erroPerfis && (
+              <p className="ai-aviso ai-aviso--erro" role="alert" style={{ marginTop: 10 }}>
+                Não foi possível ler os perfis: {erroPerfis}. Se a tabela não existe, falta aplicar a
+                migração 0105.
+              </p>
+            )}
+            {resumo.pessoas > 0 && (
+              <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+                {resumo.perguntas.map((p) => (
+                  <details key={p.id}>
+                    <summary className="ai-legenda" style={{ cursor: "pointer", color: "var(--text)" }}>
+                      {p.pergunta} <span style={{ color: "var(--muted)" }}>({p.respondentes})</span>
+                    </summary>
+                    <ul className="ai-alternativas">
+                      {p.contagens.map((c) => {
+                        const fracao = p.respondentes ? c.n / p.respondentes : 0;
+                        return (
+                          <li key={c.texto}>
+                            <span className="ai-alternativas__texto">{c.texto}</span>
+                            <span className="ai-alternativas__barra" aria-hidden>
+                              <span style={{ width: `${Math.round(fracao * 100)}%` }} />
+                            </span>
+                            <span className="ai-alternativas__valor">{c.n}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {p.outros.length > 0 && (
+                      <p className="ai-legenda">“Outro”: {p.outros.join(" · ")}</p>
+                    )}
+                  </details>
+                ))}
+              </div>
+            )}
+          </Card>
         )}
 
         {analise && (

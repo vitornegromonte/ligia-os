@@ -14,6 +14,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useRealtime } from "../hooks/useRealtime.js";
 import { matchJob } from "../utils/ats.js";
 import { formatDate } from "../components/db/helpers.jsx";
+import PerfilAprendizAdmin from "../aprender/PerfilAprendizAdmin.jsx";
 
 const roleOptions = [
   { value: "all", label: "Todas as áreas" },
@@ -646,6 +647,7 @@ export default function TalentBank() {
                       </div>
                     </div>
                   )}
+                  {currentUser?.role === "admin" && <PerfilAprendizAdmin userId={selectedPerson.id} />}
                   <div style={{ marginBottom: 25 }}>
                     <h3 style={{ marginBottom: 11, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Sobre</h3>
                     <p style={{ color: "#c2bfb6", fontSize: 12, lineHeight: 1.7 }}>{selectedPerson.bio}</p>

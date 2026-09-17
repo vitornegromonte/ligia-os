@@ -5,6 +5,7 @@ import { loadNivelamentoContent, type QuestaoMCQ } from "@/lib/nivelamento-conte
 import { montarProva } from "@/lib/nivelamento-rodada";
 import {
   analisarItens,
+  resumirPerfis,
   pearson,
   pesoSugerido,
   N_MINIMO,
@@ -132,5 +133,29 @@ describe("analisarItens", () => {
     expect(a.formasDesiguais).toEqual([
       { slot, formas: [{ id: f1.id, n: 40, p: 1 }, { id: f2.id, n: 40, p: 0.5 }] },
     ]);
+  });
+});
+
+describe("resumirPerfis", () => {
+  it("conta opções por pergunta, respondentes e textos de \"Outro\"", () => {
+    const ar4 = conteudo.auto_relato.find((p) => p.id === "ar4")!;
+    const iOutra = ar4.opcoes.findIndex((o) => o.outro);
+    const r = resumirPerfis(conteudo, [
+      { autoRelato: { ar4: [0, iOutra] }, textosOutro: { ar4: "Robótica" } },
+      { autoRelato: { ar4: [0] } },
+      { autoRelato: { ar1: [0] } },
+    ]);
+    expect(r.pessoas).toBe(3);
+    const p = r.perguntas.find((x) => x.id === "ar4")!;
+    expect(p.respondentes).toBe(2);
+    expect(p.contagens[0]).toEqual({ texto: ar4.opcoes[0].texto, n: 2 });
+    expect(p.contagens[iOutra].n).toBe(1);
+    expect(p.outros).toEqual(["Robótica"]);
+  });
+
+  it("ignora índice fora das opções (perfil de outra versão do conteúdo)", () => {
+    const r = resumirPerfis(conteudo, [{ autoRelato: { ar5: [99, -1, 0] } }]);
+    const p = r.perguntas.find((x) => x.id === "ar5")!;
+    expect(p.contagens.reduce((s, c) => s + c.n, 0)).toBe(1);
   });
 });
