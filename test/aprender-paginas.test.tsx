@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { loadRascunho, saveRascunho } from "@/lib/pretest-storage";
+import { loadRascunho, saveRascunho, savePretestV2, type PretestResultV2 } from "@/lib/pretest-storage";
+import { saveUserStatus } from "@/lib/progress";
+import { COMPETENCIAS } from "@/lib/competencias";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "../src/contexts/AuthContext.jsx";
 import Trilha from "@/aprender/Trilha";
@@ -65,6 +67,42 @@ describe("Trilha", () => {
     expect(loadRascunho()).toBeNull();
     expect(screen.getByRole("link", { name: "Fazer o nivelamento" })).toBeInTheDocument();
     confirmar.mockRestore();
+  });
+
+  it("“Comece aqui” some quando o conceito é concluído", () => {
+    const matriz = Object.fromEntries(
+      COMPETENCIAS.map((c) => [c.id, { score: 0, mcqScore: 0, priorBoost: 0, confianca: "alta", acertos: 0, total: 4, conceitosFracos: [] }]),
+    );
+    savePretestV2({
+      version: 2,
+      contentVersion: "10",
+      matriz,
+      resultados: {},
+      autoRelato: {},
+      recomendacao: {
+        fronteira: "M0",
+        estados: {},
+        starNodes: ["algebra-linear-basica"],
+        dispensaveisSugeridos: [],
+        candidatasDispensa: [],
+        mensagem: "",
+      },
+      dispensasConfirmadas: [],
+      ts: "2026-09-17T12:00:00.000Z",
+    } as unknown as PretestResultV2);
+
+    const antes = renderizar("/aprender");
+    expect(document.querySelector('[data-concept="algebra-linear-basica"]')).toHaveAttribute(
+      "data-recommended",
+      "true",
+    );
+    antes.unmount();
+
+    saveUserStatus({ "algebra-linear-basica": "done" });
+    renderizar("/aprender");
+    const card = document.querySelector('[data-concept="algebra-linear-basica"]')!;
+    expect(card).toHaveAttribute("data-state", "done");
+    expect(card).not.toHaveAttribute("data-recommended");
   });
 
   it("sem nivelamento, convida a fazer o teste", () => {

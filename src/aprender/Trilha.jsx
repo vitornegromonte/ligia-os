@@ -261,12 +261,16 @@ export default function Trilha() {
               <div className="tr-grade">
                 {g.conceitos.map((c) => {
                   const tarefas = tarefasDoConceito(c.id);
+                  const estado = effectiveState(c, userStatus, doneSet);
                   return (
                     <ConceptCard
                       key={c.id}
                       concept={c}
-                      state={effectiveState(c, userStatus, doneSet)}
-                      recommended={recomendados.has(c.id)}
+                      state={estado}
+                      // "Comece aqui" some assim que o conceito é concluído: a
+                      // recomendação é da rodada do nivelamento e não se atualiza
+                      // sozinha, mas o que já foi feito não é mais por onde começar.
+                      recommended={recomendados.has(c.id) && estado !== "done"}
                       skipped={pulado}
                       hasAula={!!CONCEITO_PARA_AULA[c.id]}
                       unmetPrereqs={c.prereqs

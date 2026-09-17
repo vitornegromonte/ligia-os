@@ -22,6 +22,7 @@ import {
   markDispensadosDone,
   registrarQuestoesVistas,
 } from "../lib/pretest-storage.ts";
+import { loadUserStatus } from "../lib/progress.ts";
 import { logEvent } from "../lib/events.ts";
 
 const ROTULO_CONFIANCA = {
@@ -73,6 +74,10 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
   const etapa2 = useMemo(() => resumoEtapa2(conteudo, rodada), [conteudo, rodada]);
   const reprovadas = COMPETENCIAS.filter((c) => etapa2[c.id] && !etapa2[c.id].aprovada);
   const programacao = useMemo(() => resumoProgramacao(conteudo, rodada), [conteudo, rodada]);
+  // Conceito já concluído sai do "comece por estes": reabrir o resultado depois
+  // de estudar não pode mandar de volta para o que já foi feito.
+  const feitos = useMemo(() => loadUserStatus(), []);
+  const comecarPor = recomendacao.starNodes.filter((id) => feitos[id] !== "done");
 
   useEffect(() => {
     if (modo === "confirmando") tituloRef.current?.focus();
@@ -234,14 +239,14 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
             </ul>
           </Card>
 
-          {recomendacao.starNodes.length > 0 && (
+          {comecarPor.length > 0 && (
             <Card style={{ marginTop: 18 }}>
               <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Comece por estes conceitos</h2>
               <p style={{ margin: "6px 0 12px", color: "var(--muted)", fontSize: 12 }}>
                 Saíram das questões que você errou ou marcou “Não sei”.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {recomendacao.starNodes.map((id) => (
+                {comecarPor.map((id) => (
                   <Link key={id} to={`/aprender/c/${id}`} className="lg-chip">
                     {ROTULO_CONCEITO[id] ?? id}
                   </Link>
