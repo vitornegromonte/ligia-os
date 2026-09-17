@@ -1,5 +1,5 @@
 {
-  "version": "9",
+  "version": "10",
   "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
   "auto_relato": [
     {
@@ -82,21 +82,21 @@
       "opcoes": [
         {
           "texto": "A distância entre as pontas dos dois vetores",
-          "equivoco": "Confunde produto escalar com distância. A distância é o tamanho de a − b; o produto escalar mede alinhamento."
+          "equivoco": "Confunde produto escalar com distância. A distância é o tamanho de $\\mathbf{a} - \\mathbf{b}$; o produto escalar mede alinhamento."
         },
         {
           "texto": "O comprimento do vetor resultante da soma deles",
-          "equivoco": "Confunde com a norma da soma, |a + b|. O produto escalar é um número que mede o quanto os vetores apontam juntos."
+          "equivoco": "Confunde com a norma da soma, $\\|\\mathbf{a} + \\mathbf{b}\\|$. O produto escalar é um número que mede o quanto os vetores apontam juntos."
         },
         "O quanto um vetor aponta na direção do outro",
         {
           "texto": "O ângulo entre eles, em graus",
-          "equivoco": "O ângulo entra na conta, via cos θ, mas o resultado não é o ângulo: depende também do tamanho dos vetores."
+          "equivoco": "O ângulo entra na conta, via $\\cos\\theta$, mas o resultado não é o ângulo: depende também do tamanho dos vetores."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 2,
-      "explicacao": "O produto escalar a·b = |a||b|·cos θ cresce quando os vetores apontam para o mesmo lado, zera quando são perpendiculares e fica negativo quando apontam em sentidos opostos. Distância e ângulo em graus são outras contas.",
+      "explicacao": "O produto escalar $\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|\\,\\|\\mathbf{b}\\|\\cos\\theta$ cresce quando os vetores apontam para o mesmo lado, zera quando são perpendiculares e fica negativo quando apontam em sentidos opostos. Distância e ângulo em graus são outras contas.",
       "variantes": [
         {
           "id": "n-matematica-1b",
@@ -104,21 +104,21 @@
           "opcoes": [
             {
               "texto": "Paralelos e de mesmo sentido",
-              "equivoco": "Vetores paralelos de mesmo sentido dão o maior produto escalar possível, não zero (cos 0° = 1)."
+              "equivoco": "Vetores paralelos de mesmo sentido dão o maior produto escalar possível, não zero ($\\cos 0^\\circ = 1$)."
             },
             {
               "texto": "Iguais",
-              "equivoco": "Um vetor não nulo com ele mesmo dá |a|², que é positivo, não zero."
+              "equivoco": "Um vetor não nulo com ele mesmo dá $\\|\\mathbf{a}\\|^2$, que é positivo, não zero."
             },
             "Perpendiculares",
             {
               "texto": "De mesmo comprimento",
-              "equivoco": "O comprimento não decide o zero: só o ângulo de 90° zera o produto de vetores não nulos."
+              "equivoco": "O comprimento não decide o zero: só o ângulo de $90^\\circ$ zera o produto de vetores não nulos."
             },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
-          "explicacao": "a·b = |a||b|·cos θ. Com vetores não nulos, o produto só zera quando cos θ = 0, isto é, quando o ângulo entre eles é 90°: os vetores são perpendiculares."
+          "explicacao": "$\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|\\,\\|\\mathbf{b}\\|\\cos\\theta$. Com vetores não nulos, o produto só zera quando $\\cos\\theta = 0$, isto é, quando o ângulo entre eles é $90^\\circ$: os vetores são perpendiculares."
         }
       ]
     },
@@ -247,13 +247,13 @@
       "variantes": [
         {
           "id": "n-matematica-4b",
-          "pergunta": "Numa rede f₃(f₂(f₁(x))), como o backpropagation calcula o gradiente da loss em relação aos pesos de f₁?",
+          "pergunta": "Numa rede $f_3(f_2(f_1(x)))$, como o backpropagation calcula o gradiente da loss em relação aos pesos de $f_1$?",
           "opcoes": [
             {
-              "texto": "Derivando só f₁, porque as outras camadas não dependem desses pesos",
-              "equivoco": "Os pesos de f₁ mudam a entrada de f₂ e f₃, então a loss depende deles através dessas camadas."
+              "texto": "Derivando só $f_1$, porque as outras camadas não dependem desses pesos",
+              "equivoco": "Os pesos de $f_1$ mudam a entrada de $f_2$ e $f_3$, então a loss depende deles através dessas camadas."
             },
-            "Multiplicando as derivadas locais de f₃, f₂ e f₁, de trás para frente",
+            "Multiplicando as derivadas locais de $f_3$, $f_2$ e $f_1$, de trás para frente",
             {
               "texto": "Somando as derivadas de cada camada",
               "equivoco": "Em composição as derivadas se multiplicam ao longo do caminho; somar vale para caminhos paralelos."
@@ -265,7 +265,7 @@
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 1,
-          "explicacao": "Os pesos de f₁ afetam a loss passando por f₂ e f₃. A regra da cadeia multiplica as derivadas locais ao longo desse caminho, a partir da loss. Derivar só f₁ ignora o efeito das camadas seguintes."
+          "explicacao": "Os pesos de $f_1$ afetam a loss passando por $f_2$ e $f_3$. A regra da cadeia multiplica as derivadas locais ao longo desse caminho, a partir da loss. Derivar só $f_1$ ignora o efeito das camadas seguintes."
         }
       ]
     },
@@ -275,44 +275,47 @@
       "etapa": 2,
       "dificuldade": 1,
       "conceitos": ["algebra-linear-basica"],
-      "pergunta": "Uma matriz A tem formato 3×2 e um vetor x tem 2 componentes. O produto A·x é:",
+      "pergunta": "Uma matriz $A$ tem formato $3 \\times 2$ e um vetor $\\mathbf{x}$ tem 2 componentes. O produto $A\\mathbf{x}$ é:",
       "opcoes": [
         {
           "texto": "Um vetor com 2 componentes",
-          "equivoco": "O resultado herda as linhas de A (3), não o tamanho de x (2)."
+          "equivoco": "O resultado herda as linhas de $A$ (3), não o tamanho de $\\mathbf{x}$ (2)."
         },
         "Um vetor com 3 componentes",
         {
-          "texto": "Uma matriz 2×3",
-          "equivoco": "Multiplicar matriz por vetor dá vetor, com uma entrada por linha de A."
+          "texto": "Uma matriz $2 \\times 3$",
+          "equivoco": "Multiplicar matriz por vetor dá vetor, com uma entrada por linha de $A$."
         },
         {
           "texto": "Indefinido, porque os formatos não são compatíveis",
-          "equivoco": "Os formatos são compatíveis: as 2 colunas de A batem com as 2 componentes de x."
+          "equivoco": "Os formatos são compatíveis: as 2 colunas de $A$ batem com as 2 componentes de $\\mathbf{x}$."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 1,
-      "explicacao": "No produto A·x, o número de colunas de A (2) precisa bater com o tamanho de x (2), e o resultado tem o número de linhas de A: um vetor com 3 componentes.",
+      "explicacao": "No produto $A\\mathbf{x}$, o número de colunas de $A$ (2) precisa bater com o tamanho de $\\mathbf{x}$ (2), e o resultado tem o número de linhas de $A$: um vetor com 3 componentes.",
       "variantes": [
         {
           "id": "n-matematica-e2-1b",
-          "pergunta": "Se A tem formato 2×3 e B tem formato 3×4, o produto A·B tem formato:",
+          "pergunta": "Se $A$ tem formato $2 \\times 3$ e $B$ tem formato $3 \\times 4$, o produto $AB$ tem formato:",
           "opcoes": [
             {
-              "texto": "3×3",
+              "texto": "$3 \\times 3$",
               "equivoco": "O 3 é a dimensão interna, que precisa bater e some do resultado."
             },
-            { "texto": "4×2", "equivoco": "A ordem é linhas de A × colunas de B: 2×4, não 4×2." },
-            "2×4",
+            {
+              "texto": "$4 \\times 2$",
+              "equivoco": "A ordem é linhas de $A$ por colunas de $B$: $2 \\times 4$, não $4 \\times 2$."
+            },
+            "$2 \\times 4$",
             {
               "texto": "Indefinido, porque os formatos não são compatíveis",
-              "equivoco": "São compatíveis: as 3 colunas de A batem com as 3 linhas de B."
+              "equivoco": "São compatíveis: as 3 colunas de $A$ batem com as 3 linhas de $B$."
             },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
-          "explicacao": "O produto A·B exige que as colunas de A sejam tantas quanto as linhas de B (3 = 3). O resultado herda as linhas de A e as colunas de B: 2×4."
+          "explicacao": "O produto $AB$ exige que as colunas de $A$ sejam tantas quanto as linhas de $B$ ($3 = 3$). O resultado herda as linhas de $A$ e as colunas de $B$: $2 \\times 4$."
         }
       ]
     },
@@ -334,13 +337,13 @@
         },
         "50%, porque cada lançamento é independente dos anteriores",
         {
-          "texto": "1/64, a chance de sair cara 6 vezes seguidas",
-          "equivoco": "1/64 é a chance de 6 caras seguidas vista antes de começar; o 6º lançamento sozinho continua 1/2."
+          "texto": "$1/64$, a chance de sair cara 6 vezes seguidas",
+          "equivoco": "$1/64$ é a chance de 6 caras seguidas vista antes de começar; o 6º lançamento sozinho continua $1/2$."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 2,
-      "explicacao": "A moeda não tem memória: cada lançamento é independente, então a chance continua 50%. O 1/64 vale para prever 6 caras seguidas antes de começar, não para o próximo lançamento.",
+      "explicacao": "A moeda não tem memória: cada lançamento é independente, então a chance continua 50%. O $1/64$ vale para prever 6 caras seguidas antes de começar, não para o próximo lançamento.",
       "variantes": [
         {
           "id": "n-matematica-e2-2b",
@@ -362,7 +365,7 @@
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 1,
-          "explicacao": "Para eventos independentes, P(A e B) = P(A) · P(B) = 0,5 · 0,2 = 0,1. Somar não serve nem para “A ou B”, que precisa descontar a interseção: 0,5 + 0,2 − 0,1 = 0,6."
+          "explicacao": "Para eventos independentes, $P(A \\cap B) = P(A)\\,P(B) = 0{,}5 \\cdot 0{,}2 = 0{,}1$. Somar não serve nem para “A ou B”, que precisa descontar a interseção: $0{,}5 + 0{,}2 - 0{,}1 = 0{,}6$."
         }
       ]
     },
@@ -372,41 +375,44 @@
       "etapa": 2,
       "dificuldade": 2,
       "conceitos": ["gradiente", "calculo-vetorial"],
-      "pergunta": "Para f(x, y) = x² + 3y, o gradiente no ponto (1, 2) é:",
+      "pergunta": "Para $f(x, y) = x^2 + 3y$, o gradiente no ponto $(1, 2)$ é:",
       "opcoes": [
-        "(2, 3)",
-        { "texto": "(1, 3)", "equivoco": "Usou x no lugar da derivada de x², que é 2x." },
+        "$(2, 3)$",
+        { "texto": "$(1, 3)$", "equivoco": "Usou $x$ no lugar da derivada de $x^2$, que é $2x$." },
         {
-          "texto": "(2, 6)",
-          "equivoco": "Derivou x² certo, mas multiplicou 3 por y. A derivada de 3y em relação a y é só 3."
+          "texto": "$(2, 6)$",
+          "equivoco": "Derivou $x^2$ certo, mas multiplicou 3 por $y$. A derivada de $3y$ em relação a $y$ é só 3."
         },
         {
-          "texto": "7, o valor de f nesse ponto",
-          "equivoco": "7 é o valor de f em (1, 2); o gradiente é o vetor das derivadas parciais."
+          "texto": "$7$, o valor de $f$ nesse ponto",
+          "equivoco": "$7$ é o valor de $f$ em $(1, 2)$; o gradiente é o vetor das derivadas parciais."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0,
-      "explicacao": "O gradiente é o vetor das derivadas parciais: ∂f/∂x = 2x, que vale 2 em x = 1, e ∂f/∂y = 3, constante. O resultado é (2, 3); o 7 é o valor da função, não a derivada.",
+      "explicacao": "O gradiente é o vetor das derivadas parciais: $\\partial f/\\partial x = 2x$, que vale 2 em $x = 1$, e $\\partial f/\\partial y = 3$, constante. O resultado é $$(2, 3)$$; o $7$ é o valor da função, não a derivada.",
       "variantes": [
         {
           "id": "n-matematica-e2-3b",
-          "pergunta": "Para f(x, y) = xy, qual é o gradiente no ponto (3, 2)?",
+          "pergunta": "Para $f(x, y) = xy$, qual é o gradiente no ponto $$(3, 2)$$?",
           "opcoes": [
-            { "texto": "(3, 2)", "equivoco": "Trocou as componentes: ∂f/∂x = y e ∂f/∂y = x." },
             {
-              "texto": "(6, 6)",
-              "equivoco": "Usou o valor de f nas duas componentes em vez das derivadas parciais."
+              "texto": "$(3, 2)$",
+              "equivoco": "Trocou as componentes: $\\partial f/\\partial x = y$ e $\\partial f/\\partial y = x$."
             },
             {
-              "texto": "6, o valor de f nesse ponto",
-              "equivoco": "6 é o valor de f em (3, 2), não o gradiente."
+              "texto": "$(6, 6)$",
+              "equivoco": "Usou o valor de $f$ nas duas componentes em vez das derivadas parciais."
             },
-            "(2, 3)",
+            {
+              "texto": "$6$, o valor de $f$ nesse ponto",
+              "equivoco": "$6$ é o valor de $f$ em $$(3, 2)$$, não o gradiente."
+            },
+            "$(2, 3)$",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "∂f/∂x trata y como constante e dá y; ∂f/∂y dá x. No ponto (3, 2), o gradiente é (2, 3). Trocar as coordenadas, dando (3, 2), é um erro comum."
+          "explicacao": "$\\partial f/\\partial x$ trata $y$ como constante e dá $y$; $\\partial f/\\partial y$ dá $x$. No ponto $$(3, 2)$$, o gradiente é $$(2, 3)$$. Trocar as coordenadas, dando $$(3, 2)$$, é um erro comum."
         }
       ]
     },
@@ -416,32 +422,35 @@
       "etapa": 2,
       "dificuldade": 3,
       "conceitos": ["calculo-vetorial", "gradiente"],
-      "pergunta": "Para L(w) = (wx − y)², com x = 2 e y = 1, quanto vale dL/dw em w = 1?",
+      "pergunta": "Para $L(w) = (wx - y)^2$, com $x = 2$ e $y = 1$, quanto vale $dL/dw$ em $w = 1$?",
       "opcoes": [
-        { "texto": "1", "equivoco": "1 é o valor da loss em w = 1, não a derivada." },
+        { "texto": "1", "equivoco": "1 é o valor da loss em $w = 1$, não a derivada." },
         {
           "texto": "2",
-          "equivoco": "Esqueceu o fator x da regra da cadeia: a derivada de dentro de (wx − y) é x."
+          "equivoco": "Esqueceu o fator $x$ da regra da cadeia: a derivada de dentro de $(wx - y)$ é $x$."
         },
-        { "texto": "8", "equivoco": "Esqueceu o −y dentro do parêntese: 2 · wx · x = 8." },
+        { "texto": "8", "equivoco": "Esqueceu o $-y$ dentro do parêntese: $2 \\cdot wx \\cdot x = 8$." },
         "4",
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 3,
-      "explicacao": "Pela regra da cadeia, dL/dw = 2(wx − y)·x. Em w = 1: 2·(2 − 1)·2 = 4. Esquecer o fator x dá 2; esquecer o −y dá 8.",
+      "explicacao": "Pela regra da cadeia, $dL/dw = 2(wx - y)\\,x$. Em $w = 1$: $2 \\cdot (2 - 1) \\cdot 2 = 4$. Esquecer o fator $x$ dá 2; esquecer o $-y$ dá 8.",
       "variantes": [
         {
           "id": "n-matematica-e2-4b",
-          "pergunta": "Para L(w) = (wx − y)², com x = 3 e y = 2, quanto vale dL/dw em w = 1?",
+          "pergunta": "Para $L(w) = (wx - y)^2$, com $x = 3$ e $y = 2$, quanto vale $dL/dw$ em $w = 1$?",
           "opcoes": [
             "6",
-            { "texto": "2", "equivoco": "Esqueceu o fator x da regra da cadeia." },
-            { "texto": "1", "equivoco": "1 é o valor da loss em w = 1, não a derivada." },
-            { "texto": "18", "equivoco": "Esqueceu o −y dentro do parêntese: 2 · wx · x = 18." },
+            { "texto": "2", "equivoco": "Esqueceu o fator $x$ da regra da cadeia." },
+            { "texto": "1", "equivoco": "1 é o valor da loss em $w = 1$, não a derivada." },
+            {
+              "texto": "18",
+              "equivoco": "Esqueceu o $-y$ dentro do parêntese: $2 \\cdot wx \\cdot x = 18$."
+            },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 0,
-          "explicacao": "Pela regra da cadeia, dL/dw = 2(wx − y)·x. Em w = 1: 2·(3 − 2)·3 = 6. Esquecer o fator x dá 2; esquecer o −y dá 18."
+          "explicacao": "Pela regra da cadeia, $dL/dw = 2(wx - y)\\,x$. Em $w = 1$: $2 \\cdot (3 - 2) \\cdot 3 = 6$. Esquecer o fator $x$ dá 2; esquecer o $-y$ dá 18."
         }
       ]
     },
@@ -499,12 +508,12 @@
       "competencia": "ml-classico",
       "dificuldade": 2,
       "conceitos": ["knn", "overfitting"],
-      "pergunta": "Um k-NN com k=1 acerta 100% no treino e 62% na validação. A explicação é:",
+      "pergunta": "Um k-NN com $k = 1$ acerta 100% no treino e 62% na validação. A explicação é:",
       "opcoes": [
-        "Com k=1, cada exemplo é seu próprio vizinho: o treino é decorado",
+        "Com $k = 1$, cada exemplo é seu próprio vizinho: o treino é decorado",
         {
           "texto": "A validação tem distribuição diferente da do treino",
-          "equivoco": "Distribuições diferentes explicariam uma queda, mas não o acerto de 100% no treino, que vem do próprio k=1."
+          "equivoco": "Distribuições diferentes explicariam uma queda, mas não o acerto de 100% no treino, que vem do próprio $k = 1$."
         },
         {
           "texto": "O modelo precisa de mais épocas de treino",
@@ -512,34 +521,34 @@
         },
         {
           "texto": "Faltou normalizar o conjunto de validação",
-          "equivoco": "Normalizar pode mudar o resultado, mas não explica 100% no treino: com k=1 cada ponto acerta a si mesmo."
+          "equivoco": "Normalizar pode mudar o resultado, mas não explica 100% no treino: com $k = 1$ cada ponto acerta a si mesmo."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0,
-      "explicacao": "Com k=1, o vizinho mais próximo de cada exemplo de treino é ele mesmo, então o acerto no treino é 100% por construção. A queda na validação mostra que o modelo decorou em vez de generalizar. Aumentar k suaviza a fronteira.",
+      "explicacao": "Com $k = 1$, o vizinho mais próximo de cada exemplo de treino é ele mesmo, então o acerto no treino é 100% por construção. A queda na validação mostra que o modelo decorou em vez de generalizar. Aumentar $k$ suaviza a fronteira.",
       "variantes": [
         {
           "id": "n-ml-classico-2b",
-          "pergunta": "Num k-NN com 200 exemplos de treino, o que acontece ao aumentar k de 1 para 50?",
+          "pergunta": "Num k-NN com 200 exemplos de treino, o que acontece ao aumentar $k$ de 1 para 50?",
           "opcoes": [
             {
               "texto": "O modelo decora ainda mais o treino",
-              "equivoco": "É o contrário: k maior suaviza a fronteira e decora menos."
+              "equivoco": "É o contrário: $k$ maior suaviza a fronteira e decora menos."
             },
             {
               "texto": "O custo de treino cresce 50 vezes",
-              "equivoco": "k-NN não tem treino; o custo fica na previsão, que cresce pouco com k."
+              "equivoco": "k-NN não tem treino; o custo fica na previsão, que cresce pouco com $k$."
             },
             {
               "texto": "Nada muda se as classes forem balanceadas",
-              "equivoco": "Mudar k muda a fronteira independentemente do balanceamento das classes."
+              "equivoco": "Mudar $k$ muda a fronteira independentemente do balanceamento das classes."
             },
             "A fronteira suaviza, indo do overfitting ao underfitting",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "Com k maior, cada previsão é a votação de mais vizinhos, então ruídos locais pesam menos e a fronteira suaviza. Com k grande demais, tudo tende à classe majoritária. E o k-NN nem tem treino: o custo está na previsão."
+          "explicacao": "Com $k$ maior, cada previsão é a votação de mais vizinhos, então ruídos locais pesam menos e a fronteira suaviza. Com $k$ grande demais, tudo tende à classe majoritária. E o k-NN nem tem treino: o custo está na previsão."
         }
       ]
     },
@@ -637,7 +646,7 @@
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
-          "explicacao": "A L1 penaliza |w|, cujo empurrão para zero não enfraquece perto de zero, então muitos pesos chegam exatamente a zero. A L2 penaliza w², cujo empurrão some perto de zero: os pesos ficam pequenos, mas raramente nulos."
+          "explicacao": "A L1 penaliza $|w|$, cujo empurrão para zero não enfraquece perto de zero, então muitos pesos chegam exatamente a zero. A L2 penaliza $w^2$, cujo empurrão some perto de zero: os pesos ficam pequenos, mas raramente nulos."
         }
       ]
     },
@@ -647,22 +656,22 @@
       "etapa": 2,
       "dificuldade": 1,
       "conceitos": ["regressao-linear"],
-      "pergunta": "Na regressão linear y = wx + b, o que o coeficiente w indica?",
+      "pergunta": "Na regressão linear $y = wx + b$, o que o coeficiente $w$ indica?",
       "opcoes": [
-        { "texto": "O valor previsto de y quando x é zero", "equivoco": "Esse é o intercepto b." },
+        { "texto": "O valor previsto de $y$ quando $x$ é zero", "equivoco": "Esse é o intercepto $b$." },
         {
           "texto": "O erro médio das previsões do modelo",
-          "equivoco": "O erro é medido comparando previsões com valores reais; w é um coeficiente do modelo."
+          "equivoco": "O erro é medido comparando previsões com valores reais; $w$ é um coeficiente do modelo."
         },
         {
-          "texto": "A correlação entre x e y, sempre entre −1 e 1",
-          "equivoco": "w tem a unidade de y por unidade de x e pode passar de 1; correlação é outra medida."
+          "texto": "A correlação entre $x$ e $y$, sempre entre $-1$ e $1$",
+          "equivoco": "$w$ tem a unidade de $y$ por unidade de $x$ e pode passar de 1; correlação é outra medida."
         },
-        "Quanto y muda, em média, quando x aumenta uma unidade",
+        "Quanto $y$ muda, em média, quando $x$ aumenta uma unidade",
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 3,
-      "explicacao": "w é a inclinação da reta: quanto a previsão de y sobe quando x aumenta uma unidade. O valor previsto com x = 0 é o intercepto b.",
+      "explicacao": "$w$ é a inclinação da reta: quanto a previsão de $y$ sobe quando $x$ aumenta uma unidade. O valor previsto com $x = 0$ é o intercepto $b$.",
       "variantes": [
         {
           "id": "n-ml-classico-e2-1b",
@@ -679,12 +688,12 @@
             },
             {
               "texto": "A quantidade de exemplos de treino",
-              "equivoco": "A quantidade de exemplos é dada; o ajuste escolhe w e b."
+              "equivoco": "A quantidade de exemplos é dada; o ajuste escolhe $w$ e $b$."
             },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 1,
-          "explicacao": "O método dos mínimos quadrados escolhe w e b que minimizam a soma (ou a média) dos erros ao quadrado. Elevar ao quadrado deixa todos os erros positivos e pune mais os grandes."
+          "explicacao": "O método dos mínimos quadrados escolhe $w$ e $b$ que minimizam a soma (ou a média) dos erros ao quadrado. Elevar ao quadrado deixa todos os erros positivos e pune mais os grandes."
         }
       ]
     },
@@ -766,7 +775,7 @@
       "variantes": [
         {
           "id": "n-ml-classico-e2-3b",
-          "pergunta": "Num k-NN de classificação com k = 5, como a classe de um ponto novo é decidida?",
+          "pergunta": "Num k-NN de classificação com $k = 5$, como a classe de um ponto novo é decidida?",
           "opcoes": [
             {
               "texto": "Pela média das features dos 5 vizinhos",
@@ -784,7 +793,7 @@
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
-          "explicacao": "O k-NN guarda o treino e, para cada ponto novo, procura os k exemplos mais próximos. Em classificação vence a classe mais votada entre eles; em regressão, usa-se a média dos alvos."
+          "explicacao": "O k-NN guarda o treino e, para cada ponto novo, procura os $k$ exemplos mais próximos. Em classificação vence a classe mais votada entre eles; em regressão, usa-se a média dos alvos."
         }
       ]
     },
@@ -794,7 +803,7 @@
       "etapa": 2,
       "dificuldade": 3,
       "conceitos": ["regularizacao", "overfitting"],
-      "pergunta": "Se você aumenta demais a força da regularização (λ), o que tende a acontecer?",
+      "pergunta": "Se você aumenta demais a força da regularização ($\\lambda$), o que tende a acontecer?",
       "opcoes": [
         {
           "texto": "O modelo decora o treino e piora na validação",
@@ -865,19 +874,22 @@
           "pergunta": "A função de ativação ReLU é definida como:",
           "opcoes": [
             {
-              "texto": "1 / (1 + e^(−x))",
+              "texto": "$\\frac{1}{1 + e^{-x}}$",
               "equivoco": "Essa é a sigmoide, que espreme a saída entre 0 e 1."
             },
-            "max(0, x)",
+            "$\\max(0, x)$",
             {
-              "texto": "x²",
-              "equivoco": "x² não é usada como ativação: explode para |x| grande e trata x e −x igual."
+              "texto": "$x^2$",
+              "equivoco": "$x^2$ não é usada como ativação: explode para $|x|$ grande e trata $x$ e $-x$ igual."
             },
-            { "texto": "min(0, x)", "equivoco": "min(0, x) zeraria os positivos; a ReLU zera os negativos." },
+            {
+              "texto": "$\\min(0, x)$",
+              "equivoco": "$\\min(0, x)$ zeraria os positivos; a ReLU zera os negativos."
+            },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 1,
-          "explicacao": "A ReLU devolve x quando x é positivo e 0 caso contrário. É barata de calcular e tem derivada 1 para entradas positivas, o que ajuda o gradiente a atravessar muitas camadas. 1 / (1 + e^(−x)) é a sigmoide."
+          "explicacao": "A ReLU devolve $x$ quando $x$ é positivo e 0 caso contrário. É barata de calcular e tem derivada 1 para entradas positivas, o que ajuda o gradiente a atravessar muitas camadas. $\\frac{1}{1 + e^{-x}}$ é a sigmoide."
         }
       ]
     },
@@ -927,7 +939,7 @@
         "O treino fica mais estável e tolera taxas de aprendizado maiores",
         {
           "texto": "O modelo ganha tantos parâmetros quanto uma camada densa a mais",
-          "equivoco": "Ela acrescenta só γ e β por canal, muito menos que uma camada densa."
+          "equivoco": "Ela acrescenta só $\\gamma$ e $\\beta$ por canal, muito menos que uma camada densa."
         },
         {
           "texto": "O conjunto de validação deixa de ser necessário",
@@ -952,13 +964,13 @@
             },
             {
               "texto": "Nada: a camada só normaliza",
-              "equivoco": "γ e β são aprendidos, permitindo reescalar a saída normalizada."
+              "equivoco": "$\\gamma$ e $\\beta$ são aprendidos, permitindo reescalar a saída normalizada."
             },
-            "Uma escala (γ) e um deslocamento (β) por canal",
+            "Uma escala ($\\gamma$) e um deslocamento ($\\beta$) por canal",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "Média e variância vêm dos próprios dados e não recebem gradiente. O que se aprende são γ e β, que deixam a rede reescalar e deslocar as ativações normalizadas, inclusive desfazer a normalização quando isso ajuda."
+          "explicacao": "Média e variância vêm dos próprios dados e não recebem gradiente. O que se aprende são $\\gamma$ e $\\beta$, que deixam a rede reescalar e deslocar as ativações normalizadas, inclusive desfazer a normalização quando isso ajuda."
         }
       ]
     },
@@ -985,7 +997,7 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 2,
-      "explicacao": "A cross-entropy vale −log da probabilidade dada à classe certa: dar 0,01 à classe correta custa muito, e o gradiente continua forte. Com MSE sobre probabilidades, o erro confiante gera gradiente fraco e o treino anda devagar.",
+      "explicacao": "A cross-entropy vale $-\\log$ da probabilidade dada à classe certa: dar 0,01 à classe correta custa muito, e o gradiente continua forte. Com MSE sobre probabilidades, o erro confiante gera gradiente fraco e o treino anda devagar.",
       "variantes": [
         {
           "id": "n-dl-fundamentos-3b",
@@ -1035,19 +1047,19 @@
       "variantes": [
         {
           "id": "n-dl-fundamentos-4b",
-          "pergunta": "Numa rede com y = w₂·(w₁·x), sabe-se que dL/dy = 3, x = 2 e w₂ = 5. Quanto vale dL/dw₁?",
+          "pergunta": "Numa rede com $y = w_2 (w_1 x)$, sabe-se que $dL/dy = 3$, $x = 2$ e $w_2 = 5$. Quanto vale $dL/dw_1$?",
           "opcoes": [
             "30",
-            { "texto": "15", "equivoco": "Esqueceu o fator x: dy/dw₁ = w₂ · x." },
-            { "texto": "6", "equivoco": "Esqueceu o fator w₂: dy/dw₁ = w₂ · x." },
+            { "texto": "15", "equivoco": "Esqueceu o fator $x$: $dy/dw_1 = w_2 x$." },
+            { "texto": "6", "equivoco": "Esqueceu o fator $w_2$: $dy/dw_1 = w_2 x$." },
             {
               "texto": "10",
-              "equivoco": "10 é dy/dw₁; falta multiplicar pelo gradiente que chega, dL/dy = 3."
+              "equivoco": "10 é $dy/dw_1$; falta multiplicar pelo gradiente que chega, $dL/dy = 3$."
             },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 0,
-          "explicacao": "Pela regra da cadeia, dL/dw₁ = dL/dy · dy/dw₁. Como y = w₂·w₁·x, dy/dw₁ = w₂·x = 10, e o resultado é 3 · 10 = 30. É o que o backprop faz: multiplica o gradiente que chega pelas derivadas locais."
+          "explicacao": "Pela regra da cadeia, $dL/dw_1 = dL/dy \\cdot dy/dw_1$. Como $y = w_2 w_1 x$, $dy/dw_1 = w_2 x = 10$, e o resultado é $3 \\cdot 10 = 30$. É o que o backprop faz: multiplica o gradiente que chega pelas derivadas locais."
         }
       ]
     },
@@ -1084,7 +1096,10 @@
               "equivoco": "Isso seria um único lote com todos os exemplos (batch size 10.000)."
             },
             "100",
-            { "texto": "1.000.000", "equivoco": "Multiplicou em vez de dividir: são 10.000 ÷ 100 lotes." },
+            {
+              "texto": "1.000.000",
+              "equivoco": "Multiplicou em vez de dividir: são $10.000 \\div 100$ lotes."
+            },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
@@ -1116,7 +1131,7 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 2,
-      "explicacao": "A batch norm normaliza as ativações de cada mini-batch para média 0 e variância 1 e depois aplica escala (γ) e deslocamento (β) aprendidos. Isso estabiliza e acelera o treino. Zerar ativações ao acaso é o dropout.",
+      "explicacao": "A batch norm normaliza as ativações de cada mini-batch para média 0 e variância 1 e depois aplica escala ($\\gamma$) e deslocamento ($\\beta$) aprendidos. Isso estabiliza e acelera o treino. Zerar ativações ao acaso é o dropout.",
       "variantes": [
         {
           "id": "n-dl-fundamentos-e2-2b",
@@ -1157,7 +1172,7 @@
         },
         {
           "texto": "A sigmoide gera valores negativos que cancelam os gradientes entre camadas",
-          "equivoco": "A sigmoide só produz valores entre 0 e 1; o problema é a derivada pequena, no máximo 0,25."
+          "equivoco": "A sigmoide só produz valores entre 0 e 1; o problema é a derivada pequena, no máximo $0{,}25$."
         },
         {
           "texto": "A sigmoide só funciona na camada de saída; nas ocultas, ela zera as ativações",
@@ -1166,7 +1181,7 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0,
-      "explicacao": "A derivada da sigmoide vale no máximo 0,25. No backprop essas derivadas se multiplicam camada a camada, e o gradiente some antes de chegar às primeiras camadas. Por isso a ReLU virou o padrão nas camadas ocultas.",
+      "explicacao": "A derivada da sigmoide vale no máximo $0{,}25$. No backprop essas derivadas se multiplicam camada a camada, e o gradiente some antes de chegar às primeiras camadas. Por isso a ReLU virou o padrão nas camadas ocultas.",
       "variantes": [
         {
           "id": "n-dl-fundamentos-e2-3b",
@@ -1269,7 +1284,7 @@
       "variantes": [
         {
           "id": "n-dl-aplicado-1b",
-          "pergunta": "Numa CNN, o max pooling 2×2 serve principalmente para:",
+          "pergunta": "Numa CNN, o max pooling $2 \\times 2$ serve principalmente para:",
           "opcoes": [
             {
               "texto": "Aumentar o número de canais",
@@ -1287,7 +1302,7 @@
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "O max pooling 2×2 fica com o maior valor de cada janela e divide altura e largura por 2. Isso reduz o custo e dá alguma tolerância a pequenos deslocamentos. Quem aprende filtros é a convolução."
+          "explicacao": "O max pooling $2 \\times 2$ fica com o maior valor de cada janela e divide altura e largura por 2. Isso reduz o custo e dá alguma tolerância a pequenos deslocamentos. Quem aprende filtros é a convolução."
         }
       ]
     },
@@ -1456,7 +1471,7 @@
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 2,
-      "explicacao": "Em PyTorch, imagens em lote seguem o formato (N, C, H, W): N imagens, C canais, altura H e largura W. Aqui são 32 imagens RGB de 224×224.",
+      "explicacao": "Em PyTorch, imagens em lote seguem o formato $(N, C, H, W)$: $N$ imagens, $C$ canais, altura $H$ e largura $W$. Aqui são 32 imagens RGB de $224 \\times 224$.",
       "variantes": [
         {
           "id": "n-dl-aplicado-e2-1b",
@@ -1464,7 +1479,7 @@
           "opcoes": [
             {
               "texto": "6",
-              "equivoco": "Esqueceu o último lote, com os 4 exemplos que sobram (100 = 6 × 16 + 4)."
+              "equivoco": "Esqueceu o último lote, com os 4 exemplos que sobram ($100 = 6 \\times 16 + 4$)."
             },
             { "texto": "16", "equivoco": "16 é o tamanho de cada lote, não a quantidade de lotes." },
             "7",
@@ -1532,35 +1547,41 @@
       "etapa": 2,
       "dificuldade": 2,
       "conceitos": ["cnn"],
-      "pergunta": "Uma convolução 3×3, com stride 1 e sem padding, aplicada a uma imagem 32×32 gera um mapa de:",
+      "pergunta": "Uma convolução $3 \\times 3$, com stride 1 e sem padding, aplicada a uma imagem $32 \\times 32$ gera um mapa de:",
       "opcoes": [
-        "30×30",
+        "$30 \\times 30$",
         {
-          "texto": "32×32",
-          "equivoco": "32×32 só se mantém com padding; sem padding, a borda perde 2 pixels em cada direção."
+          "texto": "$32 \\times 32$",
+          "equivoco": "$32 \\times 32$ só se mantém com padding; sem padding, a borda perde 2 pixels em cada direção."
         },
-        { "texto": "29×29", "equivoco": "Faltou o +1: o filtro cabe em 32 − 3 + 1 = 30 posições." },
         {
-          "texto": "10×10",
+          "texto": "$29 \\times 29$",
+          "equivoco": "Faltou o +1: o filtro cabe em $32 - 3 + 1 = 30$ posições."
+        },
+        {
+          "texto": "$10 \\times 10$",
           "equivoco": "Dividir por 3 seria o caso de stride 3; com stride 1 o filtro anda um pixel por vez."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0,
-      "explicacao": "Sem padding e com stride 1, o filtro 3×3 cabe em 32 − 3 + 1 = 30 posições em cada direção, então o mapa de saída é 30×30.",
+      "explicacao": "Sem padding e com stride 1, o filtro $3 \\times 3$ cabe em $32 - 3 + 1 = 30$ posições em cada direção, então o mapa de saída é $30 \\times 30$.",
       "variantes": [
         {
           "id": "n-dl-aplicado-e2-3b",
-          "pergunta": "Uma camada convolucional recebe 3 canais e aplica 16 filtros 3×3. Quantos pesos ela tem, sem contar o bias?",
+          "pergunta": "Uma camada convolucional recebe 3 canais e aplica 16 filtros $3 \\times 3$. Quantos pesos ela tem, sem contar o bias?",
           "opcoes": [
-            { "texto": "144", "equivoco": "16 × 9 esquece que cada filtro cobre os 3 canais de entrada." },
-            { "texto": "48", "equivoco": "16 × 3 esquece a área 3×3 de cada filtro." },
+            {
+              "texto": "144",
+              "equivoco": "$16 \\times 9$ esquece que cada filtro cobre os 3 canais de entrada."
+            },
+            { "texto": "48", "equivoco": "$16 \\times 3$ esquece a área $3 \\times 3$ de cada filtro." },
             { "texto": "27", "equivoco": "27 é um filtro só; são 16 filtros." },
             "432",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "Cada filtro cobre todos os canais de entrada: 3×3×3 = 27 pesos. Com 16 filtros, são 16 · 27 = 432. O número de pesos não depende do tamanho da imagem, só do filtro e dos canais."
+          "explicacao": "Cada filtro cobre todos os canais de entrada: $3 \\times 3 \\times 3 = 27$ pesos. Com 16 filtros, são $16 \\cdot 27 = 432$. O número de pesos não depende do tamanho da imagem, só do filtro e dos canais."
         }
       ]
     },
@@ -1826,13 +1847,13 @@
               "texto": "512",
               "equivoco": "512 é a dimensão do modelo inteira; ela é dividida entre as 8 cabeças."
             },
-            { "texto": "4096", "equivoco": "Multiplicou em vez de dividir: 512 × 8." },
+            { "texto": "4096", "equivoco": "Multiplicou em vez de dividir: $512 \\times 8$." },
             "64",
             { "texto": "8", "equivoco": "8 é o número de cabeças, não a dimensão de cada uma." },
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 2,
-          "explicacao": "As cabeças dividem a dimensão do modelo: 512 / 8 = 64 por cabeça. As saídas são concatenadas de volta para 512, então o custo fica parecido com o de uma cabeça única, mas cada cabeça pode aprender um padrão diferente."
+          "explicacao": "As cabeças dividem a dimensão do modelo: $512 / 8 = 64$ por cabeça. As saídas são concatenadas de volta para 512, então o custo fica parecido com o de uma cabeça única, mas cada cabeça pode aprender um padrão diferente."
         }
       ]
     },
@@ -1942,12 +1963,12 @@
       "etapa": 2,
       "dificuldade": 2,
       "conceitos": ["atencao", "transformer"],
-      "pergunta": "Na atenção, para que servem os vetores Q (query), K (key) e V (value)?",
+      "pergunta": "Na atenção, para que servem os vetores $Q$ (query), $K$ (key) e $V$ (value)?",
       "opcoes": [
-        "Q é comparado com K para dar os pesos da atenção, que então combinam os V",
+        "$Q$ é comparado com $K$ para dar os pesos da atenção, que então combinam os $V$",
         {
           "texto": "São três camadas empilhadas, aplicadas em sequência em cada bloco do Transformer",
-          "equivoco": "Q, K e V são projeções dentro de uma mesma camada de atenção, não camadas empilhadas."
+          "equivoco": "$Q$, $K$ e $V$ são projeções dentro de uma mesma camada de atenção, não camadas empilhadas."
         },
         {
           "texto": "Representam, respectivamente, os tokens de entrada, os de saída e o vocabulário",
@@ -1955,34 +1976,34 @@
         },
         {
           "texto": "Normalizam, comprimem e decodificam os embeddings antes da camada de saída",
-          "equivoco": "Q, K e V servem para calcular e aplicar os pesos da atenção, não para normalizar ou comprimir."
+          "equivoco": "$Q$, $K$ e $V$ servem para calcular e aplicar os pesos da atenção, não para normalizar ou comprimir."
         },
         { "texto": "Não sei", "naoSei": true }
       ],
       "correta": 0,
-      "explicacao": "Cada token gera uma consulta (Q), uma chave (K) e um valor (V). A similaridade entre a Q de um token e as K dos outros define os pesos, e a saída é a média dos V com esses pesos.",
+      "explicacao": "Cada token gera uma consulta ($Q$), uma chave ($K$) e um valor ($V$). A similaridade entre a $Q$ de um token e as $K$ dos outros define os pesos, e a saída é a média dos $V$ com esses pesos.",
       "variantes": [
         {
           "id": "n-transformers-llms-e2-3b",
-          "pergunta": "Na self-attention, de onde vêm Q, K e V?",
+          "pergunta": "Na self-attention, de onde vêm $Q$, $K$ e $V$?",
           "opcoes": [
             {
-              "texto": "Q vem da entrada; K e V vêm de um banco de dados externo",
+              "texto": "$Q$ vem da entrada; $K$ e $V$ vêm de um banco de dados externo",
               "equivoco": "Na self-attention os três vêm da mesma sequência; não há banco externo."
             },
             {
               "texto": "São vetores fixos, iguais em todos os modelos",
-              "equivoco": "As projeções W_Q, W_K e W_V são aprendidas, e cada modelo tem as suas."
+              "equivoco": "As projeções $W_Q$, $W_K$ e $W_V$ são aprendidas, e cada modelo tem as suas."
             },
             {
-              "texto": "Q é o token atual, K o anterior e V o seguinte",
-              "equivoco": "Cada token gera o próprio Q, K e V; não é uma questão de vizinhos."
+              "texto": "$Q$ é o token atual, $K$ o anterior e $V$ o seguinte",
+              "equivoco": "Cada token gera o próprio $Q$, $K$ e $V$; não é uma questão de vizinhos."
             },
             "Das mesmas entradas, por três projeções lineares aprendidas",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
-          "explicacao": "Na self-attention, a representação de cada token é multiplicada por três matrizes aprendidas, W_Q, W_K e W_V, que geram sua consulta, sua chave e seu valor. Na atenção cruzada, como no decoder de tradução, K e V vêm de outra sequência."
+          "explicacao": "Na self-attention, a representação de cada token é multiplicada por três matrizes aprendidas, $W_Q$, $W_K$ e $W_V$, que geram sua consulta, sua chave e seu valor. Na atenção cruzada, como no decoder de tradução, $K$ e $V$ vêm de outra sequência."
         }
       ]
     },
@@ -2135,7 +2156,7 @@
               { "texto": "Não sei", "naoSei": true }
             ],
             "correta": 0,
-            "explicacao": "X @ w é o produto de matriz (4, 3) por vetor (3,), que dá um vetor (4,): uma previsão linear por linha. Cada linha de X é [1, 1, 1], então cada valor é 1·1 + 1·2 + 1·3 = 6."
+            "explicacao": "X @ w é o produto de matriz (4, 3) por vetor (3,), que dá um vetor (4,): uma previsão linear por linha. Cada linha de X é [1, 1, 1], então cada valor é $1 \\cdot 1 + 1 \\cdot 2 + 1 \\cdot 3 = 6$."
           }
         ]
       },
@@ -2147,7 +2168,7 @@
         "opcoes": [
           {
             "texto": "torch.Size([3, 10])",
-            "equivoco": "(3, 10) é o formato da matriz de pesos da camada (saídas × entradas), não da saída."
+            "equivoco": "(3, 10) é o formato da matriz de pesos da camada (saídas por entradas), não da saída."
           },
           {
             "texto": "torch.Size([32, 10])",
@@ -2170,7 +2191,7 @@
             "opcoes": [
               {
                 "texto": "torch.Size([8, 84])",
-                "equivoco": "84 = 3 × 28: faltou multiplicar pela outra dimensão de 28."
+                "equivoco": "$84 = 3 \\times 28$: faltou multiplicar pela outra dimensão de 28."
               },
               "torch.Size([8, 2352])",
               {
@@ -2184,7 +2205,7 @@
               { "texto": "Não sei", "naoSei": true }
             ],
             "correta": 1,
-            "explicacao": "view(8, -1) mantém o lote de 8 e deduz a outra dimensão: 3 · 28 · 28 = 2352. É o achatamento usado antes de passar imagens para uma camada linear."
+            "explicacao": "view(8, -1) mantém o lote de 8 e deduz a outra dimensão: $3 \\cdot 28 \\cdot 28 = 2352$. É o achatamento usado antes de passar imagens para uma camada linear."
           }
         ]
       },
@@ -2194,10 +2215,13 @@
         "pergunta": "O que este código imprime?",
         "codigo": "import torch\nw = torch.tensor(2.0, requires_grad=True)\nloss = (3 * w - 1) ** 2\nloss.backward()\nprint(w.grad)",
         "opcoes": [
-          { "texto": "tensor(25.)", "equivoco": "25 é o valor da loss em w = 2; w.grad guarda a derivada." },
+          {
+            "texto": "tensor(25.)",
+            "equivoco": "25 é o valor da loss em $w = 2$; w.grad guarda a derivada."
+          },
           {
             "texto": "tensor(10.)",
-            "equivoco": "Faltou o fator 3 da regra da cadeia: a derivada de dentro de (3w − 1) é 3."
+            "equivoco": "Faltou o fator 3 da regra da cadeia: a derivada de dentro de $(3w - 1)$ é 3."
           },
           {
             "texto": "None, porque backward() não altera w",
@@ -2207,7 +2231,7 @@
           { "texto": "Não sei", "naoSei": true }
         ],
         "correta": 3,
-        "explicacao": "O backward() guarda em w.grad a derivada da loss: d/dw (3w − 1)² = 2(3w − 1) · 3. Em w = 2, dá 2 · 5 · 3 = 30. O 25 é o valor da loss; o 10 esquece o fator 3 da regra da cadeia.",
+        "explicacao": "O backward() guarda em w.grad a derivada da loss: $d/dw\\,(3w - 1)^2 = 2(3w - 1) \\cdot 3$. Em $w = 2$, dá $2 \\cdot 5 \\cdot 3 = 30$. O 25 é o valor da loss; o 10 esquece o fator 3 da regra da cadeia.",
         "variantes": [
           {
             "id": "n-codigo-4b",
@@ -2216,11 +2240,11 @@
             "opcoes": [
               {
                 "texto": "tensor(14.)",
-                "equivoco": "14 é o valor de y; x.grad guarda a derivada em relação a cada x."
+                "equivoco": "14 é o valor de $y$; x.grad guarda a derivada em relação a cada x."
               },
               {
                 "texto": "tensor([1., 4., 9.])",
-                "equivoco": "[1, 4, 9] é x², não a derivada de x², que é 2x."
+                "equivoco": "$[1, 4, 9]$ é $x^2$, não a derivada de $x^2$, que é $2x$."
               },
               "tensor([2., 4., 6.])",
               {
@@ -2230,7 +2254,7 @@
               { "texto": "Não sei", "naoSei": true }
             ],
             "correta": 2,
-            "explicacao": "y = x₁² + x₂² + x₃², então a derivada de y em relação a cada xᵢ é 2xᵢ, e o backward() guarda [2, 4, 6] em x.grad. O 14 é o valor de y; [1, 4, 9] é o próprio x²."
+            "explicacao": "$y = x_1^2 + x_2^2 + x_3^2$, então a derivada de $y$ em relação a cada $x_i$ é $2x_i$, e o backward() guarda [2, 4, 6] em x.grad. O 14 é o valor de $y$; $[1, 4, 9]$ é o próprio $x^2$."
           }
         ]
       }

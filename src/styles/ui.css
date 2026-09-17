@@ -113,6 +113,12 @@
 .lg-input--invalid { border-color: var(--danger-border); }
 textarea.lg-input { height: auto; min-height: 96px; padding: 12px 14px; line-height: 1.6; resize: vertical; }
 
+/* ---------- Fórmula (KaTeX) ---------- */
+/* A fonte matemática tem letras menores que a da interface no mesmo tamanho:
+   1.05em iguala a altura sem destoar do texto ao redor. */
+.lg-mat .katex { font-size: 1.05em; }
+.lg-mat .katex-display { margin: 10px 0; }
+
 /* ---------- Chip ---------- */
 .lg-chip {
   display: inline-flex;

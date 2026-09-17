@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Check, X, HelpCircle } from "lucide-react";
 import { MODULOS, ROTULO_CONCEITO } from "./dados.ts";
+import { TextoMat } from "../ui/TextoMat.tsx";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 
 const STATUS = {
@@ -83,7 +84,9 @@ function ListaRevisao({ questoes, rodada }) {
               <Icone size={13} aria-hidden /> {rotulo}
               {q.etapa === 2 && <span style={{ color: "var(--muted)" }}>· confirmação</span>}
             </span>
-            <p className="nv-revisao__pergunta">{q.pergunta}</p>
+            <p className="nv-revisao__pergunta">
+              <TextoMat texto={q.pergunta} />
+            </p>
             {q.codigo && (
               <pre className="nv-codigo" style={{ marginTop: 8, fontSize: 12 }}>
                 <code>{q.codigo}</code>
@@ -91,13 +94,21 @@ function ListaRevisao({ questoes, rodada }) {
             )}
             {marcada && (
               <p className="nv-revisao__equivoco">
-                Você marcou <strong>“{marcada.texto}”</strong>.{marcada.equivoco ? ` ${marcada.equivoco}` : ""}
+                Você marcou <strong>“<TextoMat texto={marcada.texto} />”</strong>.
+                {marcada.equivoco && (
+                  <>
+                    {" "}
+                    <TextoMat texto={marcada.equivoco} />
+                  </>
+                )}
               </p>
             )}
             <p className="nv-revisao__certa">
-              Resposta: <strong>{q.opcoes[q.correta].texto}</strong>
+              Resposta: <strong><TextoMat texto={q.opcoes[q.correta].texto} /></strong>
             </p>
-            <p className="nv-revisao__explicacao">{q.explicacao}</p>
+            <p className="nv-revisao__explicacao">
+              <TextoMat texto={q.explicacao} />
+            </p>
             {q.conceitos?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                 {q.conceitos.map((id) => (

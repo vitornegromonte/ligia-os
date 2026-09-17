@@ -5,6 +5,7 @@ import { PageHeader } from "../ui/PageHeader.tsx";
 import { Card } from "../ui/Card.tsx";
 import { Chip } from "../ui/Chip.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
+import { TextoMat, textoSemMat } from "../ui/TextoMat.tsx";
 import { NIVELAMENTO, MODULOS, CONCEITOS } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import {
@@ -320,7 +321,9 @@ function ItemAnalise({ item }) {
       <div className="ai-item__cabecalho">
         <code className="ai-item__id">{item.id}</code>
         {item.aposentada && <span className="lg-chip lg-chip--static">aposentada</span>}
-        <span className="ai-item__pergunta" title={forma?.pergunta}>{forma?.pergunta}</span>
+        <span className="ai-item__pergunta" title={forma ? textoSemMat(forma.pergunta) : undefined}>
+          {forma && <TextoMat texto={forma.pergunta} />}
+        </span>
       </div>
       <dl className="ai-metricas">
         <div><dt>Peso</dt><dd>{item.dificuldade}{item.pesoSugerido !== null && item.pesoSugerido !== item.dificuldade ? ` → ${item.pesoSugerido}` : ""}</dd></div>
@@ -351,8 +354,12 @@ function ItemAnalise({ item }) {
                 <li key={i}>
                   <span className="ai-alternativas__texto">
                     {i === forma.correta && <Check size={12} aria-label="correta" style={{ color: "var(--success)", marginRight: 4 }} />}
-                    {o.texto}
-                    {o.equivoco && <span className="ai-alternativas__equivoco">{o.equivoco}</span>}
+                    <TextoMat texto={o.texto} />
+                    {o.equivoco && (
+                      <span className="ai-alternativas__equivoco">
+                        <TextoMat texto={o.equivoco} />
+                      </span>
+                    )}
                   </span>
                   <span className="ai-alternativas__barra" aria-hidden>
                     <span style={{ width: `${Math.round(fracao * 100)}%` }} />

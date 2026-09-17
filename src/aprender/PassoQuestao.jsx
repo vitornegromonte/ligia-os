@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import QuestionCard from "./QuestionCard.tsx";
+import { TextoMat } from "../ui/TextoMat.tsx";
 import { ordemDasOpcoes } from "../lib/embaralhar.ts";
 
 /**
@@ -19,7 +20,7 @@ export default function PassoQuestao({ questao, rotulo, seed, resposta, onRespon
     <>
       <p className="nv-passo-rotulo">{rotulo}</p>
       <h1 ref={tituloRef} tabIndex={-1} className="nv-titulo">
-        {questao.pergunta}
+        <TextoMat texto={questao.pergunta} />
       </h1>
       {questao.codigo && (
         <pre className="nv-codigo">

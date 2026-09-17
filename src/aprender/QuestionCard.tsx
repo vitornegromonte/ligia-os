@@ -1,4 +1,5 @@
 import { Field, Input } from "../ui/Field.tsx";
+import { TextoMat } from "../ui/TextoMat.tsx";
 
 /**
  * Forma mínima de uma opção — estrutural de propósito, para servir tanto ao
@@ -89,7 +90,9 @@ export default function QuestionCard({
               <span className={`nv-marca nv-marca--${tipo}`} aria-hidden>
                 {marcada && <span className="nv-marca__ponto" />}
               </span>
-              {op.texto}
+              <span>
+                <TextoMat texto={op.texto} />
+              </span>
             </button>
           );
         })}

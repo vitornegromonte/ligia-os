@@ -8,6 +8,8 @@ import {
   questoesParaEngine,
 } from "@/lib/nivelamento-content";
 import { COMPETENCIAS, type CompetenciaId } from "@/lib/competencias";
+import katex from "katex";
+import { partesDeTexto } from "@/ui/TextoMat";
 
 const content = loadNivelamentoContent(raw);
 
@@ -213,6 +215,36 @@ describe("banco de questões — equívocos dos distratores", () => {
   });
 });
 
+describe("banco de questões — fórmulas", () => {
+  const textos = () =>
+    [...content.mcq, ...content.codigo.questoes].flatMap((q) => [
+      [`${q.id} pergunta`, q.pergunta] as const,
+      [`${q.id} explicação`, q.explicacao] as const,
+      ...q.opcoes.flatMap((o, i) => [
+        [`${q.id} opção ${i}`, o.texto] as const,
+        ...(o.equivoco ? [[`${q.id} equívoco ${i}`, o.equivoco] as const] : []),
+      ]),
+    ]);
+
+  it("os delimitadores `$` sempre fecham", () => {
+    for (const [onde, texto] of textos()) {
+      const cifroes = (texto.match(/(?<!\\)\$/g) ?? []).length;
+      expect(cifroes % 2, `${onde}: ${texto}`).toBe(0);
+    }
+  });
+
+  it("toda fórmula compila no KaTeX", () => {
+    for (const [onde, texto] of textos()) {
+      for (const parte of partesDeTexto(texto).filter((p) => p.tipo === "mat")) {
+        expect(
+          () => katex.renderToString(parte.valor, { throwOnError: true, strict: "ignore" }),
+          `${onde}: ${parte.valor}`,
+        ).not.toThrow();
+      }
+    }
+  });
+});
+
 describe("banco de questões — explicações", () => {
   it("toda MCQ explica a resposta em texto curto", () => {
     for (const q of content.mcq) {
@@ -222,15 +254,23 @@ describe("banco de questões — explicações", () => {
   });
 });
 
+/** Tamanho do que o aluno lê: sem os `$` e sem os comandos do LaTeX. */
+function tamanhoVisivel(texto: string): number {
+  return texto
+    .replace(/\$/g, "")
+    .replace(/\\[a-zA-Z]+\s?/g, "x")
+    .replace(/[{}]/g, "").length;
+}
+
 describe("banco de questões — a certa não se entrega pelo tamanho", () => {
   it("a alternativa certa não passa de 15 caracteres além da errada mais longa", () => {
     // Resposta certa visivelmente mais longa é a pista clássica de item mal
     // escrito: dá para acertar sem saber o assunto.
     for (const q of [...content.mcq, ...content.codigo.questoes].filter((x) => !x.aposentada)) {
       const conteudoDasOpcoes = q.opcoes.filter((o) => !o.naoSei);
-      const certa = q.opcoes[q.correta].texto.length;
+      const certa = tamanhoVisivel(q.opcoes[q.correta].texto);
       const maiorErrada = Math.max(
-        ...conteudoDasOpcoes.filter((o) => o !== q.opcoes[q.correta]).map((o) => o.texto.length),
+        ...conteudoDasOpcoes.filter((o) => o !== q.opcoes[q.correta]).map((o) => tamanhoVisivel(o.texto)),
       );
       expect(certa - maiorErrada, `${q.id}: certa ${certa}, maior errada ${maiorErrada}`).toBeLessThanOrEqual(15);
     }

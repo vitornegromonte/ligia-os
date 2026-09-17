@@ -7,6 +7,7 @@ import { NIVELAMENTO } from "@/aprender/dados";
 import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
 import { questoesDaEtapa, questoesParaEngine } from "@/lib/nivelamento-content";
 import { corrigir, montarProva } from "@/lib/nivelamento-rodada";
+import { ordemDasOpcoes } from "@/lib/embaralhar";
 import { loadPerfil, loadPretestV2, loadRascunho, savePretestV2 } from "@/lib/pretest-storage";
 
 /** Rodada salva com matemática gabaritada (candidata) e o resto em "Não sei". */
@@ -28,7 +29,7 @@ function salvarRodada() {
     autoRelato: {},
     recomendacao: recomendar(matriz),
     dispensasConfirmadas: [],
-    ts: "2026-09-17T12:00:00.000Z",
+    ts: TS_RODADA,
   });
 }
 
@@ -44,6 +45,8 @@ function renderizar(rota: string) {
     </AuthProvider>,
   );
 }
+
+const TS_RODADA = "2026-09-17T12:00:00.000Z";
 
 describe("Nivelamento — página", () => {
   beforeEach(() => {
@@ -98,7 +101,10 @@ describe("Nivelamento — página", () => {
   it("na revisão, erro com alternativa registrada mostra o que foi marcado e o equívoco", () => {
     const prova = montarProva(NIVELAMENTO, 1, { seed: "teste" });
     const alvo = prova.find((q) => q.competencia === "ml-classico")!;
-    const errada = alvo.opcoes.findIndex((o, i) => i !== alvo.correta && !o.naoSei);
+    // Alternativa sem fórmula: o texto na tela é comparado direto com o do conteúdo.
+    const errada = alvo.opcoes.findIndex(
+      (o, i) => i !== alvo.correta && !o.naoSei && !o.texto.includes("$"),
+    );
     const escolhas = Object.fromEntries(
       prova.map((q) => [q.id, q.id === alvo.id ? errada : q.opcoes.findIndex((o) => o.naoSei)]),
     );
@@ -113,7 +119,7 @@ describe("Nivelamento — página", () => {
       autoRelato: {},
       recomendacao: recomendar(matriz),
       dispensasConfirmadas: [],
-      ts: "2026-09-17T12:00:00.000Z",
+      ts: TS_RODADA,
     });
     renderizar("/aprender/nivelamento?ver=resultado");
     const item = document.querySelector(`[data-questao="${alvo.id}"]`)!;
@@ -184,13 +190,15 @@ describe("Nivelamento — página", () => {
     fireEvent.click(screen.getByRole("button", { name: /M0 · / }));
     fireEvent.click(screen.getByRole("button", { name: /Responder 4 perguntas/ }));
 
-    // A forma de cada questão é sorteada: acha pelo enunciado na tela.
+    // A forma de cada questão é sorteada e as alternativas são embaralhadas:
+    // identifica a questão pelo data-q e acha a certa pela ordem de exibição.
     const formas = questoesDaEtapa(NIVELAMENTO, 2, ["matematica"]);
     for (let i = 0; i < 4; i++) {
-      const titulo = screen.getByRole("heading", { level: 1 }).textContent;
-      const q = formas.find((f) => f.pergunta === titulo)!;
-      expect(q, titulo ?? "").toBeDefined();
-      fireEvent.click(screen.getByRole("button", { name: q.opcoes[q.correta].texto }));
+      const id = document.querySelector("[data-q]")!.getAttribute("data-q")!;
+      const q = formas.find((f) => f.id === id)!;
+      expect(q, id).toBeDefined();
+      const ordem = ordemDasOpcoes(q.opcoes, `${TS_RODADA}:${q.id}`, (o) => o.naoSei);
+      fireEvent.click(document.querySelectorAll(".nv-opcao")[ordem.indexOf(q.correta)]);
       fireEvent.click(screen.getByRole("button", { name: i === 3 ? /Ver confirmação/ : /Avançar/ }));
     }
 
