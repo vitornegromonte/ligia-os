@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "../src/contexts/AuthContext.jsx";
 import Nivelamento from "@/aprender/Nivelamento";
@@ -7,7 +7,7 @@ import { NIVELAMENTO } from "@/aprender/dados";
 import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
 import { questoesDaEtapa, questoesParaEngine } from "@/lib/nivelamento-content";
 import { corrigir, montarProva } from "@/lib/nivelamento-rodada";
-import { loadPretestV2, savePretestV2 } from "@/lib/pretest-storage";
+import { loadPerfil, loadPretestV2, loadRascunho, savePretestV2 } from "@/lib/pretest-storage";
 
 /** Rodada salva com matemática gabaritada (candidata) e o resto em "Não sei". */
 function salvarRodada() {
@@ -62,7 +62,7 @@ describe("Nivelamento — página", () => {
   it("sorteia uma forma por questão (20 MCQ + 4 de código) e guarda a prova no rascunho", () => {
     renderizar("/aprender/nivelamento");
     fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
-    const rascunho = JSON.parse(sessionStorage.getItem("ligia-nivelamento:rascunho:v1")!);
+    const rascunho = JSON.parse(localStorage.getItem("ligia-nivelamento:rascunho:v2")!);
     expect(rascunho.prova).toHaveLength(24);
     const formas = [...NIVELAMENTO.mcq, ...NIVELAMENTO.codigo.questoes];
     const slots = rascunho.prova.map((id: string) => formas.find((q) => q.id === id)!.slot);
@@ -90,6 +90,8 @@ describe("Nivelamento — página", () => {
     const salvo = loadPretestV2()!;
     expect(Object.keys(salvo.resultados)).toHaveLength(24);
     expect(Object.keys(salvo.respostas ?? {})).toHaveLength(24);
+    // Terminar o teste apaga o rascunho: a trilha não pode oferecer "continuar".
+    expect(loadRascunho()).toBeNull();
     for (const c of Object.values(salvo.matriz)) expect(c.score).toBe(0);
   });
 
@@ -120,6 +122,44 @@ describe("Nivelamento — página", () => {
     // "Não sei" não é erro: não aponta equívoco.
     const outra = prova.find((q) => q.competencia === "matematica")!;
     expect(document.querySelector(`[data-questao="${outra.id}"] .nv-revisao__equivoco`)).toBeNull();
+  });
+
+  it("só abrir a página não cria rascunho", () => {
+    renderizar("/aprender/nivelamento");
+    expect(loadRascunho()).toBeNull();
+  });
+
+  it("terminar depois guarda onde parou e, ao voltar, retoma na mesma questão", () => {
+    const primeira = renderizar("/aprender/nivelamento");
+    fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
+    for (let i = 0; i < 2; i++) {
+      fireEvent.click(screen.getAllByRole("button", { name: "Não sei" })[0]);
+      fireEvent.click(screen.getByRole("button", { name: /Avançar/ }));
+    }
+    const tituloDaTerceira = screen.getByRole("heading", { level: 1 }).textContent;
+    fireEvent.click(screen.getByRole("button", { name: /Terminar depois/ }));
+    expect(screen.getByText("trilha")).toBeInTheDocument();
+
+    const r = loadRascunho()!;
+    expect(r.passo).toBe(3);
+    expect(Object.keys(r.respostas)).toHaveLength(2);
+    primeira.unmount();
+
+    renderizar("/aprender/nivelamento");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(tituloDaTerceira!);
+    expect(screen.getByText("2/24")).toBeInTheDocument();
+  });
+
+  it("começar grava o \"quem é você\" como perfil, com o texto de \"Outro\"", () => {
+    renderizar("/aprender/nivelamento");
+    const ar2 = document.querySelector('[data-q="ar2"]') as HTMLElement;
+    fireEvent.click(within(ar2).getByRole("button", { name: "Outra" }));
+    fireEvent.change(within(ar2).getByLabelText("Qual? (opcional)"), { target: { value: "Rust" } });
+    fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
+    const perfil = loadPerfil()!;
+    const iOutra = NIVELAMENTO.auto_relato.find((p) => p.id === "ar2")!.opcoes.findIndex((o) => o.outro);
+    expect(perfil.autoRelato.ar2).toEqual([iOutra]);
+    expect(perfil.textosOutro).toEqual({ ar2: "Rust" });
   });
 
   it("sem rodada salva, ?ver=resultado cai no wizard", () => {

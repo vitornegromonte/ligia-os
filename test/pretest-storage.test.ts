@@ -8,6 +8,11 @@ import {
   aplicarRetake,
   type PretestResult,
   type PretestResultV2,
+  loadPerfil,
+  savePerfil,
+  loadRascunho,
+  saveRascunho,
+  clearRascunho,
 } from "@/lib/pretest-storage";
 import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
 
@@ -179,5 +184,55 @@ describe("pretest-storage v2", () => {
         vi.unstubAllGlobals();
       }
     });
+  });
+});
+
+describe("perfil e rascunho — isolamento por conta", () => {
+  const rascunhoDe = (userId: string | null) => ({
+    passo: 2,
+    respostas: { x: 1 },
+    autoRelato: {},
+    textosOutro: {},
+    seed: "s",
+    prova: [],
+    contentVersion: "8",
+    atualizadoEm: "2026-09-17T10:00:00.000Z",
+    userId,
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it("rascunho de outra conta é ignorado e não é apagado por ela", () => {
+    saveRascunho(rascunhoDe("conta-a"));
+    expect(loadRascunho("conta-b")).toBeNull();
+    clearRascunho("conta-b");
+    expect(loadRascunho("conta-a")).not.toBeNull();
+    clearRascunho("conta-a");
+    expect(loadRascunho("conta-a")).toBeNull();
+  });
+
+  it("rascunho sem dono (preview local) vale para qualquer conta", () => {
+    saveRascunho(rascunhoDe(null));
+    expect(loadRascunho("conta-b")?.passo).toBe(2);
+  });
+
+  it("migra o rascunho antigo do sessionStorage para o localStorage", () => {
+    sessionStorage.setItem(
+      "ligia-nivelamento:rascunho:v1",
+      JSON.stringify({ passo: 5, respostas: { y: 0 }, autoRelato: {}, seed: "abc", prova: ["y"] }),
+    );
+    const r = loadRascunho("conta-a")!;
+    expect(r).toMatchObject({ passo: 5, respostas: { y: 0 }, seed: "abc", prova: ["y"], userId: "conta-a" });
+    expect(sessionStorage.getItem("ligia-nivelamento:rascunho:v1")).toBeNull();
+    expect(loadRascunho("conta-a")?.passo).toBe(5);
+  });
+
+  it("perfil de outra conta é ignorado", () => {
+    savePerfil({ autoRelato: { ar4: [0] }, textosOutro: {}, contentVersion: "8", atualizadoEm: "2026-09-17T10:00:00.000Z", userId: "conta-a" });
+    expect(loadPerfil("conta-b")).toBeNull();
+    expect(loadPerfil("conta-a")?.autoRelato).toEqual({ ar4: [0] });
   });
 });

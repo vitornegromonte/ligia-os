@@ -7,10 +7,12 @@ import { Button } from "../ui/Button.tsx";
 import { RadarChart } from "../ui/RadarChart.tsx";
 import ConceptCard from "./ConceptCard.tsx";
 import { SYNC_EVENT } from "./SyncEstado.tsx";
-import { CONCEITOS, MODULOS, CONCEITO_POR_ID, CONCEITO_PARA_AULA } from "./dados.ts";
+import { CONCEITOS, MODULOS, CONCEITO_POR_ID, CONCEITO_PARA_AULA, NIVELAMENTO } from "./dados.ts";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { effectiveState, doneSetFrom } from "../lib/status.ts";
 import { loadUserStatus } from "../lib/progress.ts";
-import { loadPretestV2 } from "../lib/pretest-storage.ts";
+import { loadPretestV2, loadRascunho, clearRascunho, pedirSync } from "../lib/pretest-storage.ts";
+import { totalDaProva } from "../lib/nivelamento-rodada.ts";
 import { loadLoopResults, dueForReview } from "../lib/loop-progress.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import { corDoModulo, ORDEM_MODULOS } from "../lib/modulos.ts";
@@ -28,6 +30,10 @@ export default function Trilha() {
   const navegar = useNavigate();
   const [userStatus, setUserStatus] = useState({});
   const [nivelamento, setNivelamento] = useState(null);
+  /** Nivelamento começado e não terminado ("terminar depois"). */
+  const [rascunho, setRascunho] = useState(null);
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? null;
   const [loopResults, setLoopResults] = useState({});
   const [agora, setAgora] = useState(0);
   const { resolvidas } = usePraticasCodigo();
@@ -42,6 +48,7 @@ export default function Trilha() {
       setUserStatus(loadUserStatus());
       setLoopResults(loadLoopResults());
       setNivelamento(loadPretestV2());
+      setRascunho(loadRascunho(userId));
       setAgora(Date.now());
     }
     reler();
@@ -49,7 +56,7 @@ export default function Trilha() {
     // acabou de entrar veria o estado velho até dar F5.
     window.addEventListener(SYNC_EVENT, reler);
     return () => window.removeEventListener(SYNC_EVENT, reler);
-  }, []);
+  }, [userId]);
 
   const doneSet = useMemo(() => doneSetFrom(userStatus), [userStatus]);
   const recomendacao = nivelamento?.recomendacao ?? null;
@@ -165,18 +172,47 @@ export default function Trilha() {
                 </Link>
               )}
               <Link to="/aprender/nivelamento"
-                style={{ display: "inline-block", marginTop: 10, color: "var(--muted)", fontSize: 12 }}>
-                Refazer nivelamento →
+                style={{ display: "inline-block", marginTop: 10, color: rascunho ? "var(--accent-hover)" : "var(--muted)", fontSize: 12, fontWeight: rascunho ? 600 : 400 }}>
+                {rascunho ? "Continuar nivelamento →" : "Refazer nivelamento →"}
               </Link>
             </div>
           </div>
         ) : (
           <div className="lg-card lg-card--md" style={{ marginBottom: 26, maxWidth: 560 }}>
-            <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.7, color: "var(--muted)" }}>
-              O nivelamento monta sua matriz de competências e decide onde a trilha começa —
-              inclusive quais módulos você pode dispensar.
-            </p>
-            <Button as={Link} to="/aprender/nivelamento" size="sm">Fazer o nivelamento</Button>
+            {rascunho ? (
+              <>
+                <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.7, color: "var(--muted)" }}>
+                  Você começou o nivelamento e respondeu{" "}
+                  <strong style={{ color: "var(--text)" }}>
+                    {Object.keys(rascunho.respostas).length} de {totalDaProva(NIVELAMENTO)}
+                  </strong>{" "}
+                  questões. Dá para continuar de onde parou.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
+                  <Button as={Link} to="/aprender/nivelamento" size="sm">Continuar nivelamento</Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!window.confirm("Descartar as respostas e recomeçar o nivelamento do zero?")) return;
+                      clearRascunho(userId);
+                      pedirSync();
+                      setRascunho(null);
+                    }}
+                    style={{ padding: 0, border: "none", background: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Recomeçar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.7, color: "var(--muted)" }}>
+                  O nivelamento monta sua matriz de competências e decide onde a trilha começa —
+                  inclusive quais módulos você pode dispensar.
+                </p>
+                <Button as={Link} to="/aprender/nivelamento" size="sm">Fazer o nivelamento</Button>
+              </>
+            )}
           </div>
         )}
 

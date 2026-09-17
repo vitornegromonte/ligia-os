@@ -239,3 +239,131 @@ export function aplicarRetake(
   );
   return { ...novo, dispensasConfirmadas };
 }
+
+// ---------------------------------------------------------------------------
+// Perfil do aluno ("quem é você") e rascunho do nivelamento.
+//
+// Os dois são local-first como o resto e sobem pelo sync (tabelas
+// learner_profiles e nivelamento_rascunhos, migração 0105). Levam o id do
+// usuário que os gravou: num navegador compartilhado, o rascunho de outra
+// conta é ignorado em vez de retomado ou enviado para a conta errada.
+// ---------------------------------------------------------------------------
+
+export type PerfilAprendiz = {
+  autoRelato: Record<string, number[]>;
+  /** Texto livre das opções "Outro", por pergunta. */
+  textosOutro: Record<string, string>;
+  contentVersion: string;
+  atualizadoEm: string; // ISO
+  userId?: string | null;
+};
+
+export type RascunhoNivelamento = {
+  passo: number;
+  /** Alternativa escolhida por questão (índice da opção original). */
+  respostas: Record<string, number>;
+  autoRelato: Record<string, number[]>;
+  textosOutro: Record<string, string>;
+  seed: string;
+  /** Ids das formas sorteadas, na ordem da prova. */
+  prova: string[];
+  contentVersion: string;
+  atualizadoEm: string; // ISO
+  userId?: string | null;
+};
+
+const KEY_PERFIL = "ligia-nivelamento:perfil:v1";
+const KEY_RASCUNHO = "ligia-nivelamento:rascunho:v2";
+/** Rascunho antigo, por aba (sessionStorage), sem data nem dono. */
+const KEY_RASCUNHO_V1 = "ligia-nivelamento:rascunho:v1";
+
+/** Registro de outra conta? Sem dono gravado (preview local, dado antigo) vale para qualquer um. */
+function deOutraConta(registro: { userId?: string | null }, userId?: string | null): boolean {
+  return !!registro.userId && !!userId && registro.userId !== userId;
+}
+
+function lerJson<T>(chave: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(chave);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function gravarJson(chave: string, valor: unknown): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(chave, JSON.stringify(valor));
+  } catch {
+    // storage cheio ou indisponível: segue sem persistir
+  }
+}
+
+export function loadPerfil(userId?: string | null): PerfilAprendiz | null {
+  const p = lerJson<PerfilAprendiz>(KEY_PERFIL);
+  return p && !deOutraConta(p, userId) ? p : null;
+}
+
+export function savePerfil(perfil: PerfilAprendiz): void {
+  gravarJson(KEY_PERFIL, perfil);
+}
+
+/**
+ * Rascunho em andamento. Na primeira leitura, traz o rascunho v1 que morava no
+ * sessionStorage (sumia ao fechar a aba) para o localStorage.
+ */
+export function loadRascunho(userId?: string | null): RascunhoNivelamento | null {
+  if (typeof window === "undefined") return null;
+  let r = lerJson<RascunhoNivelamento>(KEY_RASCUNHO);
+  if (!r) {
+    try {
+      const v1 = sessionStorage.getItem(KEY_RASCUNHO_V1);
+      if (v1) {
+        const antigo = JSON.parse(v1) as Partial<RascunhoNivelamento>;
+        sessionStorage.removeItem(KEY_RASCUNHO_V1);
+        if (antigo.seed) {
+          r = {
+            passo: antigo.passo ?? 0,
+            respostas: antigo.respostas ?? {},
+            autoRelato: antigo.autoRelato ?? {},
+            textosOutro: antigo.textosOutro ?? {},
+            seed: antigo.seed,
+            prova: antigo.prova ?? [],
+            contentVersion: "",
+            atualizadoEm: new Date().toISOString(),
+            userId: userId ?? null,
+          };
+          gravarJson(KEY_RASCUNHO, r);
+        }
+      }
+    } catch {
+      // rascunho v1 corrompido: descarta
+    }
+  }
+  return r && !deOutraConta(r, userId) ? r : null;
+}
+
+export function saveRascunho(rascunho: RascunhoNivelamento): void {
+  gravarJson(KEY_RASCUNHO, rascunho);
+}
+
+/** Apaga o rascunho — só o desta conta (ou sem dono), nunca o de outra. */
+export function clearRascunho(userId?: string | null): void {
+  if (typeof window === "undefined") return;
+  const r = lerJson<RascunhoNivelamento>(KEY_RASCUNHO);
+  if (r && deOutraConta(r, userId)) return;
+  try {
+    localStorage.removeItem(KEY_RASCUNHO);
+  } catch {
+    // indisponível: nada a apagar
+  }
+}
+
+/** Pede ao SyncEstado um sync já, sem esperar a aba ficar escondida. */
+export const SYNC_AGORA_EVENT = "ligia:sync-agora";
+
+export function pedirSync(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(SYNC_AGORA_EVENT));
+}

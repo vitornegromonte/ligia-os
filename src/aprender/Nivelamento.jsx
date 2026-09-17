@@ -6,7 +6,9 @@ import { Button } from "../ui/Button.tsx";
 import QuestionCard from "./QuestionCard.tsx";
 import PassoQuestao from "./PassoQuestao.jsx";
 import NivelamentoResultado from "./NivelamentoResultado.jsx";
+import { SYNC_EVENT } from "./SyncEstado.tsx";
 import { NIVELAMENTO } from "./dados.ts";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { scoreCompetencias, recomendar } from "../lib/nivelamento.ts";
 import {
   ehQuestaoCodigo,
@@ -28,10 +30,13 @@ import {
   aplicarRetake,
   loadQuestoesVistas,
   registrarQuestoesVistas,
+  loadRascunho,
+  saveRascunho,
+  clearRascunho,
+  savePerfil,
+  pedirSync,
 } from "../lib/pretest-storage.ts";
 import { logEvent } from "../lib/events.ts";
-
-const RASCUNHO_KEY = "ligia-nivelamento:rascunho:v1";
 
 const contarSlots = (formas) => new Set(formas.map((q) => q.slot)).size;
 
@@ -62,11 +67,18 @@ function novaProva(seed) {
  *
  * "Não sei" vale zero na nota, como o erro, mas fica registrado como tal nos
  * resultados: é o que permite separar lacuna de engano na análise das questões.
+ *
+ * O teste em andamento vira rascunho da conta (lib/pretest-storage + sync):
+ * "Terminar depois" volta para a trilha, que oferece continuar, inclusive em
+ * outro dispositivo. O "quem é você" é gravado como perfil ao começar, para os
+ * admins verem mesmo de quem não termina o teste.
  */
 export default function Nivelamento() {
   const conteudo = NIVELAMENTO;
   const navegar = useNavigate();
   const [params, setParams] = useSearchParams();
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? null;
 
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState({});
@@ -84,50 +96,125 @@ export default function Nivelamento() {
   });
   const tituloRef = useRef(null);
   const hidratado = useRef(false);
+  /** O aluno já mexeu em algo nesta visita? Se sim, um sync não sobrescreve o que está na tela. */
+  const interagiu = useRef(false);
+  /** Carimbo do último rascunho gravado daqui — separa o eco do nosso save de um rascunho vindo de fora. */
+  const ultimaGravacao = useRef("");
 
   useEffect(() => {
     document.title = "Ligia — Nivelamento";
     window.scrollTo({ top: 0 });
   }, []);
 
-  // Hidrata o rascunho da sessão (ou cria a seed do embaralhamento).
+  function hidratar(r) {
+    setPasso(r.passo ?? 0);
+    setRespostas(r.respostas ?? {});
+    setAutoRelato(r.autoRelato ?? {});
+    setTextosOutro(r.textosOutro ?? {});
+    const s = r.seed || String(Date.now());
+    setSeed(s);
+    // Conteúdo mudou desde o rascunho (questão aposentada): sorteia de novo.
+    const salva = questoesPorIds(NIVELAMENTO, r.prova ?? []);
+    setProva(salva.length === TOTAL_QUESTOES ? salva : novaProva(s));
+    ultimaGravacao.current = r.atualizadoEm ?? "";
+  }
+
+  // Retoma o rascunho da conta (ou cria a seed do embaralhamento).
   useEffect(() => {
     if (hidratado.current) return;
     hidratado.current = true;
-    try {
-      const cru = sessionStorage.getItem(RASCUNHO_KEY);
-      if (cru) {
-        const r = JSON.parse(cru);
-        setPasso(r.passo ?? 0);
-        setRespostas(r.respostas ?? {});
-        setAutoRelato(r.autoRelato ?? {});
-        setTextosOutro(r.textosOutro ?? {});
-        const s = r.seed || String(Date.now());
-        setSeed(s);
-        const salva = questoesPorIds(NIVELAMENTO, r.prova ?? []);
-        setProva(salva.length === TOTAL_QUESTOES ? salva : novaProva(s));
-        return;
-      }
-    } catch {
-      /* rascunho corrompido: começa limpo */
+    const r = loadRascunho(userId);
+    if (r) {
+      hidratar(r);
+      return;
     }
     const s = String(Date.now());
     setSeed(s);
     setProva(novaProva(s));
-  }, []);
+    // Roda uma vez (guarda em `hidratado`): a rota protegida só monta a página
+    // com a sessão já carregada, então userId não muda depois.
+  }, [userId]);
 
-  // Persiste a cada mudança: abandonar e voltar não perde as respostas.
+  // Um sync pode trazer um rascunho mais novo de outro dispositivo. Só troca o
+  // que está na tela se o aluno ainda não mexeu em nada nesta visita.
+  useEffect(() => {
+    function aoSincronizar() {
+      if (interagiu.current || resultado) return;
+      const r = loadRascunho(userId);
+      if (r && r.atualizadoEm > ultimaGravacao.current) hidratar(r);
+    }
+    window.addEventListener(SYNC_EVENT, aoSincronizar);
+    return () => window.removeEventListener(SYNC_EVENT, aoSincronizar);
+  }, [resultado, userId]);
+
+  /**
+   * Grava o rascunho a cada mudança, a partir do momento em que há progresso:
+   * só abrir a página não pode fazer a trilha oferecer "continuar".
+   */
   useEffect(() => {
     if (!seed || resultado) return;
-    try {
-      sessionStorage.setItem(
-        RASCUNHO_KEY,
-        JSON.stringify({ passo, respostas, autoRelato, textosOutro, seed, prova: prova.map((q) => q.id) }),
-      );
-    } catch {
-      /* storage cheio ou indisponível: segue sem rascunho */
+    if (passo === 0 && Object.keys(respostas).length === 0) return;
+    const atualizadoEm = new Date().toISOString();
+    ultimaGravacao.current = atualizadoEm;
+    saveRascunho({
+      passo,
+      respostas,
+      autoRelato,
+      textosOutro,
+      seed,
+      prova: prova.map((q) => q.id),
+      contentVersion: conteudo.version,
+      atualizadoEm,
+      userId,
+    });
+  }, [passo, respostas, autoRelato, textosOutro, seed, prova, resultado, conteudo.version, userId]);
+
+  /** Grava o "quem é você" como perfil da conta, se houver alguma resposta. */
+  function salvarPerfil() {
+    const textos = {};
+    for (const p of conteudo.auto_relato) {
+      const marcadas = autoRelato[p.id] ?? [];
+      const outroMarcado = marcadas.some((i) => p.opcoes[i]?.outro);
+      const texto = (textosOutro[p.id] ?? "").trim();
+      if (outroMarcado && texto) textos[p.id] = texto;
     }
-  }, [passo, respostas, autoRelato, textosOutro, seed, prova, resultado]);
+    const respondeu = Object.values(autoRelato).some((v) => v.length > 0);
+    if (!respondeu) return;
+    savePerfil({
+      autoRelato,
+      textosOutro: textos,
+      contentVersion: conteudo.version,
+      atualizadoEm: new Date().toISOString(),
+      userId,
+    });
+  }
+
+  function comecar() {
+    interagiu.current = true;
+    salvarPerfil();
+    pedirSync();
+    setPasso(1);
+  }
+
+  /** Sai do teste guardando onde parou; a trilha oferece continuar. */
+  function terminarDepois() {
+    salvarPerfil();
+    if (passo > 0 || Object.keys(respostas).length > 0) {
+      saveRascunho({
+        passo,
+        respostas,
+        autoRelato,
+        textosOutro,
+        seed,
+        prova: prova.map((q) => q.id),
+        contentVersion: conteudo.version,
+        atualizadoEm: new Date().toISOString(),
+        userId,
+      });
+    }
+    pedirSync();
+    navegar("/aprender");
+  }
 
   // Foco no título a cada passo, para o leitor de tela anunciar a pergunta nova.
   useEffect(() => {
@@ -168,11 +255,9 @@ export default function Nivelamento() {
     });
 
     setResultado(final);
-    try {
-      sessionStorage.removeItem(RASCUNHO_KEY);
-    } catch {
-      /* ignore */
-    }
+    clearRascunho(userId);
+    salvarPerfil();
+    pedirSync();
     window.scrollTo({ top: 0 });
   }
 
@@ -188,6 +273,7 @@ export default function Nivelamento() {
     setAutoRelato({});
     setTextosOutro({});
     setPasso(0);
+    interagiu.current = false;
     const s = String(Date.now());
     setSeed(s);
     setProva(novaProva(s));
@@ -252,10 +338,16 @@ export default function Nivelamento() {
                     opcoes={q.opcoes}
                     tipo={q.tipo}
                     selected={autoRelato[q.id] ?? []}
-                    onSelect={(next) => setAutoRelato((s) => ({ ...s, [q.id]: next }))}
+                    onSelect={(next) => {
+                      interagiu.current = true;
+                      setAutoRelato((s) => ({ ...s, [q.id]: next }));
+                    }}
                     maxEscolhas={q.maxEscolhas}
                     textoOutro={textosOutro[q.id]}
-                    onTextoOutro={(t) => setTextosOutro((s) => ({ ...s, [q.id]: t }))}
+                    onTextoOutro={(t) => {
+                      interagiu.current = true;
+                      setTextosOutro((s) => ({ ...s, [q.id]: t }));
+                    }}
                   />
                 ))}
               </div>
@@ -272,7 +364,10 @@ export default function Nivelamento() {
               }
               seed={seed}
               resposta={respostas[questaoAtual.id]}
-              onResponder={(i) => setRespostas((s) => ({ ...s, [questaoAtual.id]: i }))}
+              onResponder={(i) => {
+                interagiu.current = true;
+                setRespostas((s) => ({ ...s, [questaoAtual.id]: i }));
+              }}
               tituloRef={tituloRef}
             />
           )}
@@ -281,18 +376,34 @@ export default function Nivelamento() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setPasso((p) => Math.max(0, p - 1))}
+              onClick={() => {
+                interagiu.current = true;
+                setPasso((p) => Math.max(0, p - 1));
+              }}
               style={{ visibility: passo === 0 ? "hidden" : "visible" }}
             >
               <ArrowLeft size={15} aria-hidden /> Voltar
+            </Button>
+            <Button variant="ghost" size="sm" onClick={terminarDepois}>
+              {ehAutoRelato ? "Pular por enquanto" : "Terminar depois"}
             </Button>
             {ehUltima ? (
               <Button disabled={!podeAvancar} onClick={finalizar}>
                 Ver meu resultado <ArrowRight size={16} aria-hidden />
               </Button>
+            ) : ehAutoRelato ? (
+              <Button onClick={comecar}>
+                Começar <ArrowRight size={16} aria-hidden />
+              </Button>
             ) : (
-              <Button disabled={!podeAvancar} onClick={() => setPasso((p) => p + 1)}>
-                {ehAutoRelato ? "Começar" : "Avançar"} <ArrowRight size={16} aria-hidden />
+              <Button
+                disabled={!podeAvancar}
+                onClick={() => {
+                  interagiu.current = true;
+                  setPasso((p) => p + 1);
+                }}
+              >
+                Avançar <ArrowRight size={16} aria-hidden />
               </Button>
             )}
           </div>

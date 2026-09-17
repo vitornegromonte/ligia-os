@@ -70,6 +70,15 @@ function formasPorId(conteudo: NivelamentoContent): Map<string, FormaQuestao> {
   );
 }
 
+/** Nº de questões de uma prova da etapa 1 (múltipla escolha + leitura de código), uma forma de cada. */
+export function totalDaProva(conteudo: NivelamentoContent): number {
+  const slots = (formas: readonly FormaQuestao[]) => new Set(formas.map((q) => q.slot)).size;
+  return (
+    slots(questoesDaEtapa(conteudo, 1)) +
+    slots(conteudo.codigo.questoes.filter((q) => !q.aposentada))
+  );
+}
+
 /** Reconstrói a lista de questões a partir dos ids (ids que não existem mais são ignorados). */
 export function questoesPorIds(conteudo: NivelamentoContent, ids: readonly string[]): FormaQuestao[] {
   const porId = formasPorId(conteudo);

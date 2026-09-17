@@ -4,13 +4,33 @@ import {
   mergeEventos,
   mergeLoops,
   mergeNivelamento,
+  mergePerfil,
+  mergeRascunho,
   mergeEstado,
   eventosNovos,
   type EstadoSincronizavel,
 } from "@/lib/sync-merge";
 import { MAX_EVENTS, type LearningEvent } from "@/lib/events";
 import type { LoopResult } from "@/lib/loop-progress";
-import type { PretestResultV2 } from "@/lib/pretest-storage";
+import type { PerfilAprendiz, PretestResultV2, RascunhoNivelamento } from "@/lib/pretest-storage";
+
+const perfil = (atualizadoEm: string, ar4: number[] = [0]): PerfilAprendiz => ({
+  autoRelato: { ar4 },
+  textosOutro: {},
+  contentVersion: "8",
+  atualizadoEm,
+});
+
+const rascunho = (atualizadoEm: string, passo = 3): RascunhoNivelamento => ({
+  passo,
+  respostas: {},
+  autoRelato: {},
+  textosOutro: {},
+  seed: "s",
+  prova: [],
+  contentVersion: "8",
+  atualizadoEm,
+});
 
 const evt = (id: string, at: string): LearningEvent => ({
   id,
@@ -142,6 +162,35 @@ describe("mergeNivelamento — rodada mais recente vence", () => {
   });
 });
 
+describe("mergePerfil — mais recente vence", () => {
+  it("comutativo, com empate resolvido pelo conteúdo", () => {
+    const velho = perfil("2026-09-17T09:00:00.000Z", [1]);
+    const novo = perfil("2026-09-17T10:00:00.000Z", [2]);
+    expect(mergePerfil(velho, novo)).toBe(novo);
+    expect(mergePerfil(novo, velho)).toBe(novo);
+    const a = perfil("2026-09-17T10:00:00.000Z", [1]);
+    const b = perfil("2026-09-17T10:00:00.000Z", [2]);
+    expect(mergePerfil(a, b)).toEqual(mergePerfil(b, a));
+    expect(mergePerfil(null, a)).toBe(a);
+  });
+});
+
+describe("mergeRascunho — rodada concluída invalida o rascunho", () => {
+  it("mais recente vence enquanto não há rodada mais nova", () => {
+    const velho = rascunho("2026-09-17T09:00:00.000Z", 2);
+    const novo = rascunho("2026-09-17T10:00:00.000Z", 9);
+    expect(mergeRascunho(velho, novo, null)).toBe(novo);
+    expect(mergeRascunho(novo, velho, nivelamento("2026-09-16T10:00:00.000Z"))).toBe(novo);
+  });
+
+  it("rodada terminada depois do rascunho o descarta, dos dois lados", () => {
+    const r = rascunho("2026-09-17T10:00:00.000Z");
+    const terminada = nivelamento("2026-09-17T11:00:00.000Z");
+    expect(mergeRascunho(r, null, terminada)).toBeNull();
+    expect(mergeRascunho(null, r, terminada)).toBeNull();
+  });
+});
+
 describe("mergeEstado", () => {
   it("é comutativo no resultado (a ordem dos lados não muda o estado final)", () => {
     const a: EstadoSincronizavel = {
@@ -149,12 +198,16 @@ describe("mergeEstado", () => {
       nivelamento: nivelamento("2026-08-02T10:00:00.000Z"),
       eventos: [evt("1", "2026-08-01T10:00:00.000Z")],
       loops: { c: loop("2026-08-02T10:00:00.000Z", { times: 2 }) },
+      perfil: perfil("2026-08-02T10:00:00.000Z", [1]),
+      rascunho: rascunho("2026-08-03T10:00:00.000Z"),
     };
     const b: EstadoSincronizavel = {
       progresso: { x: "in-progress", y: "done" },
       nivelamento: nivelamento("2026-08-01T10:00:00.000Z"),
       eventos: [evt("2", "2026-08-03T10:00:00.000Z")],
       loops: { c: loop("2026-08-01T10:00:00.000Z", { times: 7 }) },
+      perfil: perfil("2026-08-01T10:00:00.000Z", [2]),
+      rascunho: null,
     };
     expect(mergeEstado(a, b)).toEqual(mergeEstado(b, a));
   });
@@ -165,6 +218,8 @@ describe("mergeEstado", () => {
       nivelamento: nivelamento("2026-08-02T10:00:00.000Z"),
       eventos: [evt("1", "2026-08-01T10:00:00.000Z")],
       loops: { c: loop("2026-08-02T10:00:00.000Z") },
+      perfil: perfil("2026-08-02T10:00:00.000Z"),
+      rascunho: rascunho("2026-08-03T10:00:00.000Z"),
     };
     expect(mergeEstado(e, e)).toEqual(e);
   });

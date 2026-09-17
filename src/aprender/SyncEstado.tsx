@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
 import { sincronizar, lerLocal } from "@/lib/sync";
+import { SYNC_AGORA_EVENT } from "@/lib/pretest-storage";
 
 /**
  * Evento disparado quando o sync alterou o estado local. Quem lê o
@@ -68,11 +69,16 @@ export default function SyncEstado() {
       if (evento === "SIGNED_IN") void sincronizarSeLogado();
     });
     document.addEventListener("visibilitychange", aoEsconder);
+    // "Terminar depois" e o fim do nivelamento pedem sync imediato: quem troca
+    // de dispositivo logo em seguida precisa encontrar o rascunho lá.
+    const agora = () => void sincronizarSeLogado();
+    window.addEventListener(SYNC_AGORA_EVENT, agora);
 
     return () => {
       vivo = false;
       sub.subscription.unsubscribe();
       document.removeEventListener("visibilitychange", aoEsconder);
+      window.removeEventListener(SYNC_AGORA_EVENT, agora);
     };
   }, []);
 

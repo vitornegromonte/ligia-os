@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { loadRascunho, saveRascunho } from "@/lib/pretest-storage";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "../src/contexts/AuthContext.jsx";
 import Trilha from "@/aprender/Trilha";
@@ -39,6 +40,31 @@ describe("Trilha", () => {
       expect(screen.getByText(m)).toBeInTheDocument();
     }
     expect(document.querySelectorAll("[data-concept]")).toHaveLength(CONCEITOS.length);
+  });
+
+  it("com nivelamento em andamento, oferece continuar em vez de começar", () => {
+    saveRascunho({
+      passo: 4,
+      respostas: { a: 0, b: 1, c: 2 },
+      autoRelato: {},
+      textosOutro: {},
+      seed: "s",
+      prova: [],
+      contentVersion: "8",
+      atualizadoEm: "2026-09-17T10:00:00.000Z",
+    });
+    renderizar("/aprender");
+    expect(screen.getByRole("link", { name: "Continuar nivelamento" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Fazer o nivelamento" })).toBeNull();
+    expect(screen.getByText(/3 de 24/)).toBeInTheDocument();
+
+    // Recomeçar pede confirmação e descarta o rascunho.
+    const confirmar = vi.spyOn(window, "confirm").mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Recomeçar" }));
+    expect(confirmar).toHaveBeenCalled();
+    expect(loadRascunho()).toBeNull();
+    expect(screen.getByRole("link", { name: "Fazer o nivelamento" })).toBeInTheDocument();
+    confirmar.mockRestore();
   });
 
   it("sem nivelamento, convida a fazer o teste", () => {

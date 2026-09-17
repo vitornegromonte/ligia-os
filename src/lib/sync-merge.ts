@@ -1,7 +1,7 @@
 import type { UserStatus } from "./status";
 import { MAX_EVENTS, type LearningEvent } from "./events";
 import type { LoopResult } from "./loop-progress";
-import type { PretestResultV2 } from "./pretest-storage";
+import type { PerfilAprendiz, PretestResultV2, RascunhoNivelamento } from "./pretest-storage";
 
 /**
  * Regras de merge do sync local ↔ Supabase. Tudo puro: sem storage, sem rede —
@@ -22,7 +22,42 @@ export type EstadoSincronizavel = {
   nivelamento: PretestResultV2 | null;
   eventos: LearningEvent[];
   loops: Record<string, LoopResult>;
+  perfil: PerfilAprendiz | null;
+  rascunho: RascunhoNivelamento | null;
 };
+
+/** Vence o registro mais recente; empate se resolve pelo conteúdo, para não depender da ordem. */
+function maisRecente<T extends { atualizadoEm: string }>(a: T | null, b: T | null): T | null {
+  if (!a) return b;
+  if (!b) return a;
+  const cmp = a.atualizadoEm.localeCompare(b.atualizadoEm);
+  if (cmp !== 0) return cmp > 0 ? a : b;
+  return JSON.stringify(a) >= JSON.stringify(b) ? a : b;
+}
+
+/** Perfil ("quem é você"): vence o mais recente. */
+export function mergePerfil(
+  local: PerfilAprendiz | null,
+  remoto: PerfilAprendiz | null,
+): PerfilAprendiz | null {
+  return maisRecente(local, remoto);
+}
+
+/**
+ * Rascunho do nivelamento: vence o mais recente, **e morre se a rodada
+ * concluída for mais nova que ele**. Terminar o teste num dispositivo precisa
+ * invalidar o rascunho de todos — sem isso, o outro dispositivo ofereceria
+ * "continuar" um teste que já acabou.
+ */
+export function mergeRascunho(
+  local: RascunhoNivelamento | null,
+  remoto: RascunhoNivelamento | null,
+  nivelamento: PretestResultV2 | null,
+): RascunhoNivelamento | null {
+  const r = maisRecente(local, remoto);
+  if (r && nivelamento && nivelamento.ts.localeCompare(r.atualizadoEm) >= 0) return null;
+  return r;
+}
 
 /**
  * Progresso da trilha: merge **monotônico** — `done` > `in-progress` > ausente.
@@ -113,15 +148,18 @@ export function mergeNivelamento(
   return { ...base, dispensasConfirmadas };
 }
 
-/** Aplica as quatro regras acima de uma vez. */
+/** Aplica as regras acima de uma vez. */
 export function mergeEstado(
   local: EstadoSincronizavel,
   remoto: EstadoSincronizavel,
 ): EstadoSincronizavel {
+  const nivelamento = mergeNivelamento(local.nivelamento, remoto.nivelamento);
   return {
     progresso: mergeProgresso(local.progresso, remoto.progresso),
-    nivelamento: mergeNivelamento(local.nivelamento, remoto.nivelamento),
+    nivelamento,
     eventos: mergeEventos(local.eventos, remoto.eventos),
     loops: mergeLoops(local.loops, remoto.loops),
+    perfil: mergePerfil(local.perfil, remoto.perfil),
+    rascunho: mergeRascunho(local.rascunho, remoto.rascunho, nivelamento),
   };
 }
