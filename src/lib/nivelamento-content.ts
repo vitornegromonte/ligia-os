@@ -79,6 +79,8 @@ export const QuestaoMCQSchema = z.object({
   pergunta: z.string().min(1),
   opcoes: z.array(OpcaoConteudoSchema).min(2),
   correta: z.number().int().nonnegative(),
+  /** Por que a certa é certa, em 1–3 frases — mostrada na revisão do resultado. */
+  explicacao: z.string().min(1),
 });
 
 export const ColabSchema = z.object({

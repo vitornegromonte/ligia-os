@@ -91,6 +91,15 @@ describe("banco de questões — opções e gabarito", () => {
   });
 });
 
+describe("banco de questões — explicações", () => {
+  it("toda MCQ explica a resposta em texto curto", () => {
+    for (const q of content.mcq) {
+      expect(q.explicacao.trim().length, q.id).toBeGreaterThan(40);
+      expect(q.explicacao.length, q.id).toBeLessThanOrEqual(320);
+    }
+  });
+});
+
 describe("banco de questões — ancoragem nos conceitos", () => {
   it("todo conceito citado existe em concepts.json", () => {
     for (const q of content.mcq) {

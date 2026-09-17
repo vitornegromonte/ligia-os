@@ -70,6 +70,13 @@ describe("Nivelamento — página", () => {
 
     expect(screen.getByText(/confirme para pular/)).toBeInTheDocument();
     expect(screen.queryByText("Módulos confirmados")).not.toBeInTheDocument();
+    // Revisão de módulo candidato fica fechada até a confirmação; a dos outros abre.
+    expect(document.querySelector('[data-questao="n-matematica-1"]')).toBeNull();
+    const naoSei = document.querySelector('[data-questao="n-ml-classico-1"]');
+    expect(naoSei).toHaveTextContent("Não sei");
+    expect(naoSei).toHaveTextContent(
+      NIVELAMENTO.mcq.find((q) => q.id === "n-ml-classico-1")!.explicacao,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /M0 · / }));
     fireEvent.click(screen.getByRole("button", { name: /Responder 4 perguntas/ }));
@@ -84,6 +91,10 @@ describe("Nivelamento — página", () => {
 
     expect(screen.getByText("Módulos confirmados")).toBeInTheDocument();
     expect(loadPretestV2()?.recomendacao.estados.matematica).toBe("dispensavel");
+
+    // Com a confirmação feita, a revisão de matemática abre, com as 8 questões.
+    const revisaoMat = screen.getByText(/M0 · /, { selector: ".nv-revisao__resumo span" });
+    expect(revisaoMat.nextElementSibling).toHaveTextContent("8 de 8");
 
     fireEvent.click(screen.getByRole("button", { name: /Confirmar e ir pra trilha/ }));
     expect(screen.getByText("trilha")).toBeInTheDocument();

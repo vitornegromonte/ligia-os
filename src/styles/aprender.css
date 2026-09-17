@@ -249,6 +249,37 @@
   backdrop-filter: blur(18px);
 }
 
+/* ---------- Nivelamento (revisão das questões) ---------- */
+.nv-revisao { display: grid; gap: 8px; }
+.nv-revisao__grupo { border: 1px solid var(--line-soft); border-radius: var(--radius); }
+.nv-revisao__resumo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nv-revisao__resumo span:last-child { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.nv-revisao__lista { display: grid; gap: 14px; margin: 0; padding: 4px 14px 14px; list-style: none; }
+.nv-revisao__item { padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.nv-revisao__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.nv-revisao__status--acerto { color: var(--success); }
+.nv-revisao__status--erro { color: var(--danger); }
+.nv-revisao__status--nao-sei { color: var(--warning); }
+.nv-revisao__pergunta { margin: 6px 0 0; font-size: 14px; line-height: 1.5; }
+.nv-revisao__certa { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.nv-revisao__certa strong { color: var(--text); font-weight: 600; }
+.nv-revisao__explicacao { margin: 6px 0 0; font-size: 13px; line-height: 1.65; }
+
 /* ---------- Prática de recuperação ---------- */
 .pr-orientacao {
   padding: 16px;

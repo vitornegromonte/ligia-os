@@ -6,6 +6,7 @@ import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import { RadarChart } from "../ui/RadarChart.tsx";
 import PassoQuestao from "./PassoQuestao.jsx";
+import RevisaoQuestoes from "./RevisaoQuestoes.jsx";
 import { MODULOS, CONCEITOS_POR_MODULO, ROTULO_CONCEITO } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import { GATE_DISPENSA } from "../lib/nivelamento.ts";
@@ -350,6 +351,15 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
               </div>
             </Card>
           )}
+
+          <Card style={{ marginTop: 18 }}>
+            <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Revise suas respostas</h2>
+            <p style={{ margin: "6px 0 12px", color: "var(--muted)", fontSize: 12, lineHeight: 1.6 }}>
+              A resposta certa de cada questão, por que ela é a certa e onde o assunto está na
+              trilha.
+            </p>
+            <RevisaoQuestoes conteudo={conteudo} rodada={rodada} />
+          </Card>
 
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginTop: 26 }}>
             <Button onClick={confirmarEIr}>
