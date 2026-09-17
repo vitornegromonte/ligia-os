@@ -19,6 +19,15 @@ describe("shell.css — regressões que já custaram caro", () => {
     expect(shell).toMatch(/\.nav-item:focus-visible\s*\{/);
   });
 
+  it("a marca não encolhe, e a sidebar rola quando não cabe", () => {
+    // Em janela baixa o flex espremia `.brand` (78px viravam 38px) e o logo
+    // colava na barra de gradiente do topo.
+    const marca = shell.match(/\.brand\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(marca).toContain("flex: 0 0 auto");
+    const sidebar = shell.match(/\.sidebar\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(sidebar).toContain("overflow-y: auto");
+  });
+
   it("abre o drawer mobile por classe, não por transform inline", () => {
     expect(shell).toMatch(/\.sidebar\.is-open\s*\{\s*transform:\s*translateX\(0\)/);
   });

@@ -31,12 +31,16 @@
   border-right: 1px solid var(--line-soft);
   background: var(--sidebar-translucent);
   backdrop-filter: blur(18px);
+  /* Janela baixa demais para a navegação inteira: rola, em vez de espremer os
+     itens. Sem isto o flex encolhia a marca e o logo colava na barra do topo. */
+  overflow-y: auto;
   overscroll-behavior: contain;
   transition: transform .25s ease;
 }
 
 .brand {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 12px;
   height: 78px;
