@@ -93,6 +93,12 @@ export const QuestaoMCQSchema = FormaSchema.extend({
   etapa: z.union([z.literal(1), z.literal(2)]).default(1),
   dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   conceitos: z.array(z.string().min(1)).min(1),
+  /**
+   * Questão fora de uso: não entra em prova nova, mas continua no banco para
+   * rodadas antigas e para a análise de itens. Aposentar em vez de apagar
+   * garante que um id nunca muda de significado.
+   */
+  aposentada: z.boolean().default(false),
   variantes: z.array(FormaSchema).default([]),
 });
 
@@ -104,6 +110,7 @@ export const QuestaoMCQSchema = FormaSchema.extend({
  */
 export const QuestaoCodigoSchema = FormaSchema.extend({
   dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  aposentada: z.boolean().default(false),
   variantes: z.array(FormaSchema).default([]),
 });
 
@@ -142,9 +149,18 @@ export type NivelamentoContent = Omit<z.infer<typeof NivelamentoContentSchema>, 
   codigo: { nota?: string; notebook: string; questoes: QuestaoCodigo[] };
 };
 
+/**
+ * MCQ de competência? Guarda de tipo pelo lado da MCQ: toda MCQ também
+ * satisfaz o tipo da questão de código (tem os mesmos campos e mais alguns),
+ * então a guarda inversa estreitaria o outro ramo para `never`.
+ */
+export function ehQuestaoMCQ(q: FormaQuestao): q is QuestaoMCQ {
+  return "competencia" in q;
+}
+
 /** Questão de leitura de código? (não tem competência). */
-export function ehQuestaoCodigo(q: FormaQuestao): q is QuestaoCodigo {
-  return !("competencia" in q);
+export function ehQuestaoCodigo(q: FormaQuestao): boolean {
+  return !ehQuestaoMCQ(q);
 }
 
 /**
@@ -165,9 +181,10 @@ function checarConteudo(c: NivelamentoContent): void {
       throw new Error(`Questão ${q.id}: correta aponta pra opção "Não sei".`);
     }
   }
+  const ativas = c.mcq.filter((q) => !q.aposentada);
   for (const { id } of COMPETENCIAS) {
-    const temEtapa1 = c.mcq.some((q) => q.competencia === id && q.etapa === 1);
-    const temEtapa2 = c.mcq.some((q) => q.competencia === id && q.etapa === 2);
+    const temEtapa1 = ativas.some((q) => q.competencia === id && q.etapa === 1);
+    const temEtapa2 = ativas.some((q) => q.competencia === id && q.etapa === 2);
     if (temEtapa1 && !temEtapa2) {
       throw new Error(`Competência ${id}: tem questões na etapa 1 e nenhuma na etapa 2.`);
     }
@@ -184,12 +201,18 @@ export function loadNivelamentoContent(raw: unknown): NivelamentoContent {
       etapa: principal.etapa,
       dificuldade: principal.dificuldade,
       conceitos: principal.conceitos,
+      aposentada: principal.aposentada,
     };
     return [{ ...principal, slot: principal.id }, ...variantes.map((v) => ({ ...comum, ...v }))];
   });
   const formasCodigo = codigo.questoes.flatMap(({ variantes, ...principal }) => [
     { ...principal, slot: principal.id },
-    ...variantes.map((v) => ({ slot: principal.id, dificuldade: principal.dificuldade, ...v })),
+    ...variantes.map((v) => ({
+      slot: principal.id,
+      dificuldade: principal.dificuldade,
+      aposentada: principal.aposentada,
+      ...v,
+    })),
   ]);
   const c = { ...resto, mcq: formas, codigo: { ...codigo, questoes: formasCodigo } };
   checarConteudo(c);
@@ -212,8 +235,9 @@ export function priorDeAr1(ar1: PerguntaAutoRelato, selecionados: number[]): Pri
 }
 
 /**
- * Todas as formas das questões de uma etapa, opcionalmente só das competências
- * dadas, na ordem do conteúdo. Para a prova de um aluno (uma forma por
+ * Todas as formas das questões ativas de uma etapa, opcionalmente só das
+ * competências dadas, na ordem do conteúdo. Aposentadas ficam de fora (use
+ * `c.mcq` para ler rodadas antigas). Para a prova de um aluno (uma forma por
  * questão), use montarProva() em lib/nivelamento-rodada.
  */
 export function questoesDaEtapa(
@@ -222,7 +246,10 @@ export function questoesDaEtapa(
   competencias?: readonly CompetenciaId[],
 ): QuestaoMCQ[] {
   return c.mcq.filter(
-    (q) => q.etapa === etapa && (!competencias || competencias.includes(q.competencia)),
+    (q) =>
+      !q.aposentada &&
+      q.etapa === etapa &&
+      (!competencias || competencias.includes(q.competencia)),
   );
 }
 

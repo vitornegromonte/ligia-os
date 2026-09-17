@@ -293,6 +293,56 @@
 .nv-revisao__certa strong { color: var(--text); font-weight: 600; }
 .nv-revisao__explicacao { margin: 6px 0 0; font-size: 13px; line-height: 1.65; }
 
+/* ---------- Análise de itens (staff) ---------- */
+.ai-aviso {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: 13px;
+}
+.ai-aviso--erro { border-color: var(--danger-border); background: var(--danger-soft); color: var(--text); }
+.ai-resumo { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 13px; }
+.ai-resumo strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.ai-titulo { margin: 0; font-size: 14px; font-weight: 600; }
+.ai-legenda { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.ai-lista-simples { display: grid; gap: 6px; margin: 10px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.ai-item {
+  /* Item de grid: sem min-width 0, o enunciado em uma linha estica a página. */
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.ai-item__cabecalho { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ai-item__id { flex: 0 0 auto; color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+.ai-item__pergunta { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.ai-metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; margin: 10px 0 0; }
+.ai-metricas div { display: grid; gap: 2px; }
+.ai-metricas dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.ai-metricas dd { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ai-alerta {
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.ai-alternativas { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ai-alternativas li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 80px 70px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.ai-alternativas__texto { min-width: 0; overflow-wrap: anywhere; }
+.ai-alternativas__barra { height: 6px; overflow: hidden; border-radius: 999px; background: var(--surface-3); }
+.ai-alternativas__barra span { display: block; height: 100%; background: var(--accent); }
+.ai-alternativas__valor { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+
 /* ---------- Prática de recuperação ---------- */
 .pr-orientacao {
   padding: 16px;

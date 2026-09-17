@@ -124,6 +124,9 @@ describe("aplicarEtapa2", () => {
     expect(nova.matriz).toEqual(rodada.matriz);
     expect(nova.ts).toBe(rodada.ts);
     expect(competenciasComEtapa2(conteudo, nova)).toEqual(["matematica"]);
+    // A alternativa escolhida de cada questão da confirmação fica guardada.
+    const [prova] = etapa2("matematica", (q) => q.correta);
+    for (const q of prova) expect(nova.respostas?.[q.id]).toBe(q.correta);
   });
 
   it("'Não sei' na confirmação inteira reprova e aponta os conceitos", () => {

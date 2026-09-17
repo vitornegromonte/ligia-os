@@ -16,6 +16,7 @@ import {
 } from "../lib/nivelamento-content.ts";
 import {
   corrigir,
+  respostasDe,
   montarProva,
   montarProvaCodigo,
   questoesPorIds,
@@ -146,6 +147,7 @@ export default function Nivelamento() {
       contentVersion: conteudo.version,
       matriz,
       resultados,
+      respostas: respostasDe(prova, respostas),
       autoRelato,
       recomendacao,
       dispensasConfirmadas: [],

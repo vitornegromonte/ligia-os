@@ -84,7 +84,8 @@ describe("mapeadores de nivelamento", () => {
     version: 2,
     contentVersion: "2",
     matriz: { matematica: { score: 100 } },
-    resultados: {},
+    resultados: { "n-matematica-1": "erro" },
+    respostas: { "n-matematica-1": 3 },
     autoRelato: { ar1: [0] },
     recomendacao: { fronteira: "M1" },
     dispensasConfirmadas: ["M0"],
@@ -100,6 +101,18 @@ describe("mapeadores de nivelamento", () => {
 
   it("linha ausente devolve null", () => {
     expect(nivelamentoDeLinha(null)).toBeNull();
+  });
+
+  it("ida e volta preserva a alternativa escolhida; rodada local sem o campo sobe como {}", () => {
+    expect(linhaDeNivelamento(UID, n).respostas).toEqual({ "n-matematica-1": 3 });
+    const semCampo = { ...n, respostas: undefined };
+    expect(linhaDeNivelamento(UID, semCampo).respostas).toEqual({});
+  });
+
+  it("linha anterior à coluna de respostas não quebra — campo fica ausente", () => {
+    const row = linhaDeNivelamento(UID, n) as Record<string, unknown>;
+    delete row.respostas;
+    expect(nivelamentoDeLinha(row as unknown as PretestRow)?.respostas).toBeUndefined();
   });
 
   it("projeto antigo sem a coluna de dispensas não quebra — vira lista vazia", () => {

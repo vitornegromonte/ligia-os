@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
-  Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints
+  Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints, ClipboardList
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ProfileEdit from "./ProfileEdit.jsx";
@@ -42,9 +42,12 @@ const navGroups = [
         label: "Trilha",
         // NavLink casa por prefixo, então /aprender/codar acenderia este
         // item também. A prática de código é um irmão, não um filho.
-        ativoSe: (p) => p.startsWith("/aprender") && !p.startsWith("/aprender/codar"),
+        ativoSe: (p) =>
+          p.startsWith("/aprender") && !p.startsWith("/aprender/codar") && !p.startsWith("/aprender/itens"),
       },
       { to: "/aprender/codar", icon: Code2, label: "Prática Torch" },
+      // O grupo é aberto a todos; só este item é de staff.
+      { to: "/aprender/itens", icon: ClipboardList, label: "Análise do nivelamento", roles: ["admin"] },
     ]
   },
   {
@@ -78,7 +81,7 @@ export default function Sidebar({ open, onClose }) {
           <div key={group.label}>
             <div className="nav-label">{group.label}</div>
             <nav className="nav">
-              {group.items.map(item => (
+              {group.items.filter(item => !item.roles || item.roles.includes(profile?.role)).map(item => (
                 <NavLink key={item.to} to={item.to} end={item.to === "/"}
                   onClick={onClose}
                   className={({ isActive }) => {

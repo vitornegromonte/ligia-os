@@ -89,6 +89,7 @@ describe("Nivelamento — página", () => {
     expect(screen.getByRole("link", { name: /Abrir a Prática Torch/ })).toHaveAttribute("href", "/aprender/codar");
     const salvo = loadPretestV2()!;
     expect(Object.keys(salvo.resultados)).toHaveLength(24);
+    expect(Object.keys(salvo.respostas ?? {})).toHaveLength(24);
     for (const c of Object.values(salvo.matriz)) expect(c.score).toBe(0);
   });
 

@@ -67,6 +67,13 @@ export type PretestResultV2 = {
   matriz: CompetencyMatrix;
   /** Resultado por questão desta rodada. Migração do v1 não tem o detalhe por questão → {}. */
   resultados: Record<string, ResultadoQuestao>;
+  /**
+   * Alternativa escolhida por questão (índice da opção ORIGINAL, antes do
+   * embaralhamento). É o que a análise de itens usa para achar distrator que
+   * ninguém marca e o que permite apontar o equívoco da alternativa errada.
+   * Ausente em rodadas anteriores a este campo.
+   */
+  respostas?: Record<string, number>;
   autoRelato: Record<string, number[]>;
   recomendacao: Recomendacao;
   dispensasConfirmadas: ModuleId[];

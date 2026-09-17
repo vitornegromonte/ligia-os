@@ -53,6 +53,8 @@ export type PretestRow = {
   auto_relato: PretestResultV2["autoRelato"] | null;
   recomendacao: PretestResultV2["recomendacao"];
   dispensas_confirmadas?: PretestResultV2["dispensasConfirmadas"] | null;
+  /** Coluna da migração 0104; linha anterior a ela vem sem. */
+  respostas?: PretestResultV2["respostas"] | null;
 };
 
 export function progressoDeLinhas(rows: ProgressRow[]): UserStatus {
@@ -136,6 +138,7 @@ export function nivelamentoDeLinha(row: PretestRow | null): PretestResultV2 | nu
     autoRelato: row.auto_relato ?? {},
     recomendacao: row.recomendacao,
     dispensasConfirmadas: row.dispensas_confirmadas ?? [],
+    respostas: row.respostas ?? undefined,
     ts: row.taken_at,
   };
 }
@@ -151,6 +154,7 @@ export function linhaDeNivelamento(userId: string, n: PretestResultV2) {
     auto_relato: n.autoRelato,
     recomendacao: n.recomendacao,
     dispensas_confirmadas: n.dispensasConfirmadas,
+    respostas: n.respostas ?? {},
   };
 }
 
@@ -188,7 +192,7 @@ export async function pull(
     sb
       .from("pretest_results")
       .select(
-        "taken_at,schema_version,content_version,matriz,resultados,auto_relato,recomendacao,dispensas_confirmadas",
+        "taken_at,schema_version,content_version,matriz,resultados,auto_relato,recomendacao,dispensas_confirmadas,respostas",
       )
       .eq("user_id", userId)
       .order("taken_at", { ascending: false })

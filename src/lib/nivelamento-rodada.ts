@@ -44,7 +44,7 @@ export function montarProvaCodigo(
   conteudo: NivelamentoContent,
   opts: { seed: string; vistas?: QuestoesVistas },
 ): QuestaoCodigo[] {
-  return sortearFormas(conteudo.codigo.questoes, opts);
+  return sortearFormas(conteudo.codigo.questoes.filter((q) => !q.aposentada), opts);
 }
 
 function sortearFormas<T extends FormaQuestao>(
@@ -104,13 +104,26 @@ export function corrigir(
   return resultados;
 }
 
+/** Só as respostas das questões dadas — o que vai para `respostas` da rodada. */
+export function respostasDe(
+  questoes: readonly FormaQuestao[],
+  respostas: Record<string, number | undefined>,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const q of questoes) {
+    const i = respostas[q.id];
+    if (i !== undefined) out[q.id] = i;
+  }
+  return out;
+}
+
 /** Competências da rodada que já têm resposta registrada na etapa 2. */
 export function competenciasComEtapa2(
   conteudo: NivelamentoContent,
   rodada: Pick<PretestResultV2, "resultados">,
 ): CompetenciaId[] {
   const feitas = new Set<CompetenciaId>();
-  for (const q of questoesDaEtapa(conteudo, 2)) {
+  for (const q of conteudo.mcq.filter((x) => x.etapa === 2)) {
     if (rodada.resultados[q.id] !== undefined) feitas.add(q.competencia);
   }
   return [...feitas];
@@ -162,7 +175,13 @@ export function aplicarEtapa2(
   const jaFeitas = new Set(competenciasComEtapa2(conteudo, rodada));
   const novas = prova.filter((q) => q.etapa === 2 && !jaFeitas.has(q.competencia));
   const resultados = { ...rodada.resultados, ...corrigir(novas, respostas) };
+  const escolhidas = { ...rodada.respostas, ...respostasDe(novas, respostas) };
 
   const etapa2 = resumoEtapa2(conteudo, { resultados });
-  return { ...rodada, resultados, recomendacao: recomendar(rodada.matriz, { etapa2 }) };
+  return {
+    ...rodada,
+    resultados,
+    respostas: escolhidas,
+    recomendacao: recomendar(rodada.matriz, { etapa2 }),
+  };
 }
