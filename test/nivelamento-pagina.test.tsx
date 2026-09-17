@@ -6,12 +6,12 @@ import Nivelamento from "@/aprender/Nivelamento";
 import { NIVELAMENTO } from "@/aprender/dados";
 import { recomendar, scoreCompetencias } from "@/lib/nivelamento";
 import { questoesDaEtapa, questoesParaEngine } from "@/lib/nivelamento-content";
-import { corrigir } from "@/lib/nivelamento-rodada";
+import { corrigir, montarProva } from "@/lib/nivelamento-rodada";
 import { loadPretestV2, savePretestV2 } from "@/lib/pretest-storage";
 
 /** Rodada salva com matemática gabaritada (candidata) e o resto em "Não sei". */
 function salvarRodada() {
-  const questoes = questoesDaEtapa(NIVELAMENTO, 1);
+  const questoes = montarProva(NIVELAMENTO, 1, { seed: "teste" });
   const respostas = Object.fromEntries(
     questoes.map((q) => [
       q.id,
@@ -59,6 +59,17 @@ describe("Nivelamento — página", () => {
     expect(dica).not.toHaveTextContent(/vale mais/);
   });
 
+  it("sorteia uma forma por questão e guarda a prova no rascunho", () => {
+    renderizar("/aprender/nivelamento");
+    fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
+    const rascunho = JSON.parse(sessionStorage.getItem("ligia-nivelamento:rascunho:v1")!);
+    expect(rascunho.prova).toHaveLength(20);
+    const slots = rascunho.prova.map((id: string) => NIVELAMENTO.mcq.find((q) => q.id === id)!.slot);
+    expect(new Set(slots).size).toBe(20);
+    const primeira = NIVELAMENTO.mcq.find((q) => q.id === rascunho.prova[0])!;
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(primeira.pergunta);
+  });
+
   it("sem rodada salva, ?ver=resultado cai no wizard", () => {
     renderizar("/aprender/nivelamento?ver=resultado");
     expect(screen.getByRole("button", { name: /Começar/ })).toBeInTheDocument();
@@ -81,13 +92,15 @@ describe("Nivelamento — página", () => {
     fireEvent.click(screen.getByRole("button", { name: /M0 · / }));
     fireEvent.click(screen.getByRole("button", { name: /Responder 4 perguntas/ }));
 
-    const etapa2 = questoesDaEtapa(NIVELAMENTO, 2, ["matematica"]);
-    etapa2.forEach((q, i) => {
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(q.pergunta);
+    // A forma de cada questão é sorteada: acha pelo enunciado na tela.
+    const formas = questoesDaEtapa(NIVELAMENTO, 2, ["matematica"]);
+    for (let i = 0; i < 4; i++) {
+      const titulo = screen.getByRole("heading", { level: 1 }).textContent;
+      const q = formas.find((f) => f.pergunta === titulo)!;
+      expect(q, titulo ?? "").toBeDefined();
       fireEvent.click(screen.getByRole("button", { name: q.opcoes[q.correta].texto }));
-      const avancar = i === etapa2.length - 1 ? /Ver confirmação/ : /Avançar/;
-      fireEvent.click(screen.getByRole("button", { name: avancar }));
-    });
+      fireEvent.click(screen.getByRole("button", { name: i === 3 ? /Ver confirmação/ : /Avançar/ }));
+    }
 
     expect(screen.getByText("Módulos confirmados")).toBeInTheDocument();
     expect(loadPretestV2()?.recomendacao.estados.matematica).toBe("dispensavel");

@@ -182,6 +182,43 @@ export function clearPretestV2(): void {
   localStorage.removeItem(KEY_V2);
 }
 
+// ---------------------------------------------------------------------------
+// Formas de questão já vistas — só neste dispositivo.
+//
+// Serve para o sorteio das variantes preferir a forma que o aluno viu há mais
+// tempo. Não sincroniza: perder isto ao trocar de dispositivo só faz o sorteio
+// voltar a ser uniforme, sem dano ao resultado.
+// ---------------------------------------------------------------------------
+
+/** id da forma → ISO da última prova em que ela apareceu. */
+export type QuestoesVistas = Record<string, string>;
+
+const KEY_VISTAS = "ligia-nivelamento:vistas:v1";
+
+export function loadQuestoesVistas(): QuestoesVistas {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(KEY_VISTAS);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as QuestoesVistas)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+export function registrarQuestoesVistas(ids: readonly string[], quando: string): void {
+  if (typeof window === "undefined") return;
+  const vistas = loadQuestoesVistas();
+  for (const id of ids) vistas[id] = quando;
+  try {
+    localStorage.setItem(KEY_VISTAS, JSON.stringify(vistas));
+  } catch {
+    // storage cheio ou indisponível: o sorteio só perde a preferência
+  }
+}
+
 /**
  * Política de re-teste: o resultado novo vale, exceto `dispensasConfirmadas`
  * — dispensas já confirmadas antes NUNCA são removidas por um re-teste

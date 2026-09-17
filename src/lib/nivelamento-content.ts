@@ -69,18 +69,29 @@ export const PerguntaAutoRelatoSchema = z.object({
   opcoes: z.array(OpcaoAutoRelatoSchema).min(2),
 });
 
-export const QuestaoMCQSchema = z.object({
+/** O que muda entre as formas de uma mesma questão: o texto e o gabarito. */
+const FormaSchema = z.object({
   id: z.string().min(1),
-  competencia: CompetenciaSchema,
-  /** 1 = matriz (todo aluno); 2 = confirmação de dispensa (opcional). */
-  etapa: z.union([z.literal(1), z.literal(2)]).default(1),
-  dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  conceitos: z.array(z.string().min(1)).min(1),
   pergunta: z.string().min(1),
   opcoes: z.array(OpcaoConteudoSchema).min(2),
   correta: z.number().int().nonnegative(),
   /** Por que a certa é certa, em 1–3 frases — mostrada na revisão do resultado. */
   explicacao: z.string().min(1),
+});
+
+/**
+ * Questão como escrita no JSON: a forma principal mais `variantes`, formas
+ * alternativas que medem o mesmo (mesma competência, etapa, dificuldade e
+ * conceitos). Refazer o nivelamento sorteia outra forma, para a nota medir
+ * domínio do assunto e não memória da questão.
+ */
+export const QuestaoMCQSchema = FormaSchema.extend({
+  competencia: CompetenciaSchema,
+  /** 1 = matriz (todo aluno); 2 = confirmação de dispensa (opcional). */
+  etapa: z.union([z.literal(1), z.literal(2)]).default(1),
+  dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  conceitos: z.array(z.string().min(1)).min(1),
+  variantes: z.array(FormaSchema).default([]),
 });
 
 export const ColabSchema = z.object({
@@ -97,8 +108,17 @@ export const NivelamentoContentSchema = z.object({
 });
 
 export type PerguntaAutoRelato = z.infer<typeof PerguntaAutoRelatoSchema>;
-export type QuestaoMCQ = z.infer<typeof QuestaoMCQSchema>;
-export type NivelamentoContent = z.infer<typeof NivelamentoContentSchema>;
+
+/**
+ * Uma forma de questão, já achatada: `mcq` do conteúdo carregado lista todas as
+ * formas de todas as questões. `slot` é o id da questão (o da forma principal)
+ * e agrupa as formas intercambiáveis.
+ */
+export type QuestaoMCQ = Omit<z.infer<typeof QuestaoMCQSchema>, "variantes"> & { slot: string };
+
+export type NivelamentoContent = Omit<z.infer<typeof NivelamentoContentSchema>, "mcq"> & {
+  mcq: QuestaoMCQ[];
+};
 
 /**
  * Integridade que o schema sozinho não pega: `correta` precisa existir e não
@@ -127,9 +147,20 @@ function checarConteudo(c: NivelamentoContent): void {
   }
 }
 
-/** Parse + integridade, fail-fast (padrão do repo). */
+/** Parse + achatamento das variantes + integridade, fail-fast (padrão do repo). */
 export function loadNivelamentoContent(raw: unknown): NivelamentoContent {
-  const c = NivelamentoContentSchema.parse(raw);
+  const { mcq, ...resto } = NivelamentoContentSchema.parse(raw);
+  const formas = mcq.flatMap(({ variantes, ...principal }) => {
+    const comum = {
+      slot: principal.id,
+      competencia: principal.competencia,
+      etapa: principal.etapa,
+      dificuldade: principal.dificuldade,
+      conceitos: principal.conceitos,
+    };
+    return [{ ...principal, slot: principal.id }, ...variantes.map((v) => ({ ...comum, ...v }))];
+  });
+  const c = { ...resto, mcq: formas };
   checarConteudo(c);
   return c;
 }
@@ -149,7 +180,11 @@ export function priorDeAr1(ar1: PerguntaAutoRelato, selecionados: number[]): Pri
   return prior;
 }
 
-/** Questões de uma etapa, opcionalmente só das competências dadas, na ordem do conteúdo. */
+/**
+ * Todas as formas das questões de uma etapa, opcionalmente só das competências
+ * dadas, na ordem do conteúdo. Para a prova de um aluno (uma forma por
+ * questão), use montarProva() em lib/nivelamento-rodada.
+ */
 export function questoesDaEtapa(
   c: NivelamentoContent,
   etapa: 1 | 2,

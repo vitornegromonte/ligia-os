@@ -11,8 +11,12 @@ import { MODULOS, CONCEITOS_POR_MODULO, ROTULO_CONCEITO } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import { GATE_DISPENSA } from "../lib/nivelamento.ts";
 import { questoesDaEtapa } from "../lib/nivelamento-content.ts";
-import { aplicarEtapa2, resumoEtapa2 } from "../lib/nivelamento-rodada.ts";
-import { markDispensadosDone } from "../lib/pretest-storage.ts";
+import { aplicarEtapa2, montarProva, resumoEtapa2 } from "../lib/nivelamento-rodada.ts";
+import {
+  loadQuestoesVistas,
+  markDispensadosDone,
+  registrarQuestoesVistas,
+} from "../lib/pretest-storage.ts";
 import { logEvent } from "../lib/events.ts";
 
 const ROTULO_CONFIANCA = {
@@ -23,6 +27,11 @@ const ROTULO_CONFIANCA = {
 };
 
 const MODULO_DA_COMPETENCIA = Object.fromEntries(COMPETENCIAS.map((c) => [c.id, c.modulo]));
+
+/** Nº de questões da etapa 2 de uma competência (formas diferentes da mesma questão contam uma vez). */
+function questoesNaConfirmacao(conteudo, competencia) {
+  return new Set(questoesDaEtapa(conteudo, 2, [competencia]).map((q) => q.slot)).size;
+}
 
 /** Módulos aprovados na etapa 2 e ainda não dispensados: começam marcados. */
 function marcacaoInicial(rodada) {
@@ -47,6 +56,7 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
   const [selecionadas, setSelecionadas] = useState([]);
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState({});
+  const [questoesEtapa2, setQuestoesEtapa2] = useState([]);
   const [dispensasMarcadas, setDispensasMarcadas] = useState(() => marcacaoInicial(rodada));
   const tituloRef = useRef(null);
 
@@ -58,16 +68,19 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
   const etapa2 = useMemo(() => resumoEtapa2(conteudo, rodada), [conteudo, rodada]);
   const reprovadas = COMPETENCIAS.filter((c) => etapa2[c.id] && !etapa2[c.id].aprovada);
 
-  const questoesEtapa2 = useMemo(
-    () => questoesDaEtapa(conteudo, 2, selecionadas),
-    [conteudo, selecionadas],
-  );
-
   useEffect(() => {
     if (modo === "confirmando") tituloRef.current?.focus();
   }, [modo, passo]);
 
   function comecarConfirmacao() {
+    // Sorteada uma vez por confirmação; a seed da rodada deixa o sorteio estável.
+    setQuestoesEtapa2(
+      montarProva(conteudo, 2, {
+        seed: rodada.ts,
+        vistas: loadQuestoesVistas(),
+        competencias: selecionadas,
+      }),
+    );
     setRespostas({});
     setPasso(0);
     setModo("confirmando");
@@ -75,7 +88,8 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
   }
 
   function concluirConfirmacao() {
-    const nova = aplicarEtapa2(conteudo, rodada, selecionadas, respostas);
+    const nova = aplicarEtapa2(conteudo, rodada, questoesEtapa2, respostas);
+    registrarQuestoesVistas(questoesEtapa2.map((q) => q.id), new Date().toISOString());
     const novasAprovadas = (nova.recomendacao.dispensaveisSugeridos ?? []).filter((d) =>
       selecionadas.includes(d.competencia),
     );
@@ -166,10 +180,7 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
 
   const axes = COMPETENCIAS.map((c) => ({ id: c.id, label: c.labelCurto }));
   const values = COMPETENCIAS.map((c) => (matriz[c.id].score ?? 0) / 100);
-  const nSelecionadas = selecionadas.reduce(
-    (n, c) => n + questoesDaEtapa(conteudo, 2, [c]).length,
-    0,
-  );
+  const nSelecionadas = selecionadas.reduce((n, c) => n + questoesNaConfirmacao(conteudo, c), 0);
 
   return (
     <div>
@@ -264,7 +275,7 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
                           {d.modulo} · {MODULOS[d.modulo] ?? d.modulo}
                         </strong>
                         <span style={{ display: "block", marginTop: 2, color: "var(--muted)", fontSize: 12 }}>
-                          {questoesDaEtapa(conteudo, 2, [d.competencia]).length} perguntas
+                          {questoesNaConfirmacao(conteudo, d.competencia)} perguntas
                           {d.conceitosFracos.length > 0 &&
                             ` · na primeira rodada você tropeçou em ${d.conceitosFracos
                               .map((c) => ROTULO_CONCEITO[c] ?? c)

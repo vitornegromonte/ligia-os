@@ -23,12 +23,16 @@ const moduloDaCompetencia = new Map<CompetenciaId, string>(
   COMPETENCIAS.map((c) => [c.id, c.modulo]),
 );
 
+/** Uma forma por questão (a principal): a prova tem a mesma estrutura, só troca o texto. */
+function principais(etapa: 1 | 2, competencia?: CompetenciaId) {
+  return questoesDaEtapa(content, etapa, competencia && [competencia]).filter((q) => q.id === q.slot);
+}
+
 describe("banco de questões — estrutura", () => {
   it.each([1, 2] as const)("etapa %i tem 20 questões, 4 por competência", (etapa) => {
-    const qs = questoesDaEtapa(content, etapa);
-    expect(qs).toHaveLength(20);
+    expect(principais(etapa)).toHaveLength(20);
     for (const { id } of COMPETENCIAS) {
-      expect(questoesDaEtapa(content, etapa, [id]), `competência ${id}`).toHaveLength(4);
+      expect(principais(etapa, id), `competência ${id}`).toHaveLength(4);
     }
   });
 
@@ -37,18 +41,35 @@ describe("banco de questões — estrutura", () => {
     (etapa) => {
       // Mesmo multiset nas duas etapas: a nota acumulada pesa as duas por igual.
       for (const { id } of COMPETENCIAS) {
-        const difs = questoesDaEtapa(content, etapa, [id]).map((q) => q.dificuldade).sort();
+        const difs = principais(etapa, id).map((q) => q.dificuldade).sort();
         expect(difs, `competência ${id}`).toEqual([1, 2, 2, 3]);
       }
     },
   );
 
-  it("ids são únicos e seguem o padrão n-<competencia>-<n> (etapa 2: n-<competencia>-e2-<n>)", () => {
+  it("toda questão tem ao menos uma variante, que herda competência, etapa, dificuldade e conceitos", () => {
+    for (const p of content.mcq.filter((q) => q.id === q.slot)) {
+      const formas = content.mcq.filter((q) => q.slot === p.slot);
+      expect(formas.length, p.id).toBeGreaterThanOrEqual(2);
+      for (const f of formas) {
+        expect([f.competencia, f.etapa, f.dificuldade, f.conceitos], f.id).toEqual([
+          p.competencia,
+          p.etapa,
+          p.dificuldade,
+          p.conceitos,
+        ]);
+        if (f !== p) expect(f.pergunta, f.id).not.toBe(p.pergunta);
+      }
+    }
+  });
+
+  it("ids são únicos e seguem o padrão n-<competencia>-[e2-]<n>, com letra nas variantes", () => {
     const ids = content.mcq.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const q of content.mcq) {
-      const sufixo = q.etapa === 2 ? "e2-[1-4]" : "[1-4]";
-      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-${sufixo}$`));
+      const etapa = q.etapa === 2 ? "e2-" : "";
+      const variante = q.id === q.slot ? "" : "[b-z]";
+      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-${etapa}[1-4]${variante}$`));
     }
   });
 
@@ -182,7 +203,7 @@ describe("priorDeAr1", () => {
 describe("questoesParaEngine", () => {
   it("expõe só o que a engine precisa — sem gabarito", () => {
     const qs = questoesParaEngine(content.mcq);
-    expect(qs).toHaveLength(40);
+    expect(qs).toHaveLength(content.mcq.length);
     for (const q of qs) {
       expect(Object.keys(q).sort()).toEqual(["competencia", "conceitos", "dificuldade", "etapa", "id"]);
     }

@@ -1,10 +1,11 @@
 /**
  * Operações sobre uma rodada do nivelamento que precisam do conteúdo E da
- * engine ao mesmo tempo: corrigir respostas, aplicar a etapa 2 a uma rodada já
- * salva. Puras — a página decide quando ler e gravar storage.
+ * engine ao mesmo tempo: montar a prova, corrigir respostas, aplicar a etapa 2
+ * a uma rodada já salva. Puras — a página decide quando ler e gravar storage.
  */
 
 import type { CompetenciaId } from "./competencias";
+import { hashSeed } from "./embaralhar";
 import {
   avaliarEtapa2,
   recomendar,
@@ -17,7 +18,39 @@ import {
   type NivelamentoContent,
   type QuestaoMCQ,
 } from "./nivelamento-content";
-import type { PretestResultV2 } from "./pretest-storage";
+import type { PretestResultV2, QuestoesVistas } from "./pretest-storage";
+
+/**
+ * Prova de uma etapa: uma forma por questão, na ordem do conteúdo.
+ *
+ * Entre as formas de cada questão, fica a vista há mais tempo (nunca vista
+ * conta como a mais antiga); empate se resolve pela seed da rodada. Com duas
+ * formas, refazer o nivelamento alterna entre elas.
+ */
+export function montarProva(
+  conteudo: NivelamentoContent,
+  etapa: 1 | 2,
+  opts: { seed: string; vistas?: QuestoesVistas; competencias?: readonly CompetenciaId[] },
+): QuestaoMCQ[] {
+  const vistas = opts.vistas ?? {};
+  const porSlot = new Map<string, QuestaoMCQ[]>();
+  for (const q of questoesDaEtapa(conteudo, etapa, opts.competencias)) {
+    porSlot.set(q.slot, [...(porSlot.get(q.slot) ?? []), q]);
+  }
+
+  return [...porSlot.entries()].map(([slot, formas]) => {
+    const ultimaVez = (f: QuestaoMCQ) => vistas[f.id] ?? "";
+    const maisAntiga = formas.map(ultimaVez).sort()[0];
+    const candidatas = formas.filter((f) => ultimaVez(f) === maisAntiga);
+    return candidatas[hashSeed(`${opts.seed}:${slot}`) % candidatas.length];
+  });
+}
+
+/** Reconstrói a lista de questões a partir dos ids (ids que não existem mais são ignorados). */
+export function questoesPorIds(conteudo: NivelamentoContent, ids: readonly string[]): QuestaoMCQ[] {
+  const porId = new Map(conteudo.mcq.map((q) => [q.id, q]));
+  return ids.map((id) => porId.get(id)).filter((q): q is QuestaoMCQ => q !== undefined);
+}
 
 /**
  * Corrige as respostas (índice da opção ORIGINAL, antes do embaralhamento).
@@ -81,8 +114,8 @@ export function rodadaCompativel(
 }
 
 /**
- * Aplica a etapa 2 a uma rodada: corrige as respostas das competências
- * escolhidas, junta aos resultados da rodada e recalcula a recomendação.
+ * Aplica a etapa 2 a uma rodada: corrige as respostas da prova apresentada
+ * (montarProva), junta aos resultados da rodada e recalcula a recomendação.
  *
  * A matriz (radar) não muda — ela é só da etapa 1. Competência que já fez a
  * etapa 2 nesta rodada é ignorada: refazer a confirmação depois de ver as
@@ -91,15 +124,12 @@ export function rodadaCompativel(
 export function aplicarEtapa2(
   conteudo: NivelamentoContent,
   rodada: PretestResultV2,
-  competencias: readonly CompetenciaId[],
+  prova: readonly QuestaoMCQ[],
   respostas: Record<string, number | undefined>,
 ): PretestResultV2 {
   const jaFeitas = new Set(competenciasComEtapa2(conteudo, rodada));
-  const novas = competencias.filter((c) => !jaFeitas.has(c));
-  const resultados = {
-    ...rodada.resultados,
-    ...corrigir(questoesDaEtapa(conteudo, 2, novas), respostas),
-  };
+  const novas = prova.filter((q) => q.etapa === 2 && !jaFeitas.has(q.competencia));
+  const resultados = { ...rodada.resultados, ...corrigir(novas, respostas) };
 
   const etapa2 = resumoEtapa2(conteudo, { resultados });
   return { ...rodada, resultados, recomendacao: recomendar(rodada.matriz, { etapa2 }) };

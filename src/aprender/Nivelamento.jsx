@@ -10,14 +10,29 @@ import NivelamentoResultado from "./NivelamentoResultado.jsx";
 import { NIVELAMENTO } from "./dados.ts";
 import { scoreCompetencias, recomendar } from "../lib/nivelamento.ts";
 import { priorDeAr1, questoesDaEtapa, questoesParaEngine } from "../lib/nivelamento-content.ts";
-import { corrigir, rodadaCompativel } from "../lib/nivelamento-rodada.ts";
-import { loadPretestV2, savePretestV2, aplicarRetake } from "../lib/pretest-storage.ts";
+import {
+  corrigir,
+  montarProva,
+  questoesPorIds,
+  rodadaCompativel,
+} from "../lib/nivelamento-rodada.ts";
+import {
+  loadPretestV2,
+  savePretestV2,
+  aplicarRetake,
+  loadQuestoesVistas,
+  registrarQuestoesVistas,
+} from "../lib/pretest-storage.ts";
 import { logEvent } from "../lib/events.ts";
 
 const RASCUNHO_KEY = "ligia-nivelamento:rascunho:v1";
 
-/** Etapa 1: todo aluno responde. A etapa 2 mora na tela de resultado. */
-const QUESTOES = questoesDaEtapa(NIVELAMENTO, 1);
+/** Nº de questões da etapa 1 (uma forma de cada). A etapa 2 mora na tela de resultado. */
+const TOTAL_QUESTOES = new Set(questoesDaEtapa(NIVELAMENTO, 1).map((q) => q.slot)).size;
+
+function novaProva(seed) {
+  return montarProva(NIVELAMENTO, 1, { seed, vistas: loadQuestoesVistas() });
+}
 
 /**
  * Nivelamento: cinco perguntas de auto-relato, vinte múltiplas escolhas e uma
@@ -35,13 +50,16 @@ export default function Nivelamento() {
   const conteudo = NIVELAMENTO;
   const navegar = useNavigate();
   const [params, setParams] = useSearchParams();
-  const totalPassos = QUESTOES.length + 2;
+  const totalPassos = TOTAL_QUESTOES + 2;
 
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState({});
   const [autoRelato, setAutoRelato] = useState({});
   const [colab, setColab] = useState(false);
   const [seed, setSeed] = useState("");
+  // Uma forma por questão, sorteada ao começar e guardada no rascunho: voltar
+  // à página no meio do teste não troca as questões debaixo do aluno.
+  const [prova, setProva] = useState([]);
   const [resultado, setResultado] = useState(() => {
     if (params.get("ver") !== "resultado") return null;
     const salvo = loadPretestV2();
@@ -67,13 +85,18 @@ export default function Nivelamento() {
         setRespostas(r.respostas ?? {});
         setAutoRelato(r.autoRelato ?? {});
         setColab(r.colab ?? false);
-        setSeed(r.seed || String(Date.now()));
+        const s = r.seed || String(Date.now());
+        setSeed(s);
+        const salva = questoesPorIds(NIVELAMENTO, r.prova ?? []);
+        setProva(salva.length === TOTAL_QUESTOES ? salva : novaProva(s));
         return;
       }
     } catch {
       /* rascunho corrompido: começa limpo */
     }
-    setSeed(String(Date.now()));
+    const s = String(Date.now());
+    setSeed(s);
+    setProva(novaProva(s));
   }, []);
 
   // Persiste a cada mudança: abandonar e voltar não perde as respostas.
@@ -82,27 +105,27 @@ export default function Nivelamento() {
     try {
       sessionStorage.setItem(
         RASCUNHO_KEY,
-        JSON.stringify({ passo, respostas, autoRelato, colab, seed }),
+        JSON.stringify({ passo, respostas, autoRelato, colab, seed, prova: prova.map((q) => q.id) }),
       );
     } catch {
       /* storage cheio ou indisponível: segue sem rascunho */
     }
-  }, [passo, respostas, autoRelato, colab, seed, resultado]);
+  }, [passo, respostas, autoRelato, colab, seed, prova, resultado]);
 
   // Foco no título a cada passo, para o leitor de tela anunciar a pergunta nova.
   useEffect(() => {
     if (!resultado) tituloRef.current?.focus();
   }, [passo, resultado]);
 
-  const respondidas = QUESTOES.filter((q) => respostas[q.id] !== undefined).length;
-  const questaoAtual = passo >= 1 && passo <= QUESTOES.length ? QUESTOES[passo - 1] : null;
+  const respondidas = prova.filter((q) => respostas[q.id] !== undefined).length;
+  const questaoAtual = passo >= 1 && passo <= TOTAL_QUESTOES ? (prova[passo - 1] ?? null) : null;
 
   function finalizar() {
     const ar1 = conteudo.auto_relato.find((p) => p.id === "ar1");
     const prior = ar1 ? priorDeAr1(ar1, autoRelato.ar1 ?? []) : {};
-    const resultados = corrigir(QUESTOES, respostas);
+    const resultados = corrigir(prova, respostas);
 
-    const matriz = scoreCompetencias(questoesParaEngine(QUESTOES), resultados, {
+    const matriz = scoreCompetencias(questoesParaEngine(prova), resultados, {
       prior,
       fezColab: colab,
     });
@@ -121,6 +144,7 @@ export default function Nivelamento() {
     // Refazer nunca desfaz dispensa já confirmada.
     const final = aplicarRetake(loadPretestV2(), novo);
     savePretestV2(final);
+    registrarQuestoesVistas(prova.map((q) => q.id), novo.ts);
     logEvent("pretest_completed", "nivelamento", {
       contentVersion: conteudo.version,
       fronteira: recomendacao.fronteira,
@@ -148,7 +172,9 @@ export default function Nivelamento() {
     setAutoRelato({});
     setColab(false);
     setPasso(0);
-    setSeed(String(Date.now()));
+    const s = String(Date.now());
+    setSeed(s);
+    setProva(novaProva(s));
     if (params.has("ver")) setParams({}, { replace: true });
     window.scrollTo({ top: 0 });
   }
@@ -169,7 +195,7 @@ export default function Nivelamento() {
   const ehAutoRelato = passo === 0;
   const ehColab = passo === totalPassos - 1;
   const podeAvancar = ehAutoRelato || ehColab || respostas[questaoAtual?.id] !== undefined;
-  const progresso = Math.round((respondidas / QUESTOES.length) * 100);
+  const progresso = Math.round((respondidas / TOTAL_QUESTOES) * 100);
 
   return (
     <div>
@@ -183,13 +209,13 @@ export default function Nivelamento() {
               role="progressbar"
               aria-valuenow={respondidas}
               aria-valuemin={0}
-              aria-valuemax={QUESTOES.length}
+              aria-valuemax={TOTAL_QUESTOES}
               aria-label="Progresso do nivelamento"
             >
               <div className="tr-barra__preenchimento" style={{ width: `${progresso}%` }} />
             </div>
             <span style={{ color: "var(--muted)", fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
-              {respondidas}/{QUESTOES.length}
+              {respondidas}/{TOTAL_QUESTOES}
             </span>
           </div>
 
@@ -220,7 +246,7 @@ export default function Nivelamento() {
           {questaoAtual && seed && (
             <PassoQuestao
               questao={questaoAtual}
-              rotulo={`Questão ${passo} de ${QUESTOES.length}`}
+              rotulo={`Questão ${passo} de ${TOTAL_QUESTOES}`}
               seed={seed}
               resposta={respostas[questaoAtual.id]}
               onResponder={(i) => setRespostas((s) => ({ ...s, [questaoAtual.id]: i }))}
