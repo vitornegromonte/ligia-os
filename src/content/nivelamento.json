@@ -1,5 +1,5 @@
 {
-  "version": "5",
+  "version": "6",
   "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
   "auto_relato": [
     {
@@ -1062,6 +1062,7 @@
       "competencia": "transformers-llms",
       "dificuldade": 1,
       "conceitos": ["tokenizacao"],
+      "aposentada": true,
       "pergunta": "O que a tokenização faz antes de um texto entrar num modelo de linguagem?",
       "opcoes": [
         "Traduz o texto para inglês",
@@ -1085,6 +1086,37 @@
           ],
           "correta": 1,
           "explicacao": "Um vocabulário só de palavras inteiras nunca cobre tudo: nomes, termos novos e erros de digitação ficariam de fora. Com subpalavras, qualquer palavra é montada a partir de pedaços conhecidos, com vocabulário fixo."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-5",
+      "competencia": "transformers-llms",
+      "dificuldade": 1,
+      "conceitos": ["geracao-de-texto", "tokenizacao"],
+      "pergunta": "Como um modelo de linguagem como o GPT escreve uma resposta?",
+      "opcoes": [
+        "A resposta inteira de uma vez, numa única passada pelo modelo",
+        "Um token por vez (um pedaço de palavra), cada um escolhido a partir de tudo que veio antes",
+        "Buscando a resposta mais parecida num banco de textos prontos",
+        "Letra por letra, cada letra sorteada sem depender das anteriores",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Modelos como o GPT são autorregressivos: a cada passo preveem o próximo token, um pedaço de texto que pode ser uma palavra ou parte dela, condicionado ao prompt e ao que já geraram. Não existe banco de respostas prontas.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-5b",
+          "pergunta": "Um LLM erra ao contar quantas letras “a” há em “banana”. Qual a explicação mais provável?",
+          "opcoes": [
+            "A palavra não aparecia nos dados de treino",
+            "LLMs não conseguem lidar com números",
+            "Ele lê e escreve em tokens, pedaços de palavra, e não enxerga as letras uma a uma",
+            "A temperatura da geração estava baixa demais",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "O texto entra no modelo como tokens: “banana” pode virar um ou dois pedaços, e as letras separadas não aparecem para ele. Contar letras pede uma informação que a tokenização esconde, e a resposta também sai token a token."
         }
       ]
     },

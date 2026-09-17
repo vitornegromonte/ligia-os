@@ -117,7 +117,12 @@ describe("questões aposentadas", () => {
 
   it("continuam no banco (rodadas antigas e análise de itens), com as variantes", () => {
     expect(aposentadas().map((q) => q.id)).toEqual(
-      expect.arrayContaining(["n-dl-fundamentos-2", "n-dl-fundamentos-2b"]),
+      expect.arrayContaining([
+        "n-dl-fundamentos-2",
+        "n-dl-fundamentos-2b",
+        "n-transformers-llms-1",
+        "n-transformers-llms-1b",
+      ]),
     );
   });
 
@@ -128,6 +133,21 @@ describe("questões aposentadas", () => {
 });
 
 describe("cobertura de conceitos na etapa 1", () => {
+  it("todo conceito de M0–M4 é avaliado por alguma questão ativa da etapa 1", () => {
+    // Conceito sem questão nunca vira ⭐ na trilha, porque ⭐ sai das questões erradas.
+    const cobertos = new Set(questoesDaEtapa(content, 1).flatMap((q) => q.conceitos));
+    for (const { modulo } of COMPETENCIAS) {
+      const doModulo = [...moduloDoConceito].filter(([, m]) => m === modulo).map(([c]) => c);
+      for (const c of doModulo) expect(cobertos.has(c), `${modulo} → ${c}`).toBe(true);
+    }
+  });
+
+  it("geracao-de-texto é avaliado na etapa 1 (liga-014), sem perder tokenizacao", () => {
+    const conceitos = new Set(questoesDaEtapa(content, 1).flatMap((q) => q.conceitos));
+    expect(conceitos.has("geracao-de-texto")).toBe(true);
+    expect(conceitos.has("tokenizacao")).toBe(true);
+  });
+
   it("batchnorm é avaliado na etapa 1 (liga-013)", () => {
     const conceitos = new Set(questoesDaEtapa(content, 1).flatMap((q) => q.conceitos));
     expect(conceitos.has("batchnorm")).toBe(true);
