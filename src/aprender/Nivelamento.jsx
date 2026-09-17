@@ -28,8 +28,8 @@ const QUESTOES = questoesDaEtapa(NIVELAMENTO, 1);
  * `?ver=resultado` reabre a última rodada salva em vez de começar outra — é
  * por onde a trilha manda quem deixou dispensa por confirmar.
  *
- * "Não sei" é registrado como tal, e não como erro — é o que faz a matriz
- * distinguir lacuna de chute e acertar o ponto de partida.
+ * "Não sei" vale zero na nota, como o erro, mas fica registrado como tal nos
+ * resultados: é o que permite separar lacuna de engano na análise das questões.
  */
 export default function Nivelamento() {
   const conteudo = NIVELAMENTO;

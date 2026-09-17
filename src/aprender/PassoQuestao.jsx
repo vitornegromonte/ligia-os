@@ -31,9 +31,16 @@ export default function PassoQuestao({ questao, rotulo, seed, resposta, onRespon
           onSelect={(next) => onResponder(ordem[next[0]])}
         />
       </div>
-      <p style={{ margin: "14px 0 0", color: "var(--muted)", fontSize: 12 }}>
-        Sem certeza? <strong style={{ color: "var(--text)" }}>“Não sei”</strong> vale mais que
-        chutar — é assim que a trilha acerta seu ponto de partida.
+      {/*
+        Não prometer que "Não sei" vale mais que chutar: na nota ele vale 0,
+        igual ao erro, e um chute vale em média 25% do peso da questão. A
+        vantagem honesta é a revisão — o assunto marcado vira ⭐ na trilha, e um
+        acerto por sorte o esconderia.
+      */}
+      <p style={{ margin: "14px 0 0", color: "var(--muted)", fontSize: 12, lineHeight: 1.6 }}>
+        Sem certeza? <strong style={{ color: "var(--text)" }}>“Não sei”</strong> vale o mesmo que
+        errar na nota, mas garante que o assunto apareça para você revisar — um chute certo por
+        sorte o esconderia.
       </p>
     </>
   );

@@ -45,10 +45,18 @@ function renderizar(rota: string) {
   );
 }
 
-describe("Nivelamento — confirmação de dispensa", () => {
+describe("Nivelamento — página", () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+  });
+
+  it("o texto do 'Não sei' não promete que ele vale mais que chutar", () => {
+    renderizar("/aprender/nivelamento");
+    fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
+    const dica = screen.getByText(/Sem certeza\?/);
+    expect(dica).toHaveTextContent(/vale o mesmo que errar na nota/);
+    expect(dica).not.toHaveTextContent(/vale mais/);
   });
 
   it("sem rodada salva, ?ver=resultado cai no wizard", () => {
