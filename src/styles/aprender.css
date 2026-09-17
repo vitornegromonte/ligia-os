@@ -137,6 +137,14 @@
   transition: width var(--transition);
 }
 
+/* Radar do banner da trilha: menor que o padrão de 320px, porque divide a
+   linha com o texto da recomendação. A classe era usada no JSX sem regra. */
+.tr-radar {
+  width: 100%;
+  max-width: 180px;
+  flex: 0 0 auto;
+}
+
 /* ---------- Lista chave/valor (equivalente textual do radar) ---------- */
 .tr-lista { margin: 4px 0 0; padding: 0; list-style: none; font-size: 13px; }
 .tr-lista li {
