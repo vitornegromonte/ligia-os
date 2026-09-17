@@ -222,6 +222,21 @@ describe("banco de questões — explicações", () => {
   });
 });
 
+describe("banco de questões — a certa não se entrega pelo tamanho", () => {
+  it("a alternativa certa não passa de 15 caracteres além da errada mais longa", () => {
+    // Resposta certa visivelmente mais longa é a pista clássica de item mal
+    // escrito: dá para acertar sem saber o assunto.
+    for (const q of [...content.mcq, ...content.codigo.questoes].filter((x) => !x.aposentada)) {
+      const conteudoDasOpcoes = q.opcoes.filter((o) => !o.naoSei);
+      const certa = q.opcoes[q.correta].texto.length;
+      const maiorErrada = Math.max(
+        ...conteudoDasOpcoes.filter((o) => o !== q.opcoes[q.correta]).map((o) => o.texto.length),
+      );
+      expect(certa - maiorErrada, `${q.id}: certa ${certa}, maior errada ${maiorErrada}`).toBeLessThanOrEqual(15);
+    }
+  });
+});
+
 describe("banco de questões — ancoragem nos conceitos", () => {
   it("todo conceito citado existe em concepts.json", () => {
     for (const q of content.mcq) {

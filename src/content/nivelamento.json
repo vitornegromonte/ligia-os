@@ -1,5 +1,5 @@
 {
-  "version": "8",
+  "version": "9",
   "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
   "auto_relato": [
     {
@@ -212,7 +212,7 @@
               "texto": "50%, já que ela é spam ou não é",
               "equivoco": "Ser spam ou não ser são dois casos, mas com probabilidades muito diferentes."
             },
-            "Cerca de 16%, porque muitas mensagens normais também são marcadas",
+            "Cerca de 16%, porque spam é raro",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
@@ -227,7 +227,7 @@
       "conceitos": ["calculo-vetorial", "gradiente"],
       "pergunta": "Por que a regra da cadeia é o que torna viável treinar redes profundas?",
       "opcoes": [
-        "Permite derivar funções compostas, propagando o efeito camada a camada",
+        "Permite derivar funções compostas, camada a camada",
         {
           "texto": "Garante que a função de custo tenha um único mínimo",
           "equivoco": "A regra da cadeia não muda a forma da função de custo; redes profundas têm muitos mínimos."
@@ -478,7 +478,7 @@
               "texto": "Para treinar os pesos com mais dados",
               "equivoco": "Dados de validação não treinam os pesos; se treinassem, a validação deixaria de medir generalização."
             },
-            "Para escolher hiperparâmetros e comparar modelos sem tocar no teste",
+            "Para escolher hiperparâmetros sem tocar no teste",
             {
               "texto": "Para corrigir rótulos errados do treino",
               "equivoco": "Nenhum conjunto de dados corrige rótulos; isso é limpeza de dados."
@@ -501,10 +501,10 @@
       "conceitos": ["knn", "overfitting"],
       "pergunta": "Um k-NN com k=1 acerta 100% no treino e 62% na validação. A explicação é:",
       "opcoes": [
-        "Com k=1 cada exemplo é seu próprio vizinho mais próximo, então o treino é decorado",
+        "Com k=1, cada exemplo é seu próprio vizinho: o treino é decorado",
         {
-          "texto": "k=1 é um valor inválido para o algoritmo",
-          "equivoco": "k=1 é válido; só é o caso extremo, que decora o treino."
+          "texto": "A validação tem distribuição diferente da do treino",
+          "equivoco": "Distribuições diferentes explicariam uma queda, mas não o acerto de 100% no treino, que vem do próprio k=1."
         },
         {
           "texto": "O modelo precisa de mais épocas de treino",
@@ -535,7 +535,7 @@
               "texto": "Nada muda se as classes forem balanceadas",
               "equivoco": "Mudar k muda a fronteira independentemente do balanceamento das classes."
             },
-            "A fronteira de decisão suaviza, e o modelo vai do overfitting em direção ao underfitting",
+            "A fronteira suaviza, indo do overfitting ao underfitting",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
@@ -572,7 +572,7 @@
           "id": "n-ml-classico-3b",
           "pergunta": "Uma regressão logística devolveu 0,8 para um e-mail. Isso significa que:",
           "opcoes": [
-            "O modelo estima 80% de probabilidade de o e-mail ser da classe positiva",
+            "O modelo estima 80% de chance de ser da classe positiva",
             {
               "texto": "80% das palavras do e-mail são suspeitas",
               "equivoco": "A saída é uma probabilidade da classe, não uma contagem de palavras."
@@ -629,7 +629,7 @@
               "texto": "A L2 zera pesos e a L1 apenas os encolhe",
               "equivoco": "Inverteu: é a L1 que tende a zerar pesos; a L2 encolhe sem zerar."
             },
-            "A L1 tende a zerar pesos, selecionando features; a L2 encolhe todos sem zerar",
+            "A L1 zera pesos; a L2 encolhe sem zerar",
             {
               "texto": "As duas têm o mesmo efeito e mudam só a velocidade do treino",
               "equivoco": "Os efeitos são diferentes: a L1 produz pesos esparsos, a L2 pesos pequenos."
@@ -672,7 +672,7 @@
               "texto": "O número de features usadas",
               "equivoco": "Escolher features é outra etapa; o ajuste minimiza o erro das previsões."
             },
-            "A soma dos quadrados dos erros entre o previsto e o real",
+            "A soma dos erros ao quadrado",
             {
               "texto": "A correlação entre as features",
               "equivoco": "A correlação entre features não é o alvo do ajuste; ela até atrapalha a regressão (multicolinearidade)."
@@ -718,7 +718,7 @@
           "id": "n-ml-classico-e2-2b",
           "pergunta": "Você calculou média e desvio para normalizar os dados usando o dataset inteiro, antes de separar treino e teste. Qual o problema?",
           "opcoes": [
-            "Informação do teste vaza para o treino, e a nota no teste fica otimista",
+            "Informação do teste vaza para o treino (data leakage)",
             {
               "texto": "Nenhum: a normalização não depende dos dados",
               "equivoco": "Média e desvio saem dos dados, então calculá-los com o teste leva informação dele para o treino."
@@ -776,7 +776,7 @@
               "texto": "Pela classe do exemplo mais distante",
               "equivoco": "O k-NN usa os mais próximos, não o mais distante."
             },
-            "Pela classe mais comum entre os 5 exemplos de treino mais próximos",
+            "Pela classe mais comum entre os 5 vizinhos",
             {
               "texto": "Pela primeira classe que aparece no dataset",
               "equivoco": "A ordem do dataset não influencia; o que conta é a distância."
@@ -827,7 +827,7 @@
               "equivoco": "Mais épocas tendem a decorar ainda mais o treino."
             },
             { "texto": "Diminuir a regularização", "equivoco": "Menos regularização piora o overfitting." },
-            "Aumentar a regularização ou conseguir mais dados de treino",
+            "Regularizar mais ou conseguir mais dados",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
@@ -1204,7 +1204,7 @@
           "texto": "O treino converge mais rápido, porque parte de um ponto equilibrado",
           "equivoco": "Começar igual não ajuda: a simetria nunca se quebra e os neurônios continuam redundantes."
         },
-        "Os neurônios de uma mesma camada recebem gradientes iguais e continuam idênticos entre si",
+        "Os neurônios da mesma camada continuam idênticos entre si",
         {
           "texto": "A rede passa a se comportar como um modelo linear",
           "equivoco": "A rede continua não-linear por causa das ativações; o problema é ter neurônios idênticos."
@@ -1234,7 +1234,7 @@
               "texto": "A rede passa a ter menos parâmetros treináveis",
               "equivoco": "O número de parâmetros depende da arquitetura, não da inicialização."
             },
-            "Ativações e gradientes crescem ou saturam camada a camada, e o treino fica instável",
+            "Ativações e gradientes explodem ou saturam camada a camada",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
@@ -1276,14 +1276,14 @@
               "equivoco": "Quem define o número de canais é a convolução (quantos filtros); o pooling mantém os canais."
             },
             {
-              "texto": "Normalizar as cores da imagem",
-              "equivoco": "Normalizar cores é pré-processamento; o pooling reduz altura e largura."
+              "texto": "Corrigir a escala das ativações antes da próxima camada",
+              "equivoco": "Ajustar a escala das ativações é papel da batch norm; o pooling mexe no tamanho do mapa."
             },
             {
               "texto": "Treinar os filtros da convolução",
               "equivoco": "O pooling não tem parâmetros para treinar; quem aprende filtros é a convolução."
             },
-            "Reduzir a resolução espacial, mantendo as respostas mais fortes",
+            "Reduzir a resolução, mantendo as respostas mais fortes",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
@@ -1298,7 +1298,7 @@
       "conceitos": ["transfer-learning", "fine-tuning"],
       "pergunta": "Por que partir de um modelo pré-treinado costuma funcionar melhor que treinar do zero?",
       "opcoes": [
-        "Porque ele já aprendeu representações gerais, reaproveitáveis noutro problema",
+        "Porque ele já aprendeu representações gerais e reaproveitáveis",
         {
           "texto": "Porque modelos pré-treinados têm mais parâmetros",
           "equivoco": "O tamanho não é a razão: o ganho vem das representações que o modelo já aprendeu."
@@ -1330,8 +1330,8 @@
               "equivoco": "Sem trocar a última camada, a rede continua prevendo as 1000 classes do ImageNet, não as 4 folhas."
             },
             {
-              "texto": "Juntar as 800 fotos numa só imagem para dar mais contexto",
-              "equivoco": "Juntar fotos destrói os exemplos individuais e não cria informação nova."
+              "texto": "Treinar uma CNN pequena do zero, para caber nos 800 exemplos",
+              "equivoco": "Uma CNN pequena aprende menos e ainda assim vê poucos exemplos; o pré-treino traz representações que 800 fotos não ensinam."
             },
             { "texto": "Não sei", "naoSei": true }
           ],
@@ -1351,7 +1351,7 @@
           "texto": "Para aumentar o tamanho efetivo do dataset",
           "equivoco": "Embaralhar muda a ordem, não a quantidade de exemplos; aumentar o dataset é data augmentation."
         },
-        "Para o modelo não aprender a ordem em que os exemplos aparecem",
+        "Para o modelo não aprender a ordem dos exemplos",
         {
           "texto": "Porque o PyTorch exige dados embaralhados",
           "equivoco": "O PyTorch não exige: shuffle é opcional no DataLoader."
@@ -1369,7 +1369,7 @@
           "id": "n-dl-aplicado-3b",
           "pergunta": "No PyTorch, qual é o papel do DataLoader?",
           "opcoes": [
-            "Agrupar os exemplos do Dataset em lotes, podendo embaralhar e carregar em paralelo",
+            "Entregar os exemplos do Dataset em lotes",
             {
               "texto": "Baixar datasets prontos da internet",
               "equivoco": "Baixar datasets é papel de pacotes como torchvision.datasets."
@@ -1423,7 +1423,7 @@
               "texto": "Para a camada nova convergir mais devagar",
               "equivoco": "É o contrário: a camada nova usa taxa maior porque começa aleatória."
             },
-            "Para ajustar de leve o que já funciona, sem apagar as representações aprendidas",
+            "Para não apagar as representações já aprendidas",
             {
               "texto": "Porque a GPU processa camadas antigas mais devagar",
               "equivoco": "A GPU processa todas as camadas da mesma forma; a taxa diferente é escolha de otimização."
@@ -1657,7 +1657,7 @@
           "texto": "A resposta inteira de uma vez, numa única passada pelo modelo",
           "equivoco": "A resposta sai aos poucos: cada token novo exige uma nova passada pelo modelo."
         },
-        "Um token por vez (um pedaço de palavra), cada um escolhido a partir de tudo que veio antes",
+        "Um token por vez, a partir de tudo que veio antes",
         {
           "texto": "Buscando a resposta mais parecida num banco de textos prontos",
           "equivoco": "O modelo não consulta respostas prontas; ele gera texto novo, token a token."
@@ -1683,7 +1683,7 @@
               "texto": "LLMs não conseguem lidar com números",
               "equivoco": "O erro não é de aritmética: o modelo não enxerga as letras que precisaria contar."
             },
-            "Ele lê e escreve em tokens, pedaços de palavra, e não enxerga as letras uma a uma",
+            "Ele lê e escreve tokens, não letras",
             {
               "texto": "A temperatura da geração estava baixa demais",
               "equivoco": "Temperatura muda o sorteio entre tokens prováveis, não o que o modelo consegue ver na palavra."
@@ -1774,10 +1774,10 @@
           "pergunta": "Uma RNN não precisa de codificação posicional, mas um Transformer precisa. Por quê?",
           "opcoes": [
             {
-              "texto": "A RNN tem mais parâmetros",
-              "equivoco": "O número de parâmetros não tem relação com saber a ordem dos tokens."
+              "texto": "A RNN repete os mesmos pesos a cada passo",
+              "equivoco": "A RNN de fato compartilha pesos entre os passos, mas o que dá a noção de ordem é ler um token de cada vez."
             },
-            "A RNN lê os tokens um por um, em ordem; o Transformer processa todos juntos",
+            "A RNN lê em ordem; o Transformer vê tudo junto",
             {
               "texto": "O Transformer só aceita frases curtas",
               "equivoco": "Transformers aceitam sequências longas; a necessidade vem de processar tudo em paralelo."
@@ -1804,7 +1804,7 @@
           "texto": "Permite processar várias frases ao mesmo tempo",
           "equivoco": "Processar várias frases ao mesmo tempo é o lote (batch), não as cabeças."
         },
-        "Cada cabeça pode focar um tipo diferente de relação entre os tokens",
+        "Cada cabeça foca um tipo diferente de relação",
         {
           "texto": "Reduz o número total de parâmetros do modelo",
           "equivoco": "Várias cabeças dividem a dimensão do modelo; o total de parâmetros fica parecido, não menor."
@@ -1867,14 +1867,14 @@
           "pergunta": "Por que modelos de linguagem representam tokens com embeddings em vez de vetores one-hot?",
           "opcoes": [
             {
-              "texto": "One-hot não pode ser armazenado em GPU",
-              "equivoco": "One-hot cabe em GPU; o problema é ser enorme e não codificar semelhança."
+              "texto": "O one-hot precisa ser recalculado a cada época",
+              "equivoco": "O one-hot é fixo e não depende de treino; o problema dele é ser enorme e não codificar semelhança."
             },
             {
               "texto": "Embeddings dispensam a tokenização",
               "equivoco": "Embeddings dependem da tokenização: cada token precisa virar um índice antes."
             },
-            "Embeddings são densos, aprendidos, bem menores que o vocabulário e aproximam tokens de uso parecido",
+            "São densos, aprendidos e aproximam tokens de uso parecido",
             {
               "texto": "One-hot só funciona com palavras em inglês",
               "equivoco": "One-hot funciona com qualquer vocabulário; a limitação é outra."
@@ -1978,7 +1978,7 @@
               "texto": "Q é o token atual, K o anterior e V o seguinte",
               "equivoco": "Cada token gera o próprio Q, K e V; não é uma questão de vizinhos."
             },
-            "Das mesmas representações de entrada, cada uma passada por uma projeção linear própria",
+            "Das mesmas entradas, por três projeções lineares aprendidas",
             { "texto": "Não sei", "naoSei": true }
           ],
           "correta": 3,
