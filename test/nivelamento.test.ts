@@ -3,7 +3,8 @@ import { COMPETENCIAS, competenciaDoModulo } from "@/lib/competencias";
 import type { CompetenciaId } from "@/lib/competencias";
 import {
   avaliarEtapa2,
-  COLAB_BONUS,
+  avaliarProgramacao,
+  GATE_PROGRAMACAO,
   MENSAGEM_A_CONFIRMAR,
   MENSAGENS_FRONTEIRA,
   PRIOR_BOOST,
@@ -228,38 +229,45 @@ describe("PRIOR_BOOST", () => {
 });
 
 // ---------------------------------------------------------------------------
-// COLAB_BONUS
+// Leitura de código
 // ---------------------------------------------------------------------------
 
-describe("COLAB_BONUS", () => {
-  it("constante pinada em 8", () => {
-    expect(COLAB_BONUS).toBe(8);
+describe("avaliarProgramacao", () => {
+  const codigo = [
+    { id: "c1", dificuldade: 1 as const },
+    { id: "c2", dificuldade: 2 as const },
+    { id: "c3", dificuldade: 2 as const },
+    { id: "c4", dificuldade: 3 as const },
+  ];
+
+  it("gate pinado em 75, pela nota ponderada", () => {
+    expect(GATE_PROGRAMACAO).toBe(75);
+    const errouSoAFacil = avaliarProgramacao(codigo, {
+      c1: "erro", c2: "acerto", c3: "acerto", c4: "acerto",
+    });
+    expect(errouSoAFacil).toEqual({ mcqScore: 87.5, acertos: 3, total: 4, pronto: true });
+    const errouADificil = avaliarProgramacao(codigo, {
+      c1: "acerto", c2: "acerto", c3: "acerto", c4: "nao-sei",
+    });
+    expect(errouADificil.mcqScore).toBe(62.5);
+    expect(errouADificil.pronto).toBe(false);
   });
 
-  it("aplica só em ml-classico quando fezColab", () => {
-    const qs = [...quarteto("matematica"), ...quarteto("ml-classico")];
-    const metade: ResultadoQuestao[] = ["erro", "acerto", "erro", "acerto"]; // 62.5 em cada
-    const m = scoreCompetencias(qs, resultadosDe(qs, [...metade, ...metade]), { fezColab: true });
-    expect(m["ml-classico"].colabBonus).toBe(8);
-    expect(m["ml-classico"].score).toBe(70.5);
-    expect(m.matematica.colabBonus).toBe(0);
-    expect(m.matematica.score).toBe(62.5);
+  it("só conta as questões que o aluno viu; nenhuma → sem sinal", () => {
+    expect(avaliarProgramacao(codigo, {})).toEqual({
+      mcqScore: null, acertos: 0, total: 0, pronto: null,
+    });
+    expect(avaliarProgramacao(codigo, { c4: "acerto" }).total).toBe(1);
   });
+});
 
-  it("clamp em 100", () => {
+describe("PRIOR_BOOST — clamp", () => {
+  it("score exibido nunca passa de 100", () => {
     const qs = quarteto("ml-classico");
     const m = scoreCompetencias(qs, resultadosDe(qs, ["acerto", "acerto", "acerto", "acerto"]), {
-      fezColab: true,
       prior: { "ml-classico": true },
     });
-    expect(m["ml-classico"].mcqScore).toBe(100);
-    expect(m["ml-classico"].score).toBe(100); // 100+5+8 preso em 100
-  });
-
-  it("fezColab sem questões de ml-classico não cria score", () => {
-    const m = scoreCompetencias([], {}, { fezColab: true });
-    expect(m["ml-classico"].score).toBeNull();
-    expect(m["ml-classico"].colabBonus).toBe(0);
+    expect(m["ml-classico"].score).toBe(100);
   });
 });
 

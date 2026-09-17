@@ -19,8 +19,8 @@
  *   conteúdo; pontuar é papel daqui.
  * - Funções puras, zero I/O/DOM/localStorage. Fixtures sintéticas nos testes.
  * - REGRA ANTI-FALSO-POSITIVO: os gates de dispensa usam SÓ o desempenho nas
- *   questões. priorBoost e colabBonus são cosméticos/motivacionais (entram
- *   apenas no `score` exibido no radar) e jamais promovem dispensa de módulo.
+ *   questões. priorBoost é cosmético/motivacional (entra apenas no `score`
+ *   exibido no radar) e jamais promove dispensa de módulo.
  *   O auto-relato também não desempata mais nada: quem desempata é a etapa 2.
  */
 
@@ -67,12 +67,6 @@ export const PRIOR_BOOST = 5;
 export const PRIOR_MIN_MCQ = 50;
 
 /**
- * Bônus cosmético por ter feito o notebook Colab (regressão logística no
- * Iris) — por isso vale SÓ em ml-classico. Também jamais promove dispensa.
- */
-export const COLAB_BONUS = 8;
-
-/**
  * Gate de dispensa, usado duas vezes: mcqScore da etapa 1 ≥ 75 candidata o
  * módulo; nota acumulada (etapa 1 + etapa 2) ≥ 75 confirma a dispensa.
  */
@@ -100,8 +94,6 @@ export type CompetencyEntry = {
   mcqScore: number | null;
   /** PRIOR_BOOST aplicado (0 ou 5). */
   priorBoost: number;
-  /** COLAB_BONUS aplicado (0 ou 8; só ml-classico). */
-  colabBonus: number;
   confianca: Confianca;
   /** Nº de questões com "acerto" (contagem simples, sem peso — base da confiança). */
   acertos: number;
@@ -146,7 +138,7 @@ const ehEtapa2 = (q: QuestaoNivelamento): boolean => q.etapa === 2;
 export function scoreCompetencias(
   questoes: QuestaoNivelamento[],
   resultados: Record<string, ResultadoQuestao>,
-  opts: { prior?: PriorAutoRelato; fezColab?: boolean } = {},
+  opts: { prior?: PriorAutoRelato } = {},
 ): CompetencyMatrix {
   const matriz = {} as CompetencyMatrix;
 
@@ -159,7 +151,6 @@ export function scoreCompetencias(
         score: null,
         mcqScore: null,
         priorBoost: 0,
-        colabBonus: 0,
         confianca: "sem-evidencia",
         acertos: 0,
         total: 0,
@@ -192,13 +183,11 @@ export function scoreCompetencias(
 
     const mcqScore = (pesoAcertado / pesoTotal) * 100;
     const priorBoost = opts.prior?.[id] && mcqScore >= PRIOR_MIN_MCQ ? PRIOR_BOOST : 0;
-    const colabBonus = id === "ml-classico" && opts.fezColab ? COLAB_BONUS : 0;
 
     matriz[id] = {
-      score: clamp0a100(mcqScore + priorBoost + colabBonus),
+      score: clamp0a100(mcqScore + priorBoost),
       mcqScore,
       priorBoost,
-      colabBonus,
       confianca: confiancaDe(acertos, total),
       acertos,
       total,
@@ -207,6 +196,47 @@ export function scoreCompetencias(
   }
 
   return matriz;
+}
+
+// ---------------------------------------------------------------------------
+// Leitura de código
+// ---------------------------------------------------------------------------
+
+/** Nota mínima (0–100, ponderada) para sugerir começar as práticas de código por qualquer nível. */
+export const GATE_PROGRAMACAO = 75;
+
+export type SinalProgramacao = {
+  /** 0–100 ponderado por dificuldade; null quando a rodada não teve leitura de código. */
+  mcqScore: number | null;
+  acertos: number;
+  total: number;
+  /** true: pode começar as práticas de código por qualquer nível; false: pelas de nível iniciante. */
+  pronto: boolean | null;
+};
+
+/**
+ * Sinal de programação a partir das questões de leitura de código que o aluno
+ * viu. Fica fora da matriz: saber ler PyTorch não diz nada sobre dominar
+ * regularização, e misturar os dois distorceria o radar.
+ */
+export function avaliarProgramacao(
+  questoes: { id: string; dificuldade: 1 | 2 | 3 }[],
+  resultados: Record<string, ResultadoQuestao>,
+): SinalProgramacao {
+  const vistas = questoes.filter((q) => resultados[q.id] !== undefined);
+  if (vistas.length === 0) return { mcqScore: null, acertos: 0, total: 0, pronto: null };
+  let peso = 0;
+  let acertado = 0;
+  let acertos = 0;
+  for (const q of vistas) {
+    peso += q.dificuldade;
+    if (resultados[q.id] === "acerto") {
+      acertado += q.dificuldade;
+      acertos += 1;
+    }
+  }
+  const mcqScore = (acertado / peso) * 100;
+  return { mcqScore, acertos, total: vistas.length, pronto: mcqScore >= GATE_PROGRAMACAO };
 }
 
 // ---------------------------------------------------------------------------

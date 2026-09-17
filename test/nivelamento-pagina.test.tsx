@@ -59,15 +59,37 @@ describe("Nivelamento — página", () => {
     expect(dica).not.toHaveTextContent(/vale mais/);
   });
 
-  it("sorteia uma forma por questão e guarda a prova no rascunho", () => {
+  it("sorteia uma forma por questão (20 MCQ + 4 de código) e guarda a prova no rascunho", () => {
     renderizar("/aprender/nivelamento");
     fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
     const rascunho = JSON.parse(sessionStorage.getItem("ligia-nivelamento:rascunho:v1")!);
-    expect(rascunho.prova).toHaveLength(20);
-    const slots = rascunho.prova.map((id: string) => NIVELAMENTO.mcq.find((q) => q.id === id)!.slot);
-    expect(new Set(slots).size).toBe(20);
+    expect(rascunho.prova).toHaveLength(24);
+    const formas = [...NIVELAMENTO.mcq, ...NIVELAMENTO.codigo.questoes];
+    const slots = rascunho.prova.map((id: string) => formas.find((q) => q.id === id)!.slot);
+    expect(new Set(slots).size).toBe(24);
+    expect(slots.slice(20).every((s: string) => s.startsWith("n-codigo-"))).toBe(true);
     const primeira = NIVELAMENTO.mcq.find((q) => q.id === rascunho.prova[0])!;
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(primeira.pergunta);
+  });
+
+  it("do fim do wizard ao resultado, com a leitura de código fora do radar", () => {
+    renderizar("/aprender/nivelamento");
+    fireEvent.click(screen.getByRole("button", { name: /Começar/ }));
+    const formas = [...NIVELAMENTO.mcq, ...NIVELAMENTO.codigo.questoes];
+    for (let i = 0; i < 24; i++) {
+      const titulo = screen.getByRole("heading", { level: 1 }).textContent;
+      // Várias formas de código têm o mesmo enunciado: desempata pelo trecho mostrado.
+      const trecho = document.querySelector(".nv-codigo code")?.textContent;
+      const q = formas.find((f) => f.pergunta === titulo && (f.codigo ?? undefined) === (trecho ?? undefined))!;
+      const opcao = i >= 20 ? q.opcoes[q.correta].texto : "Não sei";
+      fireEvent.click(screen.getByRole("button", { name: opcao }));
+      fireEvent.click(screen.getByRole("button", { name: i === 23 ? /Ver meu resultado/ : /Avançar/ }));
+    }
+    expect(screen.getByText("Leitura de código · 4 de 4")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Abrir a Prática Torch/ })).toHaveAttribute("href", "/aprender/codar");
+    const salvo = loadPretestV2()!;
+    expect(Object.keys(salvo.resultados)).toHaveLength(24);
+    for (const c of Object.values(salvo.matriz)) expect(c.score).toBe(0);
   });
 
   it("sem rodada salva, ?ver=resultado cai no wizard", () => {

@@ -112,6 +112,34 @@ describe("banco de questões — opções e gabarito", () => {
   });
 });
 
+describe("leitura de código", () => {
+  const principaisCodigo = () => content.codigo.questoes.filter((q) => q.id === q.slot);
+
+  it("4 questões com dificuldades {1,2,2,3}, cada uma com variante", () => {
+    expect(principaisCodigo().map((q) => q.dificuldade).sort()).toEqual([1, 2, 2, 3]);
+    for (const p of principaisCodigo()) {
+      const formas = content.codigo.questoes.filter((q) => q.slot === p.slot);
+      expect(formas.length, p.id).toBeGreaterThanOrEqual(2);
+      expect(new Set(formas.map((f) => f.dificuldade)).size, p.id).toBe(1);
+    }
+  });
+
+  it("toda forma mostra código, tem 'Não sei' no fim, gabarito válido e explicação", () => {
+    for (const q of content.codigo.questoes) {
+      expect(q.id, q.id).toMatch(/^n-codigo-[1-4][b-z]?$/);
+      expect(q.codigo, q.id).toBeTruthy();
+      expect(q.opcoes[q.opcoes.length - 1].naoSei, q.id).toBe(true);
+      expect(q.opcoes[q.correta].naoSei, q.id).toBe(false);
+      expect(q.explicacao.length, q.id).toBeGreaterThan(40);
+    }
+  });
+
+  it("nenhum id repete entre MCQ e leitura de código", () => {
+    const ids = [...content.mcq, ...content.codigo.questoes].map((q) => q.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
 describe("banco de questões — explicações", () => {
   it("toda MCQ explica a resposta em texto curto", () => {
     for (const q of content.mcq) {

@@ -92,7 +92,6 @@ function entradaSemEvidencia(): CompetencyEntry {
     score: null,
     mcqScore: null,
     priorBoost: 0,
-    colabBonus: 0,
     confianca: "sem-evidencia",
     acertos: 0,
     total: 0,
@@ -108,9 +107,9 @@ function entradaSemEvidencia(): CompetencyEntry {
  * - acertos/total usam a contagem bruta e o máximo do v1 como melhor
  *   aproximação disponível — NÃO é o "nº de questões" real da competência v2
  *   (que tem outro nº de questões / dificuldades);
- * - boosts (priorBoost/colabBonus) ficam zerados: o bônus do Colab já está
- *   embutido na contagem bruta de dl_pratico, e não sabemos o auto-relato por
- *   eixo v2 pra reaplicar PRIOR_BOOST com segurança.
+ * - priorBoost fica zerado: o bônus do Colab do v1 já está embutido na
+ *   contagem bruta de dl_pratico, e não sabemos o auto-relato por eixo v2 pra
+ *   reaplicar PRIOR_BOOST com segurança.
  */
 function entradaMigrada(contagem: number, maximo: number): CompetencyEntry {
   const mcqScore = (contagem / maximo) * 100;
@@ -118,7 +117,6 @@ function entradaMigrada(contagem: number, maximo: number): CompetencyEntry {
     score: mcqScore,
     mcqScore,
     priorBoost: 0,
-    colabBonus: 0,
     confianca: "baixa",
     acertos: contagem,
     total: maximo,

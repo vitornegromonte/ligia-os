@@ -73,6 +73,8 @@ export const PerguntaAutoRelatoSchema = z.object({
 const FormaSchema = z.object({
   id: z.string().min(1),
   pergunta: z.string().min(1),
+  /** Trecho de código mostrado abaixo do enunciado (questões de leitura de código). */
+  codigo: z.string().min(1).optional(),
   opcoes: z.array(OpcaoConteudoSchema).min(2),
   correta: z.number().int().nonnegative(),
   /** Por que a certa é certa, em 1–3 frases — mostrada na revisão do resultado. */
@@ -94,9 +96,22 @@ export const QuestaoMCQSchema = FormaSchema.extend({
   variantes: z.array(FormaSchema).default([]),
 });
 
-export const ColabSchema = z.object({
-  pergunta: z.string().min(1),
-  url: z.url(),
+/**
+ * Leitura de código: mede se o aluno lê Python, NumPy e PyTorch, no lugar da
+ * antiga pergunta "fiz o notebook do Colab?", que dependia da palavra do aluno.
+ * Não tem competência: fica fora da matriz e só orienta por qual nível de
+ * prática de código começar.
+ */
+export const QuestaoCodigoSchema = FormaSchema.extend({
+  dificuldade: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  variantes: z.array(FormaSchema).default([]),
+});
+
+export const CodigoSchema = z.object({
+  nota: z.string().optional(),
+  /** Notebook de prática (regressão logística no Iris), oferecido no resultado. */
+  notebook: z.url(),
+  questoes: z.array(QuestaoCodigoSchema).min(1),
 });
 
 export const NivelamentoContentSchema = z.object({
@@ -104,7 +119,7 @@ export const NivelamentoContentSchema = z.object({
   note: z.string().optional(),
   auto_relato: z.array(PerguntaAutoRelatoSchema).min(1),
   mcq: z.array(QuestaoMCQSchema).min(1),
-  colab: ColabSchema,
+  codigo: CodigoSchema,
 });
 
 export type PerguntaAutoRelato = z.infer<typeof PerguntaAutoRelatoSchema>;
@@ -116,9 +131,21 @@ export type PerguntaAutoRelato = z.infer<typeof PerguntaAutoRelatoSchema>;
  */
 export type QuestaoMCQ = Omit<z.infer<typeof QuestaoMCQSchema>, "variantes"> & { slot: string };
 
-export type NivelamentoContent = Omit<z.infer<typeof NivelamentoContentSchema>, "mcq"> & {
+/** Forma de questão de leitura de código, achatada como as MCQ. */
+export type QuestaoCodigo = Omit<z.infer<typeof QuestaoCodigoSchema>, "variantes"> & { slot: string };
+
+/** O mínimo que corrigir e sortear precisam — vale para MCQ e leitura de código. */
+export type FormaQuestao = QuestaoMCQ | QuestaoCodigo;
+
+export type NivelamentoContent = Omit<z.infer<typeof NivelamentoContentSchema>, "mcq" | "codigo"> & {
   mcq: QuestaoMCQ[];
+  codigo: { nota?: string; notebook: string; questoes: QuestaoCodigo[] };
 };
+
+/** Questão de leitura de código? (não tem competência). */
+export function ehQuestaoCodigo(q: FormaQuestao): q is QuestaoCodigo {
+  return !("competencia" in q);
+}
 
 /**
  * Integridade que o schema sozinho não pega: `correta` precisa existir e não
@@ -128,7 +155,7 @@ export type NivelamentoContent = Omit<z.infer<typeof NivelamentoContentSchema>, 
  */
 function checarConteudo(c: NivelamentoContent): void {
   const ids = new Set<string>();
-  for (const q of c.mcq) {
+  for (const q of [...c.mcq, ...c.codigo.questoes]) {
     if (ids.has(q.id)) throw new Error(`Questão ${q.id}: id repetido.`);
     ids.add(q.id);
     if (q.correta >= q.opcoes.length) {
@@ -149,7 +176,7 @@ function checarConteudo(c: NivelamentoContent): void {
 
 /** Parse + achatamento das variantes + integridade, fail-fast (padrão do repo). */
 export function loadNivelamentoContent(raw: unknown): NivelamentoContent {
-  const { mcq, ...resto } = NivelamentoContentSchema.parse(raw);
+  const { mcq, codigo, ...resto } = NivelamentoContentSchema.parse(raw);
   const formas = mcq.flatMap(({ variantes, ...principal }) => {
     const comum = {
       slot: principal.id,
@@ -160,7 +187,11 @@ export function loadNivelamentoContent(raw: unknown): NivelamentoContent {
     };
     return [{ ...principal, slot: principal.id }, ...variantes.map((v) => ({ ...comum, ...v }))];
   });
-  const c = { ...resto, mcq: formas };
+  const formasCodigo = codigo.questoes.flatMap(({ variantes, ...principal }) => [
+    { ...principal, slot: principal.id },
+    ...variantes.map((v) => ({ slot: principal.id, dificuldade: principal.dificuldade, ...v })),
+  ]);
+  const c = { ...resto, mcq: formas, codigo: { ...codigo, questoes: formasCodigo } };
   checarConteudo(c);
   return c;
 }

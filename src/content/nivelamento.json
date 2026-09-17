@@ -1,5 +1,5 @@
 {
-  "version": "3",
+  "version": "4",
   "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição.",
   "auto_relato": [
     {
@@ -1272,8 +1272,134 @@
       ]
     }
   ],
-  "colab": {
-    "pergunta": "Completei a mini-tarefa de regressão logística no Iris (split treino/teste + acurácia).",
-    "url": "https://colab.research.google.com/github/lucasddmc/trilha-ligia/blob/main/templates/notebook.ipynb"
+  "codigo": {
+    "nota": "Leitura de código: mede se o aluno lê Python, NumPy e PyTorch. Não entra na matriz de competências; decide por qual nível de prática de código começar.",
+    "notebook": "https://colab.research.google.com/github/lucasddmc/trilha-ligia/blob/main/templates/notebook.ipynb",
+    "questoes": [
+      {
+        "id": "n-codigo-1",
+        "dificuldade": 1,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import numpy as np\nx = np.array([[1, 2, 3],\n              [4, 5, 6]])\nprint(x.shape, x.sum(axis=0))",
+        "opcoes": [
+          "(2, 3) [5 7 9]",
+          "(3, 2) [6 15]",
+          "(2, 3) [6 15]",
+          "(3, 2) [5 7 9]",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 0,
+        "explicacao": "O array tem 2 linhas e 3 colunas, então shape é (2, 3). sum(axis=0) soma ao longo das linhas, coluna por coluna: 1+4, 2+5, 3+6. Somar cada linha seria axis=1, que dá [6 15].",
+        "variantes": [
+          {
+            "id": "n-codigo-1b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import numpy as np\nx = np.arange(6).reshape(2, 3)\nprint(x[1, 2], x[:, 0])",
+            "opcoes": [
+              "2 [0 1 2]",
+              "5 [0 3]",
+              "5 [0 1 2]",
+              "2 [0 3]",
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 1,
+            "explicacao": "np.arange(6).reshape(2, 3) dá [[0 1 2], [3 4 5]]. x[1, 2] é linha 1, coluna 2: o 5. x[:, 0] pega a coluna 0 de todas as linhas: [0 3]."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-2",
+        "dificuldade": 2,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import numpy as np\na = np.array([1, 2, 3])\nb = a.reshape(3, 1)\nprint((a + b).shape)",
+        "opcoes": [
+          "(3,)",
+          "(3, 1)",
+          "Erro: formatos incompatíveis",
+          "(3, 3)",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 3,
+        "explicacao": "Broadcasting: a tem forma (3,), tratada como (1, 3), e b tem (3, 1). Cada dimensão de tamanho 1 se estica para casar com a outra, e a soma sai (3, 3), uma tabela com todas as somas a[j] + b[i].",
+        "variantes": [
+          {
+            "id": "n-codigo-2b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import numpy as np\nX = np.ones((4, 3))\nw = np.array([1.0, 2.0, 3.0])\nprint((X @ w).shape, (X @ w)[0])",
+            "opcoes": [
+              "(4,) 6.0",
+              "(3,) 6.0",
+              "(4, 3) 1.0",
+              "Erro: formatos incompatíveis",
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 0,
+            "explicacao": "X @ w é o produto de matriz (4, 3) por vetor (3,), que dá um vetor (4,): uma previsão linear por linha. Cada linha de X é [1, 1, 1], então cada valor é 1·1 + 1·2 + 1·3 = 6."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-3",
+        "dificuldade": 2,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import torch\ncamada = torch.nn.Linear(10, 3)\nx = torch.randn(32, 10)\nprint(camada(x).shape)",
+        "opcoes": [
+          "torch.Size([3, 10])",
+          "torch.Size([32, 10])",
+          "torch.Size([32, 3])",
+          "torch.Size([10, 3])",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 2,
+        "explicacao": "nn.Linear(10, 3) leva 10 features em 3 saídas e se aplica a cada linha do lote. Um lote de 32 exemplos com 10 features vira 32 exemplos com 3 saídas: (32, 3).",
+        "variantes": [
+          {
+            "id": "n-codigo-3b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import torch\nx = torch.randn(8, 3, 28, 28)\nprint(x.view(8, -1).shape)",
+            "opcoes": [
+              "torch.Size([8, 84])",
+              "torch.Size([8, 2352])",
+              "torch.Size([24, 784])",
+              "torch.Size([8, 3, 784])",
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 1,
+            "explicacao": "view(8, -1) mantém o lote de 8 e deduz a outra dimensão: 3 · 28 · 28 = 2352. É o achatamento usado antes de passar imagens para uma camada linear."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-4",
+        "dificuldade": 3,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import torch\nw = torch.tensor(2.0, requires_grad=True)\nloss = (3 * w - 1) ** 2\nloss.backward()\nprint(w.grad)",
+        "opcoes": [
+          "tensor(25.)",
+          "tensor(10.)",
+          "None, porque backward() não altera w",
+          "tensor(30.)",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 3,
+        "explicacao": "O backward() guarda em w.grad a derivada da loss: d/dw (3w − 1)² = 2(3w − 1) · 3. Em w = 2, dá 2 · 5 · 3 = 30. O 25 é o valor da loss; o 10 esquece o fator 3 da regra da cadeia.",
+        "variantes": [
+          {
+            "id": "n-codigo-4b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import torch\nx = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)\ny = (x ** 2).sum()\ny.backward()\nprint(x.grad)",
+            "opcoes": [
+              "tensor(14.)",
+              "tensor([1., 4., 9.])",
+              "tensor([2., 4., 6.])",
+              "tensor([1., 1., 1.])",
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 2,
+            "explicacao": "y = x₁² + x₂² + x₃², então a derivada de y em relação a cada xᵢ é 2xᵢ, e o backward() guarda [2, 4, 6] em x.grad. O 14 é o valor de y; [1, 4, 9] é o próprio x²."
+          }
+        ]
+      }
+    ]
   }
 }

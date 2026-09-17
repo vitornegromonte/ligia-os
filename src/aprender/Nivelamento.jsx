@@ -3,16 +3,21 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { Topbar } from "../ui/Topbar.tsx";
 import { Button } from "../ui/Button.tsx";
-import { Card } from "../ui/Card.tsx";
 import QuestionCard from "./QuestionCard.tsx";
 import PassoQuestao from "./PassoQuestao.jsx";
 import NivelamentoResultado from "./NivelamentoResultado.jsx";
 import { NIVELAMENTO } from "./dados.ts";
 import { scoreCompetencias, recomendar } from "../lib/nivelamento.ts";
-import { priorDeAr1, questoesDaEtapa, questoesParaEngine } from "../lib/nivelamento-content.ts";
+import {
+  ehQuestaoCodigo,
+  priorDeAr1,
+  questoesDaEtapa,
+  questoesParaEngine,
+} from "../lib/nivelamento-content.ts";
 import {
   corrigir,
   montarProva,
+  montarProvaCodigo,
   questoesPorIds,
   rodadaCompativel,
 } from "../lib/nivelamento-rodada.ts";
@@ -27,18 +32,29 @@ import { logEvent } from "../lib/events.ts";
 
 const RASCUNHO_KEY = "ligia-nivelamento:rascunho:v1";
 
-/** Nº de questões da etapa 1 (uma forma de cada). A etapa 2 mora na tela de resultado. */
-const TOTAL_QUESTOES = new Set(questoesDaEtapa(NIVELAMENTO, 1).map((q) => q.slot)).size;
+const contarSlots = (formas) => new Set(formas.map((q) => q.slot)).size;
 
+/** Nº de MCQ da etapa 1 (uma forma de cada). A etapa 2 mora na tela de resultado. */
+const TOTAL_MCQ = contarSlots(questoesDaEtapa(NIVELAMENTO, 1));
+/** Nº de questões de leitura de código, que vêm depois das MCQ. */
+const TOTAL_CODIGO = contarSlots(NIVELAMENTO.codigo.questoes);
+const TOTAL_QUESTOES = TOTAL_MCQ + TOTAL_CODIGO;
+
+/** MCQ da etapa 1 seguidas da leitura de código, uma forma de cada questão. */
 function novaProva(seed) {
-  return montarProva(NIVELAMENTO, 1, { seed, vistas: loadQuestoesVistas() });
+  const vistas = loadQuestoesVistas();
+  return [
+    ...montarProva(NIVELAMENTO, 1, { seed, vistas }),
+    ...montarProvaCodigo(NIVELAMENTO, { seed, vistas }),
+  ];
 }
 
 /**
- * Nivelamento: cinco perguntas de auto-relato, vinte múltiplas escolhas e uma
- * tarefa opcional de Colab. O resultado é a matriz de cinco competências, que
- * define onde a trilha começa e quais módulos podem ser confirmados para
- * dispensa (NivelamentoResultado).
+ * Nivelamento: cinco perguntas de auto-relato, vinte múltiplas escolhas e
+ * quatro de leitura de código. As múltiplas escolhas formam a matriz de cinco
+ * competências, que define onde a trilha começa e quais módulos podem ser
+ * confirmados para dispensa (NivelamentoResultado). A leitura de código fica
+ * fora da matriz e orienta por qual nível de prática de código começar.
  *
  * `?ver=resultado` reabre a última rodada salva em vez de começar outra — é
  * por onde a trilha manda quem deixou dispensa por confirmar.
@@ -50,12 +66,10 @@ export default function Nivelamento() {
   const conteudo = NIVELAMENTO;
   const navegar = useNavigate();
   const [params, setParams] = useSearchParams();
-  const totalPassos = TOTAL_QUESTOES + 2;
 
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState({});
   const [autoRelato, setAutoRelato] = useState({});
-  const [colab, setColab] = useState(false);
   const [seed, setSeed] = useState("");
   // Uma forma por questão, sorteada ao começar e guardada no rascunho: voltar
   // à página no meio do teste não troca as questões debaixo do aluno.
@@ -84,7 +98,6 @@ export default function Nivelamento() {
         setPasso(r.passo ?? 0);
         setRespostas(r.respostas ?? {});
         setAutoRelato(r.autoRelato ?? {});
-        setColab(r.colab ?? false);
         const s = r.seed || String(Date.now());
         setSeed(s);
         const salva = questoesPorIds(NIVELAMENTO, r.prova ?? []);
@@ -105,12 +118,12 @@ export default function Nivelamento() {
     try {
       sessionStorage.setItem(
         RASCUNHO_KEY,
-        JSON.stringify({ passo, respostas, autoRelato, colab, seed, prova: prova.map((q) => q.id) }),
+        JSON.stringify({ passo, respostas, autoRelato, seed, prova: prova.map((q) => q.id) }),
       );
     } catch {
       /* storage cheio ou indisponível: segue sem rascunho */
     }
-  }, [passo, respostas, autoRelato, colab, seed, prova, resultado]);
+  }, [passo, respostas, autoRelato, seed, prova, resultado]);
 
   // Foco no título a cada passo, para o leitor de tela anunciar a pergunta nova.
   useEffect(() => {
@@ -124,11 +137,9 @@ export default function Nivelamento() {
     const ar1 = conteudo.auto_relato.find((p) => p.id === "ar1");
     const prior = ar1 ? priorDeAr1(ar1, autoRelato.ar1 ?? []) : {};
     const resultados = corrigir(prova, respostas);
+    const mcq = prova.filter((q) => !ehQuestaoCodigo(q));
 
-    const matriz = scoreCompetencias(questoesParaEngine(prova), resultados, {
-      prior,
-      fezColab: colab,
-    });
+    const matriz = scoreCompetencias(questoesParaEngine(mcq), resultados, { prior });
     const recomendacao = recomendar(matriz);
     const novo = {
       version: 2,
@@ -170,7 +181,6 @@ export default function Nivelamento() {
     setResultado(null);
     setRespostas({});
     setAutoRelato({});
-    setColab(false);
     setPasso(0);
     const s = String(Date.now());
     setSeed(s);
@@ -193,8 +203,8 @@ export default function Nivelamento() {
   }
 
   const ehAutoRelato = passo === 0;
-  const ehColab = passo === totalPassos - 1;
-  const podeAvancar = ehAutoRelato || ehColab || respostas[questaoAtual?.id] !== undefined;
+  const ehUltima = passo === TOTAL_QUESTOES;
+  const podeAvancar = ehAutoRelato || respostas[questaoAtual?.id] !== undefined;
   const progresso = Math.round((respondidas / TOTAL_QUESTOES) * 100);
 
   return (
@@ -246,41 +256,16 @@ export default function Nivelamento() {
           {questaoAtual && seed && (
             <PassoQuestao
               questao={questaoAtual}
-              rotulo={`Questão ${passo} de ${TOTAL_QUESTOES}`}
+              rotulo={
+                passo > TOTAL_MCQ
+                  ? `Leitura de código · ${passo - TOTAL_MCQ} de ${TOTAL_CODIGO}`
+                  : `Questão ${passo} de ${TOTAL_MCQ}`
+              }
               seed={seed}
               resposta={respostas[questaoAtual.id]}
               onResponder={(i) => setRespostas((s) => ({ ...s, [questaoAtual.id]: i }))}
               tituloRef={tituloRef}
             />
-          )}
-
-          {ehColab && (
-            <>
-              <h1 ref={tituloRef} tabIndex={-1} className="nv-titulo">
-                Mão na massa <span style={{ color: "var(--muted)" }}>(opcional)</span>
-              </h1>
-              <Card style={{ marginTop: 24 }}>
-                <button
-                  type="button"
-                  onClick={() => setColab((c) => !c)}
-                  aria-pressed={colab}
-                  className="nv-opcao"
-                >
-                  <span className="nv-marca nv-marca--multi" aria-hidden>
-                    {colab && <span className="nv-marca__ponto" />}
-                  </span>
-                  {conteudo.colab.pergunta}
-                </button>
-                <a
-                  href={conteudo.colab.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ display: "inline-block", marginTop: 12, color: "var(--accent-hover)", fontSize: 12, fontWeight: 600 }}
-                >
-                  Abrir o notebook no Colab →
-                </a>
-              </Card>
-            </>
           )}
 
           <div className="nv-rodape" style={{ marginTop: 34, justifyContent: "space-between" }}>
@@ -292,8 +277,8 @@ export default function Nivelamento() {
             >
               <ArrowLeft size={15} aria-hidden /> Voltar
             </Button>
-            {ehColab ? (
-              <Button onClick={finalizar}>
+            {ehUltima ? (
+              <Button disabled={!podeAvancar} onClick={finalizar}>
                 Ver meu resultado <ArrowRight size={16} aria-hidden />
               </Button>
             ) : (

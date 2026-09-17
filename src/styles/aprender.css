@@ -249,6 +249,19 @@
   backdrop-filter: blur(18px);
 }
 
+.nv-codigo {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
 /* ---------- Nivelamento (revisão das questões) ---------- */
 .nv-revisao { display: grid; gap: 8px; }
 .nv-revisao__grupo { border: 1px solid var(--line-soft); border-radius: var(--radius); }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Star, Lightbulb, Flame, CheckCircle2 } from "lucide-react";
 import { Topbar } from "../ui/Topbar.tsx";
 import { PageHeader } from "../ui/PageHeader.tsx";
@@ -33,7 +33,11 @@ export default function Codar() {
   const [tarefas, setTarefas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
-  const [filtro, setFiltro] = useState("Todos");
+  const [params] = useSearchParams();
+  // `?filtro=Iniciante` chega do resultado do nivelamento.
+  const [filtro, setFiltro] = useState(() =>
+    FILTROS.includes(params.get("filtro")) ? params.get("filtro") : "Todos",
+  );
   const { resolvidas, porSlug } = usePraticasCodigo();
 
   useEffect(() => {

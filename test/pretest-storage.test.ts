@@ -105,12 +105,11 @@ describe("pretest-storage v2", () => {
       expect(v2.matriz["dl-fundamentos"]).toMatchObject({ confianca: "baixa", acertos: 1, total: 4 });
     });
 
-    it("boosts zerados nas migradas (não inventa priorBoost/colabBonus sem dado por questão)", () => {
+    it("boost zerado nas migradas (não inventa priorBoost sem dado por questão)", () => {
       savePretest(v1Fixture());
       const v2 = loadPretestV2()!;
       for (const id of ["matematica", "ml-classico", "dl-fundamentos"] as const) {
         expect(v2.matriz[id].priorBoost).toBe(0);
-        expect(v2.matriz[id].colabBonus).toBe(0);
         expect(v2.matriz[id].score).toBe(v2.matriz[id].mcqScore);
         expect(v2.matriz[id].conceitosFracos).toEqual([]);
       }

@@ -8,14 +8,18 @@ import type { CompetenciaId } from "./competencias";
 import { hashSeed } from "./embaralhar";
 import {
   avaliarEtapa2,
+  avaliarProgramacao,
   recomendar,
   type ResultadoEtapa2,
   type ResultadoQuestao,
+  type SinalProgramacao,
 } from "./nivelamento";
 import {
   questoesDaEtapa,
   questoesParaEngine,
+  type FormaQuestao,
   type NivelamentoContent,
+  type QuestaoCodigo,
   type QuestaoMCQ,
 } from "./nivelamento-content";
 import type { PretestResultV2, QuestoesVistas } from "./pretest-storage";
@@ -32,24 +36,52 @@ export function montarProva(
   etapa: 1 | 2,
   opts: { seed: string; vistas?: QuestoesVistas; competencias?: readonly CompetenciaId[] },
 ): QuestaoMCQ[] {
-  const vistas = opts.vistas ?? {};
-  const porSlot = new Map<string, QuestaoMCQ[]>();
-  for (const q of questoesDaEtapa(conteudo, etapa, opts.competencias)) {
-    porSlot.set(q.slot, [...(porSlot.get(q.slot) ?? []), q]);
-  }
+  return sortearFormas(questoesDaEtapa(conteudo, etapa, opts.competencias), opts);
+}
 
-  return [...porSlot.entries()].map(([slot, formas]) => {
-    const ultimaVez = (f: QuestaoMCQ) => vistas[f.id] ?? "";
-    const maisAntiga = formas.map(ultimaVez).sort()[0];
-    const candidatas = formas.filter((f) => ultimaVez(f) === maisAntiga);
+/** Prova de leitura de código: uma forma por questão, com o mesmo sorteio da montarProva. */
+export function montarProvaCodigo(
+  conteudo: NivelamentoContent,
+  opts: { seed: string; vistas?: QuestoesVistas },
+): QuestaoCodigo[] {
+  return sortearFormas(conteudo.codigo.questoes, opts);
+}
+
+function sortearFormas<T extends FormaQuestao>(
+  formas: readonly T[],
+  opts: { seed: string; vistas?: QuestoesVistas },
+): T[] {
+  const vistas = opts.vistas ?? {};
+  const porSlot = new Map<string, T[]>();
+  for (const f of formas) porSlot.set(f.slot, [...(porSlot.get(f.slot) ?? []), f]);
+
+  return [...porSlot.entries()].map(([slot, doSlot]) => {
+    const ultimaVez = (f: T) => vistas[f.id] ?? "";
+    const maisAntiga = doSlot.map(ultimaVez).sort()[0];
+    const candidatas = doSlot.filter((f) => ultimaVez(f) === maisAntiga);
     return candidatas[hashSeed(`${opts.seed}:${slot}`) % candidatas.length];
   });
 }
 
+/** Todas as formas do conteúdo — MCQ e leitura de código — por id. */
+function formasPorId(conteudo: NivelamentoContent): Map<string, FormaQuestao> {
+  return new Map<string, FormaQuestao>(
+    [...conteudo.mcq, ...conteudo.codigo.questoes].map((q) => [q.id, q]),
+  );
+}
+
 /** Reconstrói a lista de questões a partir dos ids (ids que não existem mais são ignorados). */
-export function questoesPorIds(conteudo: NivelamentoContent, ids: readonly string[]): QuestaoMCQ[] {
-  const porId = new Map(conteudo.mcq.map((q) => [q.id, q]));
-  return ids.map((id) => porId.get(id)).filter((q): q is QuestaoMCQ => q !== undefined);
+export function questoesPorIds(conteudo: NivelamentoContent, ids: readonly string[]): FormaQuestao[] {
+  const porId = formasPorId(conteudo);
+  return ids.map((id) => porId.get(id)).filter((q): q is FormaQuestao => q !== undefined);
+}
+
+/** Sinal de programação da rodada (leitura de código). */
+export function resumoProgramacao(
+  conteudo: NivelamentoContent,
+  rodada: Pick<PretestResultV2, "resultados">,
+): SinalProgramacao {
+  return avaliarProgramacao(conteudo.codigo.questoes, rodada.resultados);
 }
 
 /**
@@ -57,7 +89,7 @@ export function questoesPorIds(conteudo: NivelamentoContent, ids: readonly strin
  * Sem resposta ou "Não sei" → "nao-sei".
  */
 export function corrigir(
-  questoes: readonly QuestaoMCQ[],
+  questoes: readonly FormaQuestao[],
   respostas: Record<string, number | undefined>,
 ): Record<string, ResultadoQuestao> {
   const resultados: Record<string, ResultadoQuestao> = {};
@@ -109,7 +141,7 @@ export function rodadaCompativel(
   if (!rodada || rodada.version !== 2) return false;
   const ids = Object.keys(rodada.resultados ?? {});
   if (ids.length === 0) return false;
-  const existentes = new Set(conteudo.mcq.map((q) => q.id));
+  const existentes = formasPorId(conteudo);
   return ids.every((id) => existentes.has(id));
 }
 

@@ -82,11 +82,11 @@ test("endereços antigos de /pratica continuam funcionando", async ({ page }) =>
 test("o nivelamento vai do wizard ao resultado", async ({ page }) => {
   await page.goto("/aprender/nivelamento");
   await page.getByRole("button", { name: /Começar/ }).click();
-  // Responde tudo com a última opção ("Não sei"), que é sempre válida.
-  for (let i = 0; i < 20; i++) {
+  // Responde tudo com a última opção ("Não sei"), que é sempre válida:
+  // 20 múltiplas escolhas e 4 de leitura de código.
+  for (let i = 0; i < 24; i++) {
     await page.locator(".nv-opcao").last().click();
-    await page.getByRole("button", { name: /Avançar/ }).click();
+    await page.getByRole("button", { name: i === 23 ? /Ver meu resultado/ : /Avançar/ }).click();
   }
-  await page.getByRole("button", { name: /Ver meu resultado/ }).click();
   await expect(page.getByText("Sua matriz de competências")).toBeVisible();
 });

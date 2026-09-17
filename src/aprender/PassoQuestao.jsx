@@ -21,6 +21,11 @@ export default function PassoQuestao({ questao, rotulo, seed, resposta, onRespon
       <h1 ref={tituloRef} tabIndex={-1} className="nv-titulo">
         {questao.pergunta}
       </h1>
+      {questao.codigo && (
+        <pre className="nv-codigo">
+          <code>{questao.codigo}</code>
+        </pre>
+      )}
       <div style={{ marginTop: 24 }}>
         <QuestionCard
           id={questao.id}
@@ -39,8 +44,10 @@ export default function PassoQuestao({ questao, rotulo, seed, resposta, onRespon
       */}
       <p style={{ margin: "14px 0 0", color: "var(--muted)", fontSize: 12, lineHeight: 1.6 }}>
         Sem certeza? <strong style={{ color: "var(--text)" }}>“Não sei”</strong> vale o mesmo que
-        errar na nota, mas garante que o assunto apareça para você revisar — um chute certo por
-        sorte o esconderia.
+        errar na nota,{" "}
+        {questao.codigo
+          ? "mas um chute certo por sorte pode te mandar para práticas de código difíceis demais."
+          : "mas garante que o assunto apareça para você revisar — um chute certo por sorte o esconderia."}
       </p>
     </>
   );

@@ -13,8 +13,10 @@ import {
   competenciasComEtapa2,
   corrigir,
   montarProva,
+  montarProvaCodigo,
   questoesPorIds,
   resumoEtapa2,
+  resumoProgramacao,
   rodadaCompativel,
 } from "@/lib/nivelamento-rodada";
 import type { PretestResultV2 } from "@/lib/pretest-storage";
@@ -80,6 +82,26 @@ describe("montarProva", () => {
     expect(prova).toHaveLength(4);
     expect(prova.every((q) => q.competencia === "dl-aplicado" && q.etapa === 2)).toBe(true);
     expect(questoesPorIds(conteudo, [...prova.map((q) => q.id), "nao-existe"])).toEqual(prova);
+  });
+});
+
+describe("montarProvaCodigo e resumoProgramacao", () => {
+  it("uma forma por questão de código; o sinal sai dos resultados da rodada", () => {
+    const prova = montarProvaCodigo(conteudo, { seed: "a" });
+    expect(new Set(prova.map((q) => q.slot)).size).toBe(4);
+    expect(prova).toHaveLength(4);
+    const resultados = corrigir(prova, Object.fromEntries(prova.map((q) => [q.id, q.correta])));
+    expect(resumoProgramacao(conteudo, { resultados })).toEqual({
+      mcqScore: 100, acertos: 4, total: 4, pronto: true,
+    });
+    expect(resumoProgramacao(conteudo, { resultados: {} }).pronto).toBeNull();
+  });
+
+  it("rodada com leitura de código continua compatível", () => {
+    const prova = montarProvaCodigo(conteudo, { seed: "a" });
+    const rodada = rodadaCom([]);
+    const comCodigo = { ...rodada, resultados: { ...rodada.resultados, ...corrigir(prova, {}) } };
+    expect(rodadaCompativel(conteudo, comCodigo)).toBe(true);
   });
 });
 

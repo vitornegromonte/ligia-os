@@ -22,6 +22,7 @@ const STATUS = {
  */
 export default function RevisaoQuestoes({ conteudo, rodada }) {
   const vistas = conteudo.mcq.filter((q) => rodada.resultados[q.id] !== undefined);
+  const codigo = conteudo.codigo.questoes.filter((q) => rodada.resultados[q.id] !== undefined);
 
   return (
     <div className="nv-revisao">
@@ -47,36 +48,61 @@ export default function RevisaoQuestoes({ conteudo, rodada }) {
                 cobrem os mesmos assuntos, a revisão abre depois dela.
               </p>
             ) : (
-              <ol className="nv-revisao__lista">
-                {questoes.map((q) => {
-                  const resultado = rodada.resultados[q.id];
-                  const { rotulo, Icone } = STATUS[resultado] ?? STATUS["nao-sei"];
-                  return (
-                    <li key={q.id} className="nv-revisao__item" data-questao={q.id}>
-                      <span className={`nv-revisao__status nv-revisao__status--${resultado}`}>
-                        <Icone size={13} aria-hidden /> {rotulo}
-                        {q.etapa === 2 && <span style={{ color: "var(--muted)" }}>· confirmação</span>}
-                      </span>
-                      <p className="nv-revisao__pergunta">{q.pergunta}</p>
-                      <p className="nv-revisao__certa">
-                        Resposta: <strong>{q.opcoes[q.correta].texto}</strong>
-                      </p>
-                      <p className="nv-revisao__explicacao">{q.explicacao}</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                        {q.conceitos.map((id) => (
-                          <Link key={id} to={`/aprender/c/${id}`} className="lg-chip">
-                            {ROTULO_CONCEITO[id] ?? id}
-                          </Link>
-                        ))}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
+              <ListaRevisao questoes={questoes} resultados={rodada.resultados} />
             )}
           </details>
         );
       })}
+
+      {codigo.length > 0 && (
+        <details className="nv-revisao__grupo">
+          <summary className="nv-revisao__resumo">
+            <span>Leitura de código</span>
+            <span>
+              {codigo.filter((q) => rodada.resultados[q.id] === "acerto").length} de {codigo.length}
+            </span>
+          </summary>
+          <ListaRevisao questoes={codigo} resultados={rodada.resultados} />
+        </details>
+      )}
     </div>
+  );
+}
+
+function ListaRevisao({ questoes, resultados }) {
+  return (
+    <ol className="nv-revisao__lista">
+      {questoes.map((q) => {
+        const resultado = resultados[q.id];
+        const { rotulo, Icone } = STATUS[resultado] ?? STATUS["nao-sei"];
+        return (
+          <li key={q.id} className="nv-revisao__item" data-questao={q.id}>
+            <span className={`nv-revisao__status nv-revisao__status--${resultado}`}>
+              <Icone size={13} aria-hidden /> {rotulo}
+              {q.etapa === 2 && <span style={{ color: "var(--muted)" }}>· confirmação</span>}
+            </span>
+            <p className="nv-revisao__pergunta">{q.pergunta}</p>
+            {q.codigo && (
+              <pre className="nv-codigo" style={{ marginTop: 8, fontSize: 12 }}>
+                <code>{q.codigo}</code>
+              </pre>
+            )}
+            <p className="nv-revisao__certa">
+              Resposta: <strong>{q.opcoes[q.correta].texto}</strong>
+            </p>
+            <p className="nv-revisao__explicacao">{q.explicacao}</p>
+            {q.conceitos?.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                {q.conceitos.map((id) => (
+                  <Link key={id} to={`/aprender/c/${id}`} className="lg-chip">
+                    {ROTULO_CONCEITO[id] ?? id}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

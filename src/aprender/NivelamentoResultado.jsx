@@ -11,7 +11,12 @@ import { MODULOS, CONCEITOS_POR_MODULO, ROTULO_CONCEITO } from "./dados.ts";
 import { COMPETENCIAS } from "../lib/competencias.ts";
 import { GATE_DISPENSA } from "../lib/nivelamento.ts";
 import { questoesDaEtapa } from "../lib/nivelamento-content.ts";
-import { aplicarEtapa2, montarProva, resumoEtapa2 } from "../lib/nivelamento-rodada.ts";
+import {
+  aplicarEtapa2,
+  montarProva,
+  resumoEtapa2,
+  resumoProgramacao,
+} from "../lib/nivelamento-rodada.ts";
 import {
   loadQuestoesVistas,
   markDispensadosDone,
@@ -67,6 +72,7 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
   const pendentesDeConfirmar = aprovadas.filter((d) => !jaDispensados.has(d.modulo));
   const etapa2 = useMemo(() => resumoEtapa2(conteudo, rodada), [conteudo, rodada]);
   const reprovadas = COMPETENCIAS.filter((c) => etapa2[c.id] && !etapa2[c.id].aprovada);
+  const programacao = useMemo(() => resumoProgramacao(conteudo, rodada), [conteudo, rodada]);
 
   useEffect(() => {
     if (modo === "confirmando") tituloRef.current?.focus();
@@ -359,6 +365,30 @@ export default function NivelamentoResultado({ conteudo, rodada, onAtualizar, on
                     </div>
                   </div>
                 ))}
+              </div>
+            </Card>
+          )}
+
+          {programacao.pronto !== null && (
+            <Card style={{ marginTop: 18 }}>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+                Leitura de código · {programacao.acertos} de {programacao.total}
+              </h2>
+              <p style={{ margin: "6px 0 0", color: "var(--muted)", fontSize: 12, lineHeight: 1.6 }}>
+                {programacao.pronto
+                  ? "Você lê Python, NumPy e PyTorch sem tropeçar. Pode começar as práticas de código por qualquer nível."
+                  : "Antes das práticas intermediárias e avançadas, vale fazer as de nível iniciante: elas treinam exatamente esse tipo de leitura."}
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginTop: 12, fontSize: 12, fontWeight: 600 }}>
+                <Link
+                  to={programacao.pronto ? "/aprender/codar" : "/aprender/codar?filtro=Iniciante"}
+                  style={{ color: "var(--accent-hover)" }}
+                >
+                  {programacao.pronto ? "Abrir a Prática Torch →" : "Ver as práticas de nível iniciante →"}
+                </Link>
+                <a href={conteudo.codigo.notebook} target="_blank" rel="noreferrer" style={{ color: "var(--muted)" }}>
+                  Notebook de regressão logística no Colab ↗
+                </a>
               </div>
             </Card>
           )}
