@@ -69,7 +69,7 @@ describe("banco de questões — estrutura", () => {
     for (const q of content.mcq) {
       const etapa = q.etapa === 2 ? "e2-" : "";
       const variante = q.id === q.slot ? "" : "[b-z]";
-      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-${etapa}[1-4]${variante}$`));
+      expect(q.id, q.id).toMatch(new RegExp(`^n-${q.competencia}-${etapa}[1-9]${variante}$`));
     }
   });
 
@@ -109,6 +109,30 @@ describe("banco de questões — opções e gabarito", () => {
     for (const [indice, n] of contagem) {
       expect(n / content.mcq.length, `índice ${indice}`).toBeLessThanOrEqual(0.4);
     }
+  });
+});
+
+describe("questões aposentadas", () => {
+  const aposentadas = () => content.mcq.filter((q) => q.aposentada);
+
+  it("continuam no banco (rodadas antigas e análise de itens), com as variantes", () => {
+    expect(aposentadas().map((q) => q.id)).toEqual(
+      expect.arrayContaining(["n-dl-fundamentos-2", "n-dl-fundamentos-2b"]),
+    );
+  });
+
+  it("não entram em prova nova", () => {
+    const ids = new Set(aposentadas().map((q) => q.id));
+    expect(questoesDaEtapa(content, 1).some((q) => ids.has(q.id))).toBe(false);
+  });
+});
+
+describe("cobertura de conceitos na etapa 1", () => {
+  it("batchnorm é avaliado na etapa 1 (liga-013)", () => {
+    const conceitos = new Set(questoesDaEtapa(content, 1).flatMap((q) => q.conceitos));
+    expect(conceitos.has("batchnorm")).toBe(true);
+    // A questão aposentada era a segunda de gradient-descent; o conceito segue coberto.
+    expect(conceitos.has("gradient-descent")).toBe(true);
   });
 });
 

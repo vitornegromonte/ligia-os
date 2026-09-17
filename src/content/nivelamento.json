@@ -1,6 +1,6 @@
 {
-  "version": "4",
-  "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição.",
+  "version": "5",
+  "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
   "auto_relato": [
     {
       "id": "ar1",
@@ -587,6 +587,7 @@
       "competencia": "dl-fundamentos",
       "dificuldade": 2,
       "conceitos": ["gradient-descent"],
+      "aposentada": true,
       "pergunta": "O que costuma acontecer quando a taxa de aprendizado é alta demais?",
       "opcoes": [
         "O treino fica mais lento, mas converge do mesmo jeito",
@@ -610,6 +611,37 @@
           ],
           "correta": 2,
           "explicacao": "Com passos minúsculos, cada atualização mal move os pesos, e a loss desce devagar e sem oscilar. Taxa alta demais faz o contrário: a loss pula ou explode. O tamanho do conjunto de teste não afeta o treino."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-5",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["batchnorm"],
+      "pergunta": "Que efeito prático costuma aparecer ao pôr batch normalization entre as camadas de uma rede profunda?",
+      "opcoes": [
+        "A rede deixa de precisar de funções de ativação",
+        "O treino fica mais estável e tolera taxas de aprendizado maiores",
+        "O modelo ganha tantos parâmetros quanto uma camada densa a mais",
+        "O conjunto de validação deixa de ser necessário",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Mantendo a escala das ativações sob controle camada a camada, a batch norm deixa o treino menos sensível à inicialização e a taxas de aprendizado altas, e costuma acelerar a convergência. Ela não substitui as ativações e acrescenta poucos parâmetros.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-5b",
+          "pergunta": "Numa camada de batch normalization, o que é aprendido pelo gradiente durante o treino?",
+          "opcoes": [
+            "A média e a variância de cada mini-batch",
+            "Uma matriz de pesos do tamanho de uma camada densa",
+            "Nada: a camada só normaliza",
+            "Uma escala (γ) e um deslocamento (β) por canal",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Média e variância vêm dos próprios dados e não recebem gradiente. O que se aprende são γ e β, que deixam a rede reescalar e deslocar as ativações normalizadas, inclusive desfazer a normalização quando isso ajuda."
         }
       ]
     },
