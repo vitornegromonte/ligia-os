@@ -1,3 +1,4 @@
+import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useState, useMemo, useCallback } from "react";
 import { Search, LayoutGrid, Columns3, CalendarDays, List, Table2, Plus } from "lucide-react";
 import TableView from "./TableView.jsx";
@@ -25,7 +26,8 @@ export default function DbView({
   onOpenRow,
   extraActions,
 }) {
-  const storageKey = `db-view-${config.id}`;
+  const { profile } = useAuth();
+  const storageKey = `db-view-${profile.id}-${config.id}`;
   const [view, setView] = useState(persisted[storageKey]?.view || config.defaultView || config.views[0]);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState(persisted[storageKey]?.filters || {});

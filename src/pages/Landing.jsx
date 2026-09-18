@@ -7,12 +7,13 @@ import {
   BookOpen, Megaphone, Languages, BrainCircuit, ScanEye, Cpu,
   CalendarDays, Plus, Minus, ChevronLeft, ChevronRight, Instagram, ExternalLink
 } from "lucide-react";
+import { homeFor } from "../auth/access.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { fetchProfiles } from "../services/profiles.js";
 import { fetchProjects } from "../services/projects.js";
 import { fetchEvents } from "../services/events.js";
 import { fetchInitiatives } from "../services/initiatives.js";
-import { supabase } from "../lib/supabase.js";
+import { publicSupabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
 
 const teams = [
@@ -98,7 +99,7 @@ const L = {
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [stats, setStats] = useState([
     { value: "—", label: "Membros", color: "#6da87c" },
@@ -219,11 +220,12 @@ export default function Landing() {
   }, [pastEvents.length]);
 
   // Cache de 5min para segunda visita instantânea
-  const LANDING_CACHE_KEY = "ligia:landing:v2";
+  const LANDING_CACHE_KEY = "ligia:landing:public:v3";
   const LANDING_TTL = 5 * 60 * 1000;
 
   function readLandingCache() {
     try {
+      sessionStorage.removeItem("ligia:landing:v2");
       const raw = sessionStorage.getItem(LANDING_CACHE_KEY);
       if (!raw) return null;
       const { data, ts } = JSON.parse(raw);
@@ -268,35 +270,23 @@ export default function Landing() {
           events = results[2].status === "fulfilled" ? results[2].value || [] : [];
           initiatives = results[3].status === "fulfilled" ? results[3].value || [] : [];
         } else {
-          // Queries mínimas — só colunas usadas na landing (corta ~60% do payload)
-          const [pRes, prRes, eRes, iRes] = await Promise.allSettled([
-            supabase.from("profiles").select("id,name,avatar_url,category,director_role,discipline,affiliation,team").limit(24),
-            supabase.from("projects").select("id,name,description,team,image_url").limit(20),
-            supabase.from("events").select("id,title,description,starts_at,location,visibility,image_url").eq("visibility", "public").order("starts_at", { ascending: false }).limit(10),
-            supabase.from("initiatives").select("id,name,team,description,image_url").limit(10),
+          // No public publication flag exists for profiles/projects. Do not publish
+          // internal rows, even when an administrator visits the public landing.
+          profiles = [];
+          projects = [];
+          const [eRes, iRes] = await Promise.allSettled([
+            publicSupabase.from("events").select("id,title,description,starts_at,location,visibility,image_url").eq("visibility", "public").order("starts_at", { ascending: false }).limit(10),
+            publicSupabase.from("initiatives").select("id,name,team,description,image_url").limit(10),
           ]);
-          profiles = pRes.status === "fulfilled" && !pRes.value.error ? (pRes.value.data || []).map(m => ({
-            id: m.id, name: m.name, avatar_url: m.avatar_url || "", category: m.category || "membro",
-            director_role: m.director_role || "", discipline: m.discipline || m.team || "Geral",
-            affiliation: m.affiliation || "", team: m.team || "Geral",
-          })) : [];
-          projects = prRes.status === "fulfilled" && !prRes.value.error ? (prRes.value.data || []).map(m => ({
-            id: m.id, name: m.name, description: m.description || "", team: m.team || "", image_url: m.image_url || "",
-          })) : [];
           events = eRes.status === "fulfilled" && !eRes.value.error ? (eRes.value.data || []) : [];
-          initiatives = iRes.status === "fulfilled" && !iRes.value.error ? (iRes.value.data || []).map(m => ({
-            id: m.id, name: m.name, team: m.team || "Iniciativa", description: m.description || "", image_url: m.image_url || "",
-          })) : [];
-          // Fallback se tabela vazia / erro RLS → tenta serviço genérico
-          if (profiles.length === 0) profiles = await fetchProfiles({ limit: 24 }).catch(() => []);
-          if (projects.length === 0) projects = await fetchProjects().catch(() => []);
-          if (events.length === 0) events = await fetchEvents().catch(() => []);
+          initiatives = iRes.status === "fulfilled" && !iRes.value.error ? (iRes.value.data || []) : [];
+
         }
 
         const publicEvents = (events || []).filter(e => e.visibility === "public");
         const nextStats = [
-          { value: profiles.length, label: "Membros", color: "#6da87c" },
-          { value: projects.length, label: "Projetos", color: "#6b8eb3" },
+          { value: isConfigured() ? "—" : profiles.length, label: "Membros", color: "#6da87c" },
+          { value: isConfigured() ? "—" : projects.length, label: "Projetos", color: "#6b8eb3" },
           { value: publicEvents.length, label: "Eventos", color: "#c4a358" },
           { value: 4, label: "Times", color: "var(--muted)" },
         ];
@@ -352,7 +342,7 @@ export default function Landing() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  const goToOS = () => navigate(session ? "/inicio" : "/login");
+  const goToOS = () => navigate(session ? homeFor(profile) : "/login");
 
   const c = {
     navLink: {

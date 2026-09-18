@@ -4,6 +4,7 @@ import {
   ArrowRight, Menu, X, Mail, MapPin, GraduationCap,
   FileText, Users, User, MessageCircle, Sparkles
 } from "lucide-react";
+import { homeFor } from "../auth/access.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const steps = [
@@ -64,7 +65,7 @@ const faq = [
 ];
 
 export default function ProcessoSeletivo() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function ProcessoSeletivo() {
           </nav>
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-            <Link to={session ? "/inicio" : "/login"} style={{
+            <Link to={session ? homeFor(profile) : "/login"} style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "9px 20px", border: 0, borderRadius: "var(--radius-sm)",
               color: "#fff", background: "var(--accent)", cursor: "pointer",
