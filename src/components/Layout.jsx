@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Outlet } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { canAccessInternalArea } from "../auth/access.js";
 import Sidebar from "./Sidebar.jsx";
 import Toast from "./Toast.jsx";
 import SearchModal from "./SearchModal.jsx";
@@ -7,6 +9,11 @@ import { toastState } from "../utils/toast.js";
 import { registerSearchOpen } from "../utils/searchBus.js";
 
 export default function Layout() {
+  const { profile } = useAuth();
+  return <AccountLayout key={`${profile.id}:${profile.role}`} internal={canAccessInternalArea(profile)} />;
+}
+
+function AccountLayout({ internal }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState({ message: "", visible: false, type: "success" });
   const [searchOpen, setSearchOpen] = useState(false);
@@ -20,6 +27,7 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
+    if (!internal) return;
     registerSearchOpen(() => setSearchOpen(true));
     const onKey = e => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -28,8 +36,8 @@ export default function Layout() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    return () => { window.removeEventListener("keydown", onKey); registerSearchOpen(null); };
+  }, [internal]);
 
   return (
     <div className="app-shell" style={{
@@ -38,8 +46,10 @@ export default function Layout() {
       minHeight: "100vh"
     }}>
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <Outlet context={{ menuOpen, setMenuOpen }} />
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <div className="main" style={{ gridColumn: 2, minWidth: 0 }}>
+        <Outlet context={{ menuOpen, setMenuOpen }} />
+      </div>
+      {internal && <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />}
       <Toast message={toast.message} visible={toast.visible} type={toast.type} onClose={toastState.close} />
     </div>
   );

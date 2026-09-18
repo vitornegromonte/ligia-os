@@ -5,11 +5,15 @@ import {
   Sun, CalendarDays, StickyNote, Globe, Code2
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { INTERNAL_ROLES, ROLES, homeFor } from "../auth/access.js";
+import { showToast } from "../utils/toast.js";
 import ProfileEdit from "./ProfileEdit.jsx";
 
 const navGroups = [
+  { label: "Minha conta", roles: ROLES, items: [{ to: "/perfil", icon: Settings, label: "Perfil" }] },
   {
     label: "Dia a dia",
+    roles: INTERNAL_ROLES,
     items: [
       { to: "/dia", icon: Sun, label: "Meu Dia" },
       { to: "/agenda", icon: CalendarDays, label: "Agenda" },
@@ -18,6 +22,7 @@ const navGroups = [
   },
   {
     label: "Navegação",
+    roles: INTERNAL_ROLES,
     items: [
       { to: "/inicio", icon: House, label: "Início" },
       { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
@@ -28,13 +33,14 @@ const navGroups = [
   },
   {
     label: "Ferramentas",
+    roles: INTERNAL_ROLES,
     items: [
       { to: "/certificados", icon: Award, label: "Certificados" },
     ]
   },
   {
     label: "Aprender",
-    roles: ["membro", "admin"],
+    roles: INTERNAL_ROLES,
     items: [
       { to: "/pratica", icon: Code2, label: "Prática Torch" },
     ]
@@ -52,13 +58,13 @@ export default function Sidebar({ open, onClose }) {
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   return (
     <>
-      <ProfileEdit open={profileEditOpen} onClose={() => setProfileEditOpen(false)} />
+      {profileEditOpen && <ProfileEdit open onClose={() => setProfileEditOpen(false)} />}
       {open && <div className="mobile-overlay" onClick={onClose} style={{
         position: "fixed", inset: 0, zIndex: 35,
         background: "rgba(0,0,0,.55)",
         overscrollBehavior: "contain"
       }} />}
-      <aside aria-label="Navegação principal" className="sidebar" style={{
+      <aside aria-label="Navegação principal" className="sidebar" data-open={open} style={{
         position: "fixed", inset: "0 auto 0 0", zIndex: 40,
         width: "var(--sidebar-width)", display: "flex",
         flexDirection: "column",
@@ -70,7 +76,7 @@ export default function Sidebar({ open, onClose }) {
         transition: "transform .25s ease"
       }}>
         <div className="gradient-bar" style={{ width: "100%", height: 2, flex: "0 0 auto" }} />
-        <NavLink to="/dashboard" className="brand" style={{
+        <NavLink to={homeFor(profile)} className="brand" style={{
           display: "flex", alignItems: "center", gap: 12,
           height: 78, padding: "0 22px", textDecoration: "none", color: "inherit"
         }}>
@@ -103,7 +109,7 @@ export default function Sidebar({ open, onClose }) {
                     transition: "color var(--transition), background var(--transition)"
                   }}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
-                  {item.label}
+                  {item.to === "/membros" && profile.role === "admin" ? "Gestão de membros" : item.label}
                 </NavLink>
               ))}
             </nav>
@@ -150,7 +156,7 @@ export default function Sidebar({ open, onClose }) {
               }}>
                 <Settings size={14} aria-hidden="true" />
               </button>
-              <button aria-label="Sair" onClick={signOut} title="Sair" style={{
+              <button aria-label="Sair" onClick={async () => { try { await signOut(); } catch { showToast("Não foi possível sair. Tente novamente.", "error"); } }} title="Sair" style={{
                 background: "none", border: "none", cursor: "pointer",
                 color: "var(--muted)", padding: 4,
                 display: "grid", placeItems: "center",

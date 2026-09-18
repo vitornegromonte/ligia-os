@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const teams = ["NLP", "ML", "CV", "Comunicação"];
 
 export default function Register() {
-  const navigate = useNavigate();
+  const location = useLocation();
   const { signUp } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -61,7 +61,7 @@ export default function Register() {
             Verifique seu email <strong>{email}</strong> para confirmar o cadastro.
             Depois é só fazer login.
           </p>
-          <Link to="/login"
+          <Link to="/login" state={location.state}
             style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               height: 42, padding: "0 28px", borderRadius: "var(--radius-sm)",
@@ -265,7 +265,7 @@ export default function Register() {
           <span style={{ color: "var(--muted)", fontSize: 12 }}>
             Já tem conta?{" "}
           </span>
-          <Link to="/login" style={{
+          <Link to="/login" state={location.state} style={{
             color: "var(--accent)", fontSize: 12, fontWeight: 600,
             textDecoration: "none"
           }}>
