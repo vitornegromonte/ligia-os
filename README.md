@@ -25,7 +25,7 @@ Ligia OS é uma plataforma web de gestão interna da Ligia, construída com Reac
 
 ## Requisitos
 
-- Node.js 18+ recomendado
+- Node.js 24.15+ (linha 24 LTS) recomendado para build e testes
 - npm, yarn ou pnpm
 - Projeto Supabase configurado, se você quiser usar os dados reais
 
@@ -52,18 +52,32 @@ Se essas variáveis não estiverem presentes, o app continua funcionando com dad
 npm run dev
 npm run build
 npm run preview
+npm test
+npm run test:rls
 ```
 
 - `npm run dev`: inicia o ambiente de desenvolvimento.
 - `npm run build`: gera a build de produção.
 - `npm run preview`: sobe uma prévia local da build.
+- `npm test`: testes de autenticação, guards, navegação e serviços de perfil.
+- `npm run test:rls`: valida a proposta SQL em PostgreSQL descartável; requer binários PostgreSQL locais.
+
+## Autenticação e autorização
+
+Papéis globais: `visitante`, `membro`, `admin`. Visitantes entram em `/perfil`; membros/admins em `/inicio`. Rotas internas exigem perfil válido e papel autorizado. `category` e `director_role` não concedem acesso.
+
+**A proposta de provisionamento/RLS ainda precisa ser reconciliada com o schema real e aplicada em staging.** Não publique o frontend isoladamente: ele depende de um trigger confiável de cadastro e da RPC `change_profile_role`. Não há comprovação das policies do Supabase remoto nesta branch.
+
+Consulte [contrato e plano do banco](supabase/README.md) e [relatório da implementação](docs/auth-access-control-report.md).
 
 ## Fluxo da aplicação
 
 - `/login`: entrada na plataforma.
 - `/register`: criação de conta com perfil básico.
-- `/`: página inicial com resumo e atalhos.
-- `/talentos`: banco de talentos da equipe.
+- `/`: site público da Ligia.
+- `/perfil`: perfil de qualquer usuário autenticado e com identidade resolvida.
+- `/inicio`: página interna com resumo e atalhos.
+- `/membros`: banco de talentos da equipe; gestão de papéis somente para admin.
 - `/docs`: biblioteca de documentação e materiais internos.
 - `/certificados`: geração e exportação de certificados.
 - `/dashboard`: visão consolidada da operação.
