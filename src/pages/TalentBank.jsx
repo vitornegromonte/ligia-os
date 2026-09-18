@@ -8,8 +8,9 @@ import {
   CalendarDays, MoreHorizontal, ExternalLink
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import { fetchProfiles, createProfile, updateRole, updateProfile } from "../services/profiles.js";
+import { fetchProfiles, updateRole, updateProfile } from "../services/profiles.js";
 import { fetchEvents } from "../services/events.js";
+import { canManageMembers } from "../auth/access.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useRealtime } from "../hooks/useRealtime.js";
 import { matchJob } from "../utils/ats.js";
@@ -259,6 +260,7 @@ const s = {
 export default function TalentBank() {
   const { menuOpen, setMenuOpen } = useOutletContext();
   const { profile: currentUser } = useAuth();
+  const [roleSaving, setRoleSaving] = useState(false);
   const [people, setPeople] = useState([]);
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
@@ -266,19 +268,10 @@ export default function TalentBank() {
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [gridMode, setGridMode] = useState("grid");
   const [selectedPerson, setSelectedPerson] = useState(null);
-  const [addModalOpen, setAddModalOpen] = useState(false);
   const [atsOpen, setAtsOpen] = useState(false);
   const [atsJob, setAtsJob] = useState("");
   const [atsResults, setAtsResults] = useState(null);
   const [atsBusy, setAtsBusy] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "", email: "", team: "", discipline: "NLP",
-    skills: "", affiliation: "", availability: "Disponível",
-    avatar_url: "",
-    lattes: "", github: "", linkedin: "", kaggle: "",
-    bio: "", researchInterests: ""
-  });
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, []);
   useEffect(() => { document.title = "Ligia — Membros"; }, []);
@@ -304,8 +297,6 @@ export default function TalentBank() {
 
   function openProfile(person) { setSelectedPerson(person); }
   function closeProfile() { setSelectedPerson(null); }
-  function openAddModal() { setAddModalOpen(true); }
-  function closeAddModal() { setAddModalOpen(false); }
 
   function PersonAvatar({ person, size = 46, radius = 13, fontSize = 17, style }) {
     if (person.avatar_url) {
@@ -323,17 +314,20 @@ export default function TalentBank() {
   }
 
   async function handleRoleChange(profileId, role) {
+    if (!canManageMembers(currentUser) || profileId === currentUser.id || roleSaving) return;
+    setRoleSaving(true);
     try {
-      await updateRole(profileId, role);
-      setPeople(prev => prev.map(p => p.id === profileId ? { ...p, role } : p));
-      setSelectedPerson(prev => prev && prev.id === profileId ? { ...prev, role } : prev);
+      const updated = await updateRole(profileId, role);
+      setPeople(prev => prev.map(p => p.id === profileId ? updated : p));
+      setSelectedPerson(prev => prev && prev.id === profileId ? updated : prev);
       showToast("Permissão atualizada");
     } catch (err) {
-      showToast("Erro: " + err.message);
-    }
+      showToast("Erro: " + err.message, "error");
+    } finally { setRoleSaving(false); }
   }
 
   async function handleProfileField(profileId, field, value) {
+    if (!canManageMembers(currentUser)) return;
     try {
       await updateProfile(profileId, { [field]: value });
       setPeople(prev => prev.map(p => p.id === profileId ? { ...p, [field]: value } : p));
@@ -341,40 +335,6 @@ export default function TalentBank() {
     } catch (err) {
       showToast("Erro: " + err.message);
     }
-  }
-
-  async function handleAddSubmit(e) {
-    e.preventDefault();
-    const name = formData.name.trim();
-    if (!name) return;
-    const payload = {
-      name,
-      email: formData.email.trim(),
-      team: formData.team.trim(),
-      discipline: formData.discipline,
-      skills: formData.skills.split(",").map(s => s.trim()).filter(Boolean),
-      affiliation: formData.affiliation.trim(),
-      capacity: formData.availability,
-      avatar_url: formData.avatar_url.trim(),
-      bio: formData.bio.trim(),
-      researchInterests: formData.researchInterests.trim(),
-      lattes: formData.lattes.trim(),
-      github: formData.github.trim(),
-      linkedin: formData.linkedin.trim(),
-      kaggle: formData.kaggle.trim(),
-      color: "#b7c2d2",
-      history: [],
-    };
-    try {
-      const created = await createProfile({ id: `mock-${Date.now()}`, ...payload });
-      setPeople(prev => [...prev, created]);
-      showToast(`${name} adicionado como membro`);
-    } catch (err) {
-      showToast("Erro: " + err.message);
-      return;
-    }
-    setFormData({ name: "", email: "", team: "", discipline: "NLP", skills: "", affiliation: "", availability: "Disponível", avatar_url: "", lattes: "", github: "", linkedin: "", kaggle: "", bio: "", researchInterests: "" });
-    closeAddModal();
   }
 
   function upcomingFor(personId, limit = 4) {
@@ -439,13 +399,13 @@ export default function TalentBank() {
               <select aria-label="Filtrar por disponibilidade" value={availabilityFilter} onChange={e => setAvailabilityFilter(e.target.value)} style={s.select}>
                 {availabilityOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              {["visitante", "admin"].includes(currentUser?.role) && (
+              {canManageMembers(currentUser) && (
                 <button onClick={() => { setAtsOpen(true); setAtsResults(null); setAtsJob(""); }}
                   style={{ ...s.btn, marginLeft: "auto" }}>
                   <Bot size={15} aria-hidden="true" /> Buscar por vaga (ATS)
                 </button>
               )}
-              <div style={["visitante", "admin"].includes(currentUser?.role) ? s.viewToggle : { ...s.viewToggle, marginLeft: "auto" }}>
+              <div style={canManageMembers(currentUser) ? s.viewToggle : { ...s.viewToggle, marginLeft: "auto" }}>
                 <button onClick={() => setGridMode("grid")} style={s.toggleBtn(gridMode === "grid")} aria-label="Visualização em grade">
                   <LayoutGrid size={14} />
                 </button>
@@ -577,8 +537,8 @@ export default function TalentBank() {
                   <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>{selectedPerson.team} · {selectedPerson.affiliation}</p>
                 </div>
                 <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-                  {currentUser?.role === "admin" && selectedPerson.id !== currentUser.id && (
-                    <select value={selectedPerson.role || "visitante"}
+                  {canManageMembers(currentUser) && selectedPerson.id !== currentUser.id && (
+                    <select aria-label="Papel de acesso" disabled={roleSaving} value={selectedPerson.role || ""}
                       onChange={e => handleRoleChange(selectedPerson.id, e.target.value)}
                       onClick={e => e.stopPropagation()}
                       style={{
@@ -597,7 +557,7 @@ export default function TalentBank() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1.35fr .65fr", gap: 24 }}>
                 <div>
-                  {currentUser?.role === "admin" && (
+                  {canManageMembers(currentUser) && (
                     <div style={{ marginBottom: 25, padding: "16px 18px", borderRadius: 10, border: "1px solid var(--line-soft)", background: "var(--surface-2)" }}>
                       <h3 style={{ marginBottom: 12, color: "var(--muted)", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase" }}>Organização da liga</h3>
                       <div style={{ display: "grid", gap: 12 }}>
@@ -758,118 +718,6 @@ export default function TalentBank() {
             </div>
           </div>
         )}
-      </div>
-
-      <div style={s.modalBackdrop(addModalOpen)} onClick={e => { if (e.target === e.currentTarget) closeAddModal(); }}>
-        <div style={s.smallModal} role="dialog" aria-modal="true">
-          <div style={s.modalHeader}>
-            <span style={{ color: "var(--muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>Adicionar um membro</span>
-            <button aria-label="Fechar" style={s.iconBtn} onClick={closeAddModal}><X size={16} aria-hidden="true" /></button>
-          </div>
-          <div style={{ padding: 26 }}>
-            <form onSubmit={handleAddSubmit}>
-              <div style={s.formRow}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Nome completo</label>
-                  <input style={s.field} required placeholder="Alex Morgan"
-                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Email</label>
-                  <input style={s.field} required type="email" placeholder="alex@ligia.ai"
-                    value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                </div>
-              </div>
-              <div style={s.formRow}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Equipe</label>
-                  <input style={s.field} required placeholder="NLP"
-                    value={formData.team} onChange={e => setFormData({ ...formData, team: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Disciplina</label>
-                  <select style={s.field} value={formData.discipline}
-                    onChange={e => setFormData({ ...formData, discipline: e.target.value })}>
-                    <option>Comunicação</option>
-                    <option>CV</option>
-                    <option>NLP</option>
-                    <option>ML</option>
-                  </select>
-                </div>
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>Habilidades, separadas por vírgulas</label>
-                <input style={s.field} required placeholder="Python, RAG, LangChain"
-                  value={formData.skills} onChange={e => setFormData({ ...formData, skills: e.target.value })} />
-              </div>
-              <div style={s.formRow}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Vínculo institucional</label>
-                  <input style={s.field} placeholder="CIn-UFPE"
-                    value={formData.affiliation} onChange={e => setFormData({ ...formData, affiliation: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Disponibilidade</label>
-                  <select style={s.field} value={formData.availability}
-                    onChange={e => setFormData({ ...formData, availability: e.target.value })}>
-                    <option>Disponível</option>
-                    <option>Limitado</option>
-                    <option>Alocado</option>
-                  </select>
-                </div>
-              </div>
-              <div style={s.formRow}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Lattes</label>
-                  <input style={s.field} placeholder="http://lattes.cnpq.br/..."
-                    value={formData.lattes} onChange={e => setFormData({ ...formData, lattes: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>GitHub</label>
-                  <input style={s.field} placeholder="https://github.com/usuario"
-                    value={formData.github} onChange={e => setFormData({ ...formData, github: e.target.value })} />
-                </div>
-              </div>
-              <div style={s.formRow}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>LinkedIn</label>
-                  <input style={s.field} placeholder="https://linkedin.com/in/usuario"
-                    value={formData.linkedin} onChange={e => setFormData({ ...formData, linkedin: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>Kaggle</label>
-                  <input style={s.field} placeholder="https://kaggle.com/usuario"
-                    value={formData.kaggle} onChange={e => setFormData({ ...formData, kaggle: e.target.value })} />
-                </div>
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>Foto de perfil (URL)</label>
-                <input style={s.field} placeholder="https://exemplo.com/foto.jpg"
-                  value={formData.avatar_url} onChange={e => setFormData({ ...formData, avatar_url: e.target.value })} />
-                {formData.avatar_url.trim() && (
-                  <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                    <img src={formData.avatar_url} alt="Prévia" onError={e => e.currentTarget.style.display = "none"}
-                      style={{ width: 36, height: 36, borderRadius: 9, objectFit: "cover", border: "1px solid var(--line-soft)" }} />
-                    <span style={{ color: "var(--muted-2)", fontSize: 11 }}>Prévia</span>
-                  </div>
-                )}
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>Perfil resumido</label>
-                <textarea style={s.textarea} placeholder="Formação, interesses e foco atual…"
-                  value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>Interesses de pesquisa</label>
-                <textarea style={s.textarea} placeholder="Sistemas de diálogo, RAG, avaliação de LLMs…"
-                  value={formData.researchInterests} onChange={e => setFormData({ ...formData, researchInterests: e.target.value })} />
-              </div>
-              <button type="submit" style={{ ...s.btnPrimary, width: "100%" }}>
-                <UserPlus size={15} /> Adicionar membro
-              </button>
-            </form>
-          </div>
-        </div>
       </div>
 
       <div style={s.modalBackdrop(atsOpen)} onClick={e => { if (e.target === e.currentTarget) setAtsOpen(false); }}>

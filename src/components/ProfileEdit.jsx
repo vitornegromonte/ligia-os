@@ -7,7 +7,7 @@ import { showToast } from "../utils/toast.js";
 const teams = ["NLP", "ML", "CV", "Comunicação"];
 
 export default function ProfileEdit({ open, onClose }) {
-  const { profile, setProfile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -37,6 +37,7 @@ export default function ProfileEdit({ open, onClose }) {
     setSaving(true);
     try {
       const payload = { ...(form || {}) };
+      delete payload.role;
       if (payload.skills_string !== undefined) {
         payload.skills = payload.skills_string.split(",").map(s => s.trim()).filter(Boolean);
         delete payload.skills_string;
@@ -49,12 +50,8 @@ export default function ProfileEdit({ open, onClose }) {
         payload.research_interests = payload.researchInterests;
         delete payload.researchInterests;
       }
-      const updated = await updateProfile(profile.id, payload);
-      // updateProfile pode retornar linha bruta; mapeia para shape do contexto
-      const normalized = updated?.research_interests !== undefined
-        ? { ...updated, researchInterests: updated.research_interests }
-        : updated;
-      setProfile(normalized || { ...profile, ...payload });
+      await updateProfile(profile.id, payload);
+      refreshProfile();
       setForm(null);
       showToast("Perfil atualizado");
       onClose();
