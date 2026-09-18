@@ -62,7 +62,7 @@ export default function App() {
               <Route path="/pratica/:slug" element={<PracticeDetail />} />
             </Route>
           </Route>
-          <Route path="*" element={<main style={{ padding: 40 }}><h1>Página não encontrada</h1><a href="/">Voltar ao site</a></main>} />
+          <Route path="*" element={<main className="access-state"><h1>Página não encontrada</h1><div className="access-actions"><a className="access-action" href="/">Voltar ao site</a></div></main>} />
         </Routes>
       </Suspense>
     </AuthProvider>

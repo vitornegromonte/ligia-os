@@ -2,10 +2,11 @@ import { Navigate, Outlet, Link, useLocation, useOutletContext } from "react-rou
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { homeFor, isKnownRole, requestedDestination } from "../auth/access.js";
+import "./AccessState.css";
 
 export function AccessDenied() {
   const { profile } = useAuth();
-  return <main style={{ padding: 40 }}><h1>Acesso não autorizado</h1><p>Seu papel não permite acessar esta página.</p><Link to={homeFor(profile)}>Voltar para minha área</Link></main>;
+  return <main className="access-state"><h1>Acesso não autorizado</h1><p>Seu papel não permite acessar esta página.</p><div className="access-actions"><Link className="access-action" to={homeFor(profile)}>Voltar para minha área</Link></div></main>;
 }
 
 function IdentityError() {
@@ -18,17 +19,19 @@ function IdentityError() {
     profile_unavailable: "Perfil não encontrado ou sem acesso. Solicite a verificação do cadastro.",
     invalid_profile: "Perfil com papel ou identidade inválidos. Solicite a revisão do cadastro.",
   };
-  return <main style={{ padding: 40 }}><h1>Não foi possível verificar seu acesso</h1>
+  return <main className="access-state"><h1>Não foi possível verificar seu acesso</h1>
     <p role="alert">{messages[error?.kind] || "Falha ao carregar sua identidade. Tente novamente ou contate a administração."}</p>
-    <button onClick={() => session ? refreshProfile() : window.location.reload()}>Tentar novamente</button>{" "}
-    {session && <button onClick={async () => { try { await signOut(); } catch { setLogoutError("Não foi possível sair. Tente novamente."); } }}>Sair</button>}
+    <div className="access-actions">
+      <button className="access-action" onClick={() => session ? refreshProfile() : window.location.reload()}>Tentar novamente</button>
+      {session && <button className="access-action access-action--secondary" onClick={async () => { try { await signOut(); } catch { setLogoutError("Não foi possível sair. Tente novamente."); } }}>Sair</button>}
+    </div>
     {logoutError && <p role="alert">{logoutError}</p>}
   </main>;
 }
 
 function IdentityPending() {
   const { status } = useAuth();
-  return <div role="status" style={{ padding: 40 }}>{status === "session_loading" ? "Carregando sessão…" : "Verificando perfil…"}</div>;
+  return <div role="status" className="access-state">{status === "session_loading" ? "Carregando sessão…" : "Verificando perfil…"}</div>;
 }
 
 export function AuthenticatedRoute({ children }) {
