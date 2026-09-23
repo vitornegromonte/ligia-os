@@ -1,4 +1,4 @@
--- PROPOSAL, NOT A DEPLOYED MIGRATION. See ../README.md before promotion.
+-- PROPOSAL, NOT A DEPLOYED MIGRATION.
 -- Existing schema is unavailable. This file assumes profiles.id UUID and role TEXT.
 -- Fails on unknown auth triggers rather than silently composing unsafe provisioning.
 begin;
