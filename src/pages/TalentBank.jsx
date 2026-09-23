@@ -257,6 +257,21 @@ const s = {
   },
 };
 
+function PersonAvatar({ person, size = 46, radius = 13, fontSize = 17, style }) {
+  if (person.avatar_url) {
+    return (
+      <div style={{ position: "relative", width: size, height: size, flex: "0 0 auto", borderRadius: radius, background: "var(--surface-2)", overflow: "hidden", ...style }}>
+        <img src={person.avatar_url} alt={person.name} width="46" height="46" loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+    );
+  }
+  return (
+    <div style={{ ...s.avatar(person.color || "#b7c2d2"), width: size, height: size, borderRadius: radius, fontSize, ...style }}>
+      {person.initials}
+    </div>
+  );
+}
+
 export default function TalentBank() {
   const { menuOpen, setMenuOpen } = useOutletContext();
   const { profile: currentUser } = useAuth();
@@ -297,21 +312,6 @@ export default function TalentBank() {
 
   function openProfile(person) { setSelectedPerson(person); }
   function closeProfile() { setSelectedPerson(null); }
-
-  function PersonAvatar({ person, size = 46, radius = 13, fontSize = 17, style }) {
-    if (person.avatar_url) {
-      return (
-        <div style={{ position: "relative", width: size, height: size, flex: "0 0 auto", borderRadius: radius, background: "var(--surface-2)", overflow: "hidden", ...style }}>
-          <img src={person.avatar_url} alt={person.name} width="46" height="46" loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-        </div>
-      );
-    }
-    return (
-      <div style={{ ...s.avatar(person.color || "#b7c2d2"), width: size, height: size, borderRadius: radius, fontSize, ...style }}>
-        {person.initials}
-      </div>
-    );
-  }
 
   async function handleRoleChange(profileId, role) {
     if (!canManageMembers(currentUser) || profileId === currentUser.id || roleSaving) return;

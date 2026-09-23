@@ -34,9 +34,9 @@ export default function NeuralHero() {
       c.height = size;
       const g = c.getContext("2d");
       const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-      grad.addColorStop(0, "rgba(255, 75, 31, 0.48)");
-      grad.addColorStop(0.28, "rgba(255, 144, 104, 0.18)");
-      grad.addColorStop(0.58, "rgba(255, 75, 31, 0.07)");
+      grad.addColorStop(0, "rgba(255, 75, 31, 0.32)");
+      grad.addColorStop(0.28, "rgba(255, 144, 104, 0.12)");
+      grad.addColorStop(0.58, "rgba(255, 75, 31, 0.05)");
       grad.addColorStop(1, "rgba(255, 75, 31, 0)");
       g.fillStyle = grad;
       g.fillRect(0, 0, size, size);
@@ -123,7 +123,7 @@ export default function NeuralHero() {
         });
       }
 
-      const pulseCount = Math.min(isMobile ? 7 : 11, edges.length);
+      const pulseCount = Math.min(isMobile ? 5 : 8, edges.length);
       const shuffled = [...edges].sort(() => Math.random() - 0.5).slice(0, pulseCount);
       shuffled.forEach(edge => {
         pulses.push({
@@ -149,13 +149,27 @@ export default function NeuralHero() {
       mouseRef.current.y += (mouseRef.current.ty - mouseRef.current.y) * 0.04;
       const parallaxX = mouseRef.current.x * 6;
       const parallaxY = mouseRef.current.y * 4;
+      // Cursor em pixels (para repulsão e boost de pulsos)
+      const pmx = (mouseRef.current.x * 0.5 + 0.5) * width;
+      const pmy = (mouseRef.current.y * 0.5 + 0.5) * height;
+      const layerDepth = [0.1, 0.22, 0.3, 0.38];
 
       // Respiração humana: duas ondas sobrepostas + leve deriva X
       nodes.forEach(n => {
         const breath1 = Math.sin(now * n.speed + n.phase) * 1.1;
         const breath2 = Math.cos(now * n.speed2 + n.phase2) * 0.55;
+        const depth = layerDepth[Math.min(n.layer, 3)];
         n.y = n.y0 + breath1 + breath2;
-        n.x = n.x0 + Math.sin(now * n.speed * 0.58 + n.phase) * 0.7 + parallaxX * (n.layer / 3) * 0.18;
+        n.x = n.x0 + Math.sin(now * n.speed * 0.58 + n.phase) * 0.7 + parallaxX * depth;
+        // Repulsão suave do cursor (raio 140px, clamp 10px)
+        const rdx = n.x - pmx;
+        const rdy = n.y - pmy;
+        const dist = Math.hypot(rdx, rdy);
+        if (dist < 140 && dist > 0.01) {
+          const push = (1 - dist / 140) * 10;
+          n.x += (rdx / dist) * push;
+          n.y += (rdy / dist) * push;
+        }
         // leve variação de escala orgânica
         n._scale = 1 + Math.sin(now * 0.00028 + n.breathPhase) * 0.06;
       });
@@ -167,18 +181,24 @@ export default function NeuralHero() {
       });
 
       pulses.forEach(p => {
-        p.p += p.speed * delta;
+        // Boost perto do cursor: arestas próximas aceleram e brilham
+        const ex = (p.edge.a.x + p.edge.b.x) / 2;
+        const ey = (p.edge.a.y + p.edge.b.y) / 2;
+        const ed = Math.hypot(ex - pmx, ey - pmy);
+        const near = ed < 220 ? (1 - ed / 220) : 0;
+        p._boost = near;
+        p.p += p.speed * delta * (1 + near * 0.6);
         if (p.p > 1) p.p -= 1;
       });
 
       ctx.clearRect(0, 0, width, height);
 
       // Sutil brilho de fundo que pulsa com a rede
-      const bgPulse = 0.045 + Math.sin(now * 0.00018) * 0.012;
+      const bgPulse = 0.03 + Math.sin(now * 0.00018) * 0.008;
       ctx.fillStyle = `rgba(255, 75, 31, ${bgPulse})`;
       // não preenche tudo, só deixa o clear com tom quente muito sutil
       // Edges — Bézier orgânicas com opacidade que respira
-      const edgeBreath = 0.09 + Math.sin(now * 0.00021) * 0.015;
+      const edgeBreath = 0.06 + Math.sin(now * 0.00021) * 0.01;
       ctx.lineWidth = 0.85;
       ctx.strokeStyle = `rgba(168, 155, 138, ${edgeBreath})`;
       ctx.beginPath();
@@ -201,8 +221,9 @@ export default function NeuralHero() {
         if (alpha < 0.015) return;
 
         const s = 36 * pulse.size * (0.82 + easedFade * 0.45);
-        // halo pré-renderizado
-        ctx.globalAlpha = alpha * 0.72;
+        // halo pré-renderizado (intensifica perto do cursor)
+        const boost = pulse._boost || 0;
+        ctx.globalAlpha = Math.min(1, alpha * (0.72 + boost * 0.28));
         ctx.drawImage(glowSprite, x - s / 2, y - s / 2, s, s);
         ctx.globalAlpha = 1;
 
