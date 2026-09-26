@@ -9,6 +9,7 @@ import { savePerfil, savePretestV2 } from "@/lib/pretest-storage";
 
 afterEach(() => {
   vi.doUnmock("../src/contexts/AuthContext.jsx");
+  vi.doUnmock("../src/services/supabase.js");
 });
 
 describe("Análise do nivelamento — página", () => {
@@ -36,6 +37,7 @@ describe("Análise do nivelamento — página", () => {
     vi.doMock("../src/contexts/AuthContext.jsx", () => ({
       useAuth: () => ({ session: null, profile: null, loading: false }),
     }));
+    vi.doMock("../src/services/supabase.js", () => ({ isConfigured: () => false }));
     const { default: AnaliseItens } = await import("../src/aprender/AnaliseItens.jsx");
     render(
       <MemoryRouter>
