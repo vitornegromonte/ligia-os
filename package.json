@@ -15,12 +15,11 @@
     "test:e2e": "playwright test",
     "content": "node scripts/build-content.mjs",
     "predev": "npm run content",
-    "dev:sem-login": "vite --mode sem-login --open /aprender",
-    "predev:sem-login": "npm run content",
     "prebuild": "npm run content",
     "pretest": "npm run content",
     "check:secrets": "node scripts/check-bundle-secrets.mjs",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:secrets"
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:secrets",
+    "test:rls": "node scripts/test-rls.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -43,8 +42,8 @@
     "@eslint/js": "^9.39.0",
     "@playwright/test": "^1.60.0",
     "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.19.19",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
@@ -54,11 +53,11 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^15.15.0",
     "gray-matter": "^4.0.3",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.1.0",
     "libpg-query": "^17.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.70.0",
     "vite": "^6.3.5",
-    "vitest": "^4.1.8"
+    "vitest": "^5.0.1"
   }
 }

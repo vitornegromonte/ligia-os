@@ -21,9 +21,6 @@ test("o login pede email e senha", async ({ page }) => {
 });
 
 test("endereço desconhecido não devolve tela em branco", async ({ page }) => {
-  // Antes não havia rota `*`: o app renderizava nada. Como a rota 404 vive
-  // dentro do Layout protegido, sem sessão ela redireciona ao login — que já
-  // é melhor do que a tela vazia.
   await page.goto("/rota-que-nao-existe");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: /Nada aqui/ })).toBeVisible();
 });

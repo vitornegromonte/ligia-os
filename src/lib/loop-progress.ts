@@ -1,3 +1,4 @@
+import { learningStorage } from "./learning-storage";
 /**
  * Resultado das práticas "Praticar" por membro. Na Fatia 1 (sem auth) é
  * localStorage anônimo; na F6 migra pro Supabase. Guarda o PLACAR real (não só
@@ -25,7 +26,7 @@ export type LoopScore = { acertei: number; parcial: number; errei: number };
 export function loadLoopResults(): Record<string, LoopResult> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learningStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as Record<string, LoopResult>) : {};
   } catch {
     return {};
@@ -51,7 +52,7 @@ export function saveLoopResult(conceptId: string, score: LoopScore, total: numbe
     ...score,
     total,
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  learningStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   // Mesmo caso de node_status_changed: o tipo existia e nunca era emitido.
   // Só é registrado aqui, na conclusão explícita — nunca em replaceLoopResults,
   // que aplica um merge e inventaria prática que não aconteceu.
@@ -71,7 +72,7 @@ export function saveLoopResult(conceptId: string, score: LoopScore, total: numbe
 export function replaceLoopResults(all: Record<string, LoopResult>): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    learningStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch {
     // storage indisponível: degrada em silêncio (padrão progress.ts)
   }

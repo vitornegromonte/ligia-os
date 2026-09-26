@@ -2,7 +2,8 @@ import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import Layout from "./components/Layout.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { AuthenticatedRoute, RoleRoute, GuestRoute } from "./components/ProtectedRoute.jsx";
+import { INTERNAL_ROLES } from "./auth/access.js";
 
 const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
@@ -19,6 +20,8 @@ const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const MyDay = lazy(() => import("./pages/MyDay.jsx"));
 const Agenda = lazy(() => import("./pages/Agenda.jsx"));
 const Notas = lazy(() => import("./pages/Notas.jsx"));
+const Profile = lazy(() => import("./pages/Profile.jsx"));
+
 const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
 const Trilha = lazy(() => import("./aprender/Trilha.jsx"));
 const Nivelamento = lazy(() => import("./aprender/Nivelamento.jsx"));
@@ -35,7 +38,6 @@ const fallback = (
   }} />
 );
 
-/** Preserva o slug ao redirecionar /pratica/:slug para o endereço novo. */
 function RedirecionaPratica() {
   const { slug } = useParams();
   return <Navigate to={`/aprender/codar/${slug}`} replace />;
@@ -48,25 +50,15 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/processo-seletivo" element={<ProcessoSeletivo />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={
-            <ProtectedRoute>
+            <AuthenticatedRoute>
               <Layout />
-            </ProtectedRoute>
+            </AuthenticatedRoute>
           }>
-            <Route path="/inicio" element={<Home />} />
-            <Route path="/dia" element={<MyDay />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/notas" element={<Notas />} />
-            <Route path="/membros" element={<TalentBank />} />
-            <Route path="/docs" element={<Documentation />} />
-            <Route path="/certificados" element={<Certificates />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/projetos" element={<ProjectManagement />} />
-            <Route path="/projetos/:projectId" element={<ProjectView />} />
-            <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
+            <Route path="/perfil" element={<Profile />} />
             {/* Endereços antigos: os links já compartilhados continuam vivos. */}
             <Route path="/pratica" element={<Navigate to="/aprender/codar" replace />} />
             <Route path="/pratica/:slug" element={<RedirecionaPratica />} />
@@ -77,16 +69,28 @@ export default function App() {
             {/* Ferramenta de staff: lê as rodadas de todos os alunos. */}
             <Route
               path="/aprender/itens"
-              element={<ProtectedRoute allowedRoles={["admin"]}><AnaliseItens /></ProtectedRoute>}
+              element={<RoleRoute allowedRoles={["admin"]}><AnaliseItens /></RoleRoute>}
             />
             <Route path="/aprender/c/:conceptId" element={<Licao />} />
             <Route path="/aprender/c/:conceptId/praticar" element={<Praticar />} />
             <Route path="/aprender/codar" element={<Codar />} />
             <Route path="/aprender/codar/:slug" element={<CodarDetalhe />} />
             <Route path="/aprender/styleguide" element={<Styleguide />} />
-            {/* Catch-all: antes um endereço desconhecido renderizava tela em branco. */}
-            <Route path="*" element={<NotFound />} />
+            <Route element={<RoleRoute allowedRoles={INTERNAL_ROLES} />}>
+              <Route path="/inicio" element={<Home />} />
+              <Route path="/dia" element={<MyDay />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/notas" element={<Notas />} />
+              <Route path="/membros" element={<TalentBank />} />
+              <Route path="/docs" element={<Documentation />} />
+              <Route path="/certificados" element={<Certificates />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/projetos" element={<ProjectManagement />} />
+              <Route path="/projetos/:projectId" element={<ProjectView />} />
+              <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
+            </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </AuthProvider>

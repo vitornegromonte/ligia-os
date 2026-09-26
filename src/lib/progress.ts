@@ -1,3 +1,4 @@
+import { learningStorage } from "./learning-storage";
 import type { UserStatus, UserState } from "./status";
 import { logEvent } from "./events";
 
@@ -11,7 +12,7 @@ const STORAGE_KEY = "ligia-skill-tree:status:v1";
 export function loadUserStatus(): UserStatus {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learningStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as UserStatus) : {};
   } catch {
     return {};
@@ -20,7 +21,7 @@ export function loadUserStatus(): UserStatus {
 
 export function saveUserStatus(status: UserStatus): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(status));
+  learningStorage.setItem(STORAGE_KEY, JSON.stringify(status));
 }
 
 /** Aplica/limpa o estado de um nó e persiste. Devolve o novo mapa. */

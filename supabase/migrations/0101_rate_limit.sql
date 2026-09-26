@@ -32,6 +32,7 @@ alter table public.rate_limits enable row level security;
  * simultâneas não passam as duas pelo limite.
  */
 create or replace function public.consume_rate_limit(
+  p_user_id uuid,
   p_bucket text,
   p_limit int,
   p_window interval
@@ -41,10 +42,10 @@ security definer
 set search_path = public
 as $$
 declare
-  v_user uuid := auth.uid();
+  v_user uuid := p_user_id;
   v_count int;
 begin
-  if v_user is null then
+  if v_user is null or p_limit <= 0 or p_window <= interval '0 seconds' then
     return false;  -- sem sessão não há balde; a função chamadora nega.
   end if;
 
@@ -65,8 +66,8 @@ begin
 end;
 $$;
 
-comment on function public.consume_rate_limit(text, int, interval) is
+comment on function public.consume_rate_limit(uuid, text, int, interval) is
   'Consome uma unidade do balde do usuário atual. true = liberado. Chamada pelas Edge Functions; falha fechada quando não há sessão.';
 
-revoke all on function public.consume_rate_limit(text, int, interval) from public, anon;
-grant execute on function public.consume_rate_limit(text, int, interval) to service_role;
+revoke all on function public.consume_rate_limit(uuid, text, int, interval) from public, anon, authenticated;
+grant execute on function public.consume_rate_limit(uuid, text, int, interval) to service_role;

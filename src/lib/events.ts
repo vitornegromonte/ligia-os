@@ -1,3 +1,4 @@
+import { learningStorage } from "./learning-storage";
 /**
  * Trilha de eventos de aprendizagem — ring buffer em localStorage.
  *
@@ -46,7 +47,7 @@ export function novoId(): string {
 export function loadEvents(): LearningEvent[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = learningStorage.getItem(KEY);
     const parsed = raw ? (JSON.parse(raw) as unknown) : [];
     return Array.isArray(parsed) ? (parsed as LearningEvent[]) : [];
   } catch {
@@ -74,7 +75,7 @@ export function logEvent(
   };
   try {
     const eventos = [...loadEvents(), evento].slice(-MAX_EVENTS);
-    localStorage.setItem(KEY, JSON.stringify(eventos));
+    learningStorage.setItem(KEY, JSON.stringify(eventos));
     return evento;
   } catch {
     return null;
@@ -84,7 +85,7 @@ export function logEvent(
 export function clearEvents(): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(KEY);
+    learningStorage.removeItem(KEY);
   } catch {
     // storage indisponível: degrada em silêncio (padrão progress.ts)
   }
@@ -97,7 +98,7 @@ export function clearEvents(): void {
 export function replaceEvents(eventos: LearningEvent[]): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(KEY, JSON.stringify(eventos.slice(-MAX_EVENTS)));
+    learningStorage.setItem(KEY, JSON.stringify(eventos.slice(-MAX_EVENTS)));
   } catch {
     // storage indisponível: degrada em silêncio
   }

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { setLearningAccount } from "@/lib/learning-storage";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   progressoDeLinhas,
   linhasDeProgresso,
@@ -25,6 +26,8 @@ import type { EstadoSincronizavel } from "@/lib/sync-merge";
 import type { LoopResult } from "@/lib/loop-progress";
 import type { PretestResultV2 } from "@/lib/pretest-storage";
 
+beforeEach(() => setLearningAccount(UID));
+afterEach(() => setLearningAccount(null));
 const UID = "11111111-2222-4333-8444-555555555555";
 
 describe("mapeadores de progresso", () => {

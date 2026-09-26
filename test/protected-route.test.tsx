@@ -8,7 +8,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
  */
 async function montar(auth: { session: unknown; profile: unknown; loading: boolean }, allowedRoles?: string[]) {
   vi.resetModules();
-  vi.doMock("../src/contexts/AuthContext.jsx", () => ({ useAuth: () => auth }));
+  vi.doMock("../src/contexts/AuthContext.jsx", () => ({ useAuth: () => ({ ...auth, status: auth.loading ? "profile_loading" : auth.session ? "authenticated" : "unauthenticated", session: auth.session ? {user:{id:"test"}} : null, profile: auth.profile ? {id:"test", ...auth.profile as object} : null }) }));
   const { default: ProtectedRoute } = await import("../src/components/ProtectedRoute.jsx");
   return render(
     <MemoryRouter initialEntries={["/aprender"]}>
@@ -49,17 +49,15 @@ describe("ProtectedRoute", () => {
   it("com gate de papel e perfil nulo, NEGA — não falha aberto", async () => {
     await montar({ session: {}, profile: null, loading: false }, ["admin"]);
     expect(screen.queryByText("conteúdo protegido")).toBeNull();
-    expect(screen.getByText("Acesso restrito")).toBeInTheDocument();
+    expect(screen.getByText(/verificar seu acesso/)).toBeInTheDocument();
   });
 });
 
 describe("ProtectedRoute — preview sem login", () => {
-  it("no modo sem-login do servidor de dev, libera e avisa", async () => {
+  it("modo legado sem-login continua exigindo autenticacao", async () => {
     vi.stubEnv("MODE", "sem-login");
     await montar(SEM_SESSAO);
-    expect(screen.getByText("conteúdo protegido")).toBeInTheDocument();
-    // O aviso existe para ninguém confundir o preview com o app autenticado.
-    expect(screen.getByRole("status")).toHaveTextContent(/sem login/);
+    expect(screen.getByText("tela de login")).toBeInTheDocument();
   });
 
   it("fora do dev, o mesmo modo NÃO libera nada", async () => {

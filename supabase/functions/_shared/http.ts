@@ -50,6 +50,7 @@ export async function dentroDoLimite(
 ): Promise<boolean> {
   try {
     const { data, error } = await clientDeServico().rpc("consume_rate_limit", {
+      p_user_id: userId,
       p_bucket: bucket,
       p_limit: limite,
       p_window: janela,

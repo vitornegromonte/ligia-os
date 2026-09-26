@@ -1,3 +1,4 @@
+import { learningStorage, learningKey } from "./learning-storage";
 import type { EixoScores, EixoNiveis } from "./pretest";
 import { loadUserStatus, saveUserStatus } from "./progress";
 import type { ModuleId } from "./content";
@@ -27,7 +28,7 @@ const KEY = "ligia-pretest:result:v1";
 export function loadPretest(): PretestResult | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = learningStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as PretestResult) : null;
   } catch {
     return null;
@@ -36,12 +37,12 @@ export function loadPretest(): PretestResult | null {
 
 export function savePretest(result: PretestResult): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(result));
+  learningStorage.setItem(KEY, JSON.stringify(result));
 }
 
 export function clearPretest(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(KEY);
+  learningStorage.removeItem(KEY);
 }
 
 /** Marca os nós dos módulos dispensados como concluídos no progresso da trilha. */
@@ -168,7 +169,7 @@ export function migrarV1ParaV2(v1: PretestResult): PretestResultV2 {
 export function loadPretestV2(): PretestResultV2 | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(KEY_V2);
+    const raw = learningStorage.getItem(KEY_V2);
     if (raw) return JSON.parse(raw) as PretestResultV2;
   } catch {
     // storage indisponível/corrompido pro v2: cai pro fallback de migração abaixo
@@ -179,12 +180,12 @@ export function loadPretestV2(): PretestResultV2 | null {
 
 export function savePretestV2(result: PretestResultV2): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY_V2, JSON.stringify(result));
+  learningStorage.setItem(KEY_V2, JSON.stringify(result));
 }
 
 export function clearPretestV2(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(KEY_V2);
+  learningStorage.removeItem(KEY_V2);
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +204,7 @@ const KEY_VISTAS = "ligia-nivelamento:vistas:v1";
 export function loadQuestoesVistas(): QuestoesVistas {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(KEY_VISTAS);
+    const raw = learningStorage.getItem(KEY_VISTAS);
     const parsed = raw ? (JSON.parse(raw) as unknown) : {};
     return parsed && typeof parsed === "object" && !Array.isArray(parsed)
       ? (parsed as QuestoesVistas)
@@ -218,7 +219,7 @@ export function registrarQuestoesVistas(ids: readonly string[], quando: string):
   const vistas = loadQuestoesVistas();
   for (const id of ids) vistas[id] = quando;
   try {
-    localStorage.setItem(KEY_VISTAS, JSON.stringify(vistas));
+    learningStorage.setItem(KEY_VISTAS, JSON.stringify(vistas));
   } catch {
     // storage cheio ou indisponível: o sorteio só perde a preferência
   }
@@ -285,7 +286,7 @@ function deOutraConta(registro: { userId?: string | null }, userId?: string | nu
 function lerJson<T>(chave: string): T | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(chave);
+    const raw = learningStorage.getItem(chave);
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;
@@ -295,7 +296,7 @@ function lerJson<T>(chave: string): T | null {
 function gravarJson(chave: string, valor: unknown): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(chave, JSON.stringify(valor));
+    learningStorage.setItem(chave, JSON.stringify(valor));
   } catch {
     // storage cheio ou indisponível: segue sem persistir
   }
@@ -319,10 +320,10 @@ export function loadRascunho(userId?: string | null): RascunhoNivelamento | null
   let r = lerJson<RascunhoNivelamento>(KEY_RASCUNHO);
   if (!r) {
     try {
-      const v1 = sessionStorage.getItem(KEY_RASCUNHO_V1);
+      const v1 = sessionStorage.getItem(learningKey(KEY_RASCUNHO_V1));
       if (v1) {
         const antigo = JSON.parse(v1) as Partial<RascunhoNivelamento>;
-        sessionStorage.removeItem(KEY_RASCUNHO_V1);
+        sessionStorage.removeItem(learningKey(KEY_RASCUNHO_V1));
         if (antigo.seed) {
           r = {
             passo: antigo.passo ?? 0,
@@ -355,7 +356,7 @@ export function clearRascunho(userId?: string | null): void {
   const r = lerJson<RascunhoNivelamento>(KEY_RASCUNHO);
   if (r && deOutraConta(r, userId)) return;
   try {
-    localStorage.removeItem(KEY_RASCUNHO);
+    learningStorage.removeItem(KEY_RASCUNHO);
   } catch {
     // indisponível: nada a apagar
   }

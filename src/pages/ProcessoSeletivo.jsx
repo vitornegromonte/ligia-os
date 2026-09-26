@@ -4,6 +4,7 @@ import {
   ArrowRight, Mail, MapPin, GraduationCap,
   FileText, Users, User, MessageCircle, Sparkles
 } from "lucide-react";
+import { homeFor } from "../auth/access.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 // — Mesmos tokens da landing —
@@ -73,7 +74,7 @@ const faq = [
 ];
 
 export default function ProcessoSeletivo() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function ProcessoSeletivo() {
             </nav>
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <Link to={session ? "/inicio" : "/login"} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+              <Link to={session ? homeFor(profile) : "/login"} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
                 {session ? "Abrir Ligia OS" : "Login"}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />

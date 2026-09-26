@@ -1,3 +1,4 @@
+import { learningIdentity } from "./learning-storage";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserStatus, UserState } from "./status";
 import type { LearningEvent } from "./events";
@@ -393,9 +394,12 @@ export type ResultadoSync =
  * (que continua sendo a fonte de leitura).
  */
 export async function sincronizar(sb: SupabaseClient, userId: string): Promise<ResultadoSync> {
+  const identity = learningIdentity();
   try {
+    if (identity.account !== userId) throw new Error("Learning account changed");
     const local = lerLocal(userId);
     const remoto = await pull(sb, userId);
+    if (learningIdentity().revision !== identity.revision) throw new Error("Learning account changed");
     const merged = mergeEstado(local, remoto);
     gravarLocal(merged, userId);
     await push(sb, userId, merged, remoto);

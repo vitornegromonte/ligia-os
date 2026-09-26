@@ -1,3 +1,4 @@
+import { learningStorage } from "../lib/learning-storage.ts";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
@@ -51,7 +52,7 @@ export default function CodarDetalhe() {
         }
         setTarefa(t);
         document.title = `Ligia — ${t.title}`;
-        const salvo = localStorage.getItem(RASCUNHO(t.slug)) || "";
+        const salvo = learningStorage.getItem(RASCUNHO(t.slug)) || "";
         setCode(salvo || t.initial_code || t.starter_code || "");
         fetchMySubmissions(t.slug).then(setHistorico).catch(() => {});
       })
@@ -65,7 +66,7 @@ export default function CodarDetalhe() {
 
   // Rascunho local, para não perder o trabalho ao trocar de página.
   useEffect(() => {
-    if (tarefa && code) localStorage.setItem(RASCUNHO(tarefa.slug), code);
+    if (tarefa && code) learningStorage.setItem(RASCUNHO(tarefa.slug), code);
   }, [code, tarefa]);
 
   async function executar() {
@@ -184,7 +185,7 @@ export default function CodarDetalhe() {
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => {
                   setCode(tarefa.initial_code || tarefa.starter_code || "");
-                  localStorage.removeItem(RASCUNHO(tarefa.slug));
+                  learningStorage.removeItem(RASCUNHO(tarefa.slug));
                 }}>
                   <RotateCcw size={14} aria-hidden /> Reset
                 </Button>

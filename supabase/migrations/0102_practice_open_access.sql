@@ -25,8 +25,10 @@ create policy "challenges_read_authenticated" on public.challenges
 -- Submissão: qualquer autenticado cria, desde que em nome próprio.
 drop policy if exists "Membro cria submission" on public.submissions;
 drop policy if exists "submissions_insert_own" on public.submissions;
-create policy "submissions_insert_own" on public.submissions
-  for insert with check (auth.uid() = profile_id);
+-- Official outcomes are inserted exclusively by the authenticated Edge judge.
+revoke insert, update, delete, truncate, references, trigger on public.submissions from public, anon, authenticated;
+grant select on public.submissions to authenticated;
+grant all on public.submissions to service_role;
 
 -- Leitura permanece restrita ao dono (e ao admin). Recriada aqui só para o
 -- caso de o nome antigo ter sido removido; o efeito é o mesmo de 0018.
@@ -34,3 +36,10 @@ drop policy if exists "Dono le submissions" on public.submissions;
 drop policy if exists "submissions_read_own" on public.submissions;
 create policy "submissions_read_own" on public.submissions
   for select using (auth.uid() = profile_id or public.is_admin());
+
+-- Remove only the legacy global boundary, if an earlier proposal installed it.
+drop policy if exists ligia_internal_boundary on public.challenges;
+drop policy if exists ligia_internal_boundary on public.submissions;
+revoke all on public.challenges from anon;
+revoke truncate, references, trigger on public.challenges from public, authenticated;
+grant select, insert, update, delete on public.challenges to authenticated;

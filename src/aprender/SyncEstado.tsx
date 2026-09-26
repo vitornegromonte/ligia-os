@@ -1,3 +1,4 @@
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "../services/supabase.js";
@@ -23,12 +24,14 @@ export const SYNC_EVENT = "ligia:sync";
  * Falha de sync nunca quebra a tela: degrada para o dado local intacto.
  */
 export default function SyncEstado() {
+  const { profile } = useAuth() as { profile: { id: string } | null };
+  const userId = profile?.id;
   const rodando = useRef(false);
   /** Retrato do estado local no fim do último sync — base do "mudou algo?". */
   const ultimoSnapshot = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isConfigured()) return;
+    if (!isConfigured() || !userId) return;
     let vivo = true;
 
     async function sincronizarSeLogado() {
@@ -37,11 +40,8 @@ export default function SyncEstado() {
       if (rodando.current) return;
       rodando.current = true;
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user || !vivo) return;
-        const r = await sincronizar(supabase, user.id);
+        if (!vivo || !userId) return;
+        const r = await sincronizar(supabase, userId);
         if (!vivo) return;
         if (r.ok) {
           ultimoSnapshot.current = JSON.stringify(r.estado);
@@ -65,9 +65,6 @@ export default function SyncEstado() {
     }
 
     void sincronizarSeLogado();
-    const { data: sub } = supabase.auth.onAuthStateChange((evento) => {
-      if (evento === "SIGNED_IN") void sincronizarSeLogado();
-    });
     document.addEventListener("visibilitychange", aoEsconder);
     // "Terminar depois" e o fim do nivelamento pedem sync imediato: quem troca
     // de dispositivo logo em seguida precisa encontrar o rascunho lá.
@@ -76,11 +73,10 @@ export default function SyncEstado() {
 
     return () => {
       vivo = false;
-      sub.subscription.unsubscribe();
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener(SYNC_AGORA_EVENT, agora);
     };
-  }, []);
+  }, [userId]);
 
   return null;
 }
