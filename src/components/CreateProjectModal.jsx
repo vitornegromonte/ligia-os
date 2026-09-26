@@ -110,7 +110,7 @@ export default function CreateProjectModal({ open, onClose, onCreated }) {
             </div>
             <div>
               <label htmlFor="project-image" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Imagem de capa (URL)</label>
-              <input id="project-image" name="image_url" type="url" autoComplete="url" inputMode="url" spellCheck={false} placeholder="https://exemplo.com/capa.jpg…" value={image_url} onChange={e => setImageUrl(e.target.value)} placeholder="https://exemplo.com/capa.jpg"
+              <input id="project-image" name="image_url" type="url" autoComplete="url" inputMode="url" spellCheck={false} placeholder="https://exemplo.com/capa.jpg…" value={image_url} onChange={e => setImageUrl(e.target.value)}
                 style={{ width: "100%", height: 42, padding: "0 14px", border: "1px solid var(--line)", borderRadius: 9, outline: "none", color: "var(--text)", background: "var(--surface)" }} />
               {image_url.trim() && (
                 <div style={{ marginTop: 8, borderRadius: 9, overflow: "hidden", border: "1px solid var(--line-soft)", height: 120 }}>

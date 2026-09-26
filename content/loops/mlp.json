@@ -1,0 +1,37 @@
+{
+  "conceptId": "mlp",
+  "orientacao": "Um Perceptron Multicamadas (MLP) empilha camadas de neurônios totalmente conectados, em que cada camada faz uma transformação linear (Wx+b) seguida de uma ativação não-linear. Antes de abrir os ponteiros, tente reconstruir de cabeça por que cada peça está ali — recuperar ativamente, mesmo errando, fixa muito mais que reler. Responda às checagens com suas próprias palavras.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Um MLP (rede feedforward totalmente conectada) organiza neurônios em camadas: entrada, uma ou mais camadas OCULTAS e saída. Cada camada calcula z = Wx + b (transformação afim/linear: multiplica o vetor de entrada pela matriz de pesos W e soma o viés b) e depois aplica uma ativação não-linear σ elemento a elemento (ex.: ReLU σ(z)=max(0,z), sigmoide, tanh). 'Totalmente conectada' = cada neurônio da camada recebe TODAS as saídas da camada anterior. O forward pass é a composição dessas camadas: h1 = σ(W1·x + b1), h2 = σ(W2·h1 + b2), …, e a saída final O = W_L·h_{L-1} + b_L (a última costuma não ter ativação, ou tem softmax/sigmoide conforme a tarefa). Pontos de referência por checagem: (1) Cada camada = transformação linear Wx+b SEGUIDA de uma não-linearidade; 'totalmente conectada' significa que cada neurônio vê todas as ativações anteriores; os parâmetros aprendidos são os W e b de todas as camadas. (2) SEM as não-linearidades o MLP COLAPSA em regressão linear: a composição de transformações afins é, ela mesma, uma transformação afim (W2(W1·x+b1)+b2 = (W2·W1)x + (W2·b1+b2), ou seja, uma única matriz W' e um único viés b'). Por isso, sem σ, ter 5 camadas é equivalente a ter 1 camada linear — a profundidade não acrescenta poder expressivo. São as não-linearidades que dão ao MLP capacidade de modelar relações não-lineares. (3) As camadas ocultas aprendem REPRESENTAÇÕES/features intermediárias: em vez de receber features projetadas à mão, o MLP constrói, camada a camada, transformações cada vez mais úteis da entrada (features aprendidas), e a saída opera sobre essa representação transformada — não sobre os dados crus. (4) Teorema da aproximação universal: um MLP com UMA única camada oculta (e ativação não-linear adequada) pode aproximar qualquer função contínua num conjunto compacto com a precisão que se quiser, DESDE QUE a camada tenha neurônios suficientes. Limite PRÁTICO: o teorema é de existência — não diz como ENCONTRAR esses pesos (não dá algoritmo de treino nem garante que o gradiente descendente os ache), a largura necessária pode crescer de forma absurda (potencialmente exponencial), e 'aproximar bem no treino' não implica GENERALIZAR (risco de overfitting). (5) Largura (neurônios por camada) e profundidade (número de camadas) controlam a capacidade; empiricamente, ir mais FUNDO costuma alcançar a mesma aproximação com MUITO menos neurônios totais do que alargar uma única camada — por isso, na prática, usam-se redes profundas, e não uma só camada gigante. Mais capacidade também aumenta o risco de overfitting. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: backpropagation/gradiente descendente para treinar, ReLU como ativação padrão, vanishing gradients); não afirme fatos fora desta base nem exija fórmulas decoradas.",
+  "checagens": [
+    {
+      "pergunta": "Descreva o que UMA camada de um MLP faz com sua entrada. Quais são as duas operações, e o que significa a camada ser 'totalmente conectada'?",
+      "rubrica": "Boa resposta menciona (1) uma transformação linear/afim Wx+b (multiplicar pela matriz de pesos e somar o viés) SEGUIDA de (2) uma ativação NÃO-LINEAR (σ, ex.: ReLU) aplicada elemento a elemento. 'Totalmente conectada' = cada neurônio da camada recebe todas as saídas da camada anterior. Citar a ordem (linear → ativação) é o núcleo; não precisa da fórmula exata.",
+      "dica": "São dois passos em sequência por camada — um deles 'entorta' a reta."
+    },
+    {
+      "pergunta": "O que aconteceria com um MLP de várias camadas se você REMOVESSE todas as funções de ativação não-lineares? Por quê?",
+      "rubrica": "Boa resposta: o MLP colapsaria em um único modelo LINEAR (equivalente a uma regressão linear), por mais camadas que tivesse. Razão: a composição de transformações afins é ela mesma uma transformação afim — empilhar W's e b's sem não-linearidade equivale a um único W' e b'. Reconhecer 'composição de lineares ainda é linear' (ou que a profundidade deixa de agregar poder) é o ponto central.",
+      "dica": "Componha duas vezes Wx+b sem nada no meio: o que sobra é da mesma forma?"
+    },
+    {
+      "pergunta": "Qual é o papel das camadas OCULTAS? O que elas produzem que a entrada crua não tinha?",
+      "rubrica": "Boa resposta: as camadas ocultas aprendem REPRESENTAÇÕES / features intermediárias da entrada — transformações progressivamente mais úteis que a rede constrói sozinha (em vez de features projetadas à mão). A saída opera sobre essa representação transformada, não sobre os dados crus. Citar 'features aprendidas' ou 'representações intermediárias' é o esperado.",
+      "dica": "Pense no que a rede 'inventa' entre a entrada e a saída — e quem decide isso."
+    },
+    {
+      "pergunta": "O teorema da aproximação universal diz que um MLP com uma única camada oculta pode aproximar qualquer função contínua. Por que, então, não basta usar uma camada e pronto? Cite ao menos um limite PRÁTICO.",
+      "rubrica": "Boa resposta reconhece que o teorema é de EXISTÊNCIA e cita pelo menos um limite prático: (a) não diz COMO achar os pesos (não dá algoritmo de treino / não garante que o gradiente os encontre); (b) a largura necessária pode explodir (potencialmente exponencial); (c) aproximar no treino não garante GENERALIZAR (overfitting). Reconhecer 'existe, mas não é construtivo/treinável/eficiente' é o núcleo.",
+      "dica": "'Poder existir' é diferente de 'conseguir treinar com tamanho razoável e generalizar'."
+    },
+    {
+      "pergunta": "Largura (neurônios por camada) e profundidade (número de camadas) aumentam a capacidade do MLP. Por que, na prática, costuma-se ir mais FUNDO em vez de só alargar uma única camada?",
+      "rubrica": "Boa resposta: empiricamente, redes mais profundas atingem a mesma capacidade de aproximação com MUITO menos neurônios totais (e parâmetros) do que alargar uma só camada — profundidade é mais eficiente em representar funções complexas, compondo features. Mencionar também que capacidade demais (largura ou profundidade) aumenta o risco de overfitting é um plus. O ponto central é a eficiência da profundidade vs. largura.",
+      "dica": "Compare o CUSTO (nº de neurônios) de chegar à mesma aproximação por uma via ou outra."
+    }
+  ],
+  "ponteiros": [
+    "Karpathy — Neural Networks: Zero to Hero (do micrograd, que constrói autograd e backprop do zero, até makemore, onde um MLP de fato é montado e treinado caractere a caractere): https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+    "Dive into Deep Learning (d2l.ai), cap. Multilayer Perceptrons — afim + ativação, por que a não-linearidade é necessária e aproximação universal",
+    "Aula da LigIA: Perceptron Multicamadas (MLP) (botão “Ver aula” no painel da trilha)"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "conceptId": "regressao-linear",
+  "orientacao": "Regressão linear modela uma saída contínua como uma combinação linear das features, ajustando coeficientes que minimizam o erro. Antes de ver a fórmula, tente responder às checagens do seu jeito — recuperar ativamente fixa muito mais que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Regressão linear ajusta ŷ = β0 + β1·x1 + … + βp·xp minimizando o erro quadrático (mínimos quadrados / MSE). Pontos de referência por checagem: (1) Prevê um alvo CONTÍNUO; o que se ajusta são os coeficientes βj (pesos) e o intercepto β0 — não os dados. (2) Avaliar no treino subestima o erro porque o modelo já viu esses pontos (otimismo/overfitting); separa-se treino/teste e o teste estima a generalização para dados NÃO vistos. (3) Minimiza a soma/média dos quadrados dos resíduos (MSE); o quadrado evita o cancelamento de erros de sinais opostos e penaliza mais erros grandes, além de ser diferenciável e levar à solução de mínimos quadrados. (4) Coeficiente ≈0 indica efeito LINEAR fraco sobre o alvo DADAS as demais features; antes de descartar a feature, considere: relação não-linear, colinearidade com outra feature, efeito da escala/normalização na magnitude do coeficiente, e que significância estatística ≠ magnitude. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Em uma frase: o que a regressão linear tenta prever, e o que ela ajusta para conseguir isso?",
+      "rubrica": "Boa resposta menciona (1) prever uma variável-alvo CONTÍNUA (numérica) e (2) ajustar os coeficientes/pesos (e o intercepto) de uma combinação linear das features. Não precisa citar a fórmula fechada.",
+      "dica": "Pense no que é a 'saída' e no que o modelo 'mexe' durante o treino."
+    },
+    {
+      "pergunta": "Por que avaliar o modelo nos mesmos dados em que ele foi ajustado superestima o desempenho?",
+      "rubrica": "Boa resposta liga à generalização: nos dados de treino o modelo já viu os pontos, então o erro lá subestima o erro em dados NOVOS; por isso medimos em um conjunto de teste separado, que expõe overfitting. Citar 'generalização' ou 'dados não vistos' é o núcleo.",
+      "dica": "O objetivo é prever bem o que o modelo ainda NÃO viu."
+    },
+    {
+      "pergunta": "O que a regressão minimiza para escolher os coeficientes, e por que elevar o erro ao quadrado em vez de somar o erro com sinal?",
+      "rubrica": "Boa resposta: minimiza a soma/média dos erros ao QUADRADO (MSE / mínimos quadrados). O quadrado evita que erros positivos e negativos se cancelem e penaliza mais os erros grandes. Citar 'MSE' ou 'mínimos quadrados' é o esperado.",
+      "dica": "Pense num ponto que erra para cima e outro que erra para baixo, na mesma medida: o que aconteceria com o total se você apenas somasse os erros com sinal?"
+    },
+    {
+      "pergunta": "O coeficiente de uma feature deu ≈0. O que isso sugere — e que cuidado tomar antes de concluir 'essa feature não importa'?",
+      "rubrica": "Boa resposta: coeficiente ~0 sugere pouca relação LINEAR com o alvo, DADAS as outras features. Cuidados: a relação pode ser não-linear; a feature pode estar correlacionada com outra (colinearidade); a escala/normalização afeta a magnitude do coeficiente. Reconhecer ao menos um cuidado é o ponto.",
+      "dica": "O coeficiente mede efeito linear 'controlando' as demais — e a escala importa."
+    }
+  ],
+  "ponteiros": [
+    "ISL (An Introduction to Statistical Learning), cap. 3 — Linear Regression",
+    "Andrew Ng / Machine Learning — semana de regressão linear e gradiente descendente",
+    "Aula da LigIA: Regressão Linear (botão “Ver aula” no painel da trilha)"
+  ]
+}

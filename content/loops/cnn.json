@@ -1,0 +1,37 @@
+{
+  "conceptId": "cnn",
+  "orientacao": "Redes convolucionais trocam a conexão total das camadas densas por filtros pequenos que deslizam pela imagem, reaproveitando os mesmos pesos em toda parte. Antes de abrir o material, tente reconstruir de memória POR QUE isso faz sentido para imagens — recuperar ativamente, mesmo errando, fixa muito mais que reler. Responda às checagens com suas palavras antes de conferir.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Uma CNN substitui a conectividade total por convoluções: um filtro (kernel) pequeno conecta-se apenas a uma região LOCAL da entrada (campo receptivo) e o MESMO conjunto de pesos desliza por toda a imagem (compartilhamento de pesos / parameter sharing). Isso traz duas consequências centrais: (a) muito menos parâmetros — ex.: na 1ª camada da AlexNet, com compartilhamento são ~34.848 pesos (96 filtros × 11×11×3), contra ~105M sem compartilhamento; num exemplo CIFAR, um neurônio com campo receptivo 5×5×3 usa 75 pesos vs 3.072 de uma camada densa sobre a mesma entrada; (b) equivariância a translação — se a entrada se desloca, a saída se desloca junto, pois o mesmo detector é aplicado em toda posição (um detector de borda útil numa posição é útil em qualquer outra). Pontos de referência por checagem: (1) Local + compartilhamento de pesos: o filtro vê só uma vizinhança e reusa os mesmos pesos em todas as posições; isso reduz drasticamente os parâmetros E embute a hipótese de que features úteis num ponto são úteis em outros. (2) Comparação com camada densa: a densa liga cada pixel a cada neurônio (parâmetros explodem com a resolução e ignoram a estrutura espacial); a convolucional é local + compartilhada (poucos parâmetros, respeita vizinhança 2D). (3) Filtros/feature maps: cada filtro é aprendido (via backprop) e detecta um padrão; ao deslizar, produz um mapa de ativação 2D (feature map) que marca ONDE aquele padrão aparece; empilham-se vários filtros (profundidade do volume de saída). (4) Equivariância vs. invariância: a CONVOLUÇÃO é equivariante a translação (objeto move → ativação move junto); o POOLING (ex.: max-pooling 2×2, stride 2) subamostra, reduz a dimensão espacial e dá alguma INVARIÂNCIA local a translação (pequenos deslocamentos não mudam muito a saída); distinção fina mas importante. (5) Hierarquia: camadas iniciais aprendem features de baixo nível (bordas, manchas de cor); camadas mais profundas combinam-nas em texturas, padrões (ex.: favo/roda), partes e, no topo, objetos — o campo receptivo efetivo cresce com a profundidade. Pooling com 2×2 stride 2 descarta ~75% das ativações. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: padding, stride, canais, ReLU entre convoluções); não afirme fatos fora desta base e não confunda equivariância com invariância.",
+  "checagens": [
+    {
+      "pergunta": "Em uma camada convolucional, o que significa o filtro ter campo receptivo LOCAL e ainda COMPARTILHAR pesos ao deslizar pela imagem? Cite as duas consequências principais disso.",
+      "rubrica": "Boa resposta: (1) local = cada saída olha só uma pequena vizinhança da entrada (não a imagem inteira); (2) compartilhamento = o MESMO conjunto de pesos (o filtro) é aplicado em todas as posições ao deslizar. Consequências: muito MENOS parâmetros que uma camada densa E equivariância a translação (o mesmo detector funciona em qualquer posição). Citar ao menos as duas consequências é o núcleo.",
+      "dica": "Pense no que o filtro 'enxerga' de cada vez e no que ele reaproveita de uma posição para outra."
+    },
+    {
+      "pergunta": "Por que usar uma camada densa (fully-connected) ligando cada pixel a cada neurônio é uma má ideia para imagens, e como a convolução resolve isso?",
+      "rubrica": "Boa resposta: a densa tem um peso por (pixel × neurônio), então o nº de parâmetros explode com a resolução e ela ignora a estrutura espacial 2D (trata pixels vizinhos e distantes igual). A convolução é local (campo receptivo pequeno) e compartilha pesos, usando pouquíssimos parâmetros e respeitando a vizinhança espacial. Reconhecer 'explosão de parâmetros' + 'estrutura espacial / eficiência' é o esperado.",
+      "dica": "Imagine quantos pesos uma camada densa precisa para uma imagem grande — e que ela não sabe que pixels vizinhos formam algo."
+    },
+    {
+      "pergunta": "O que um filtro aprende, e o que é o mapa de ativação (feature map) que ele produz?",
+      "rubrica": "Boa resposta: o filtro aprende (via treino/backprop) a detectar um PADRÃO/feature (ex.: borda numa orientação, mancha de cor); ao deslizar pela imagem ele gera um mapa de ativação 2D que indica ONDE e quão forte aquele padrão aparece em cada posição. Vários filtros geram vários feature maps (a profundidade do volume de saída). Citar 'detecta um padrão' + 'mapa de onde ele responde' é o ponto.",
+      "dica": "O filtro é o 'detector'; o feature map é o 'mapa de calor' de onde ele encontrou aquilo."
+    },
+    {
+      "pergunta": "Para que serve o POOLING (ex.: max-pooling), e qual a diferença entre a equivariância da convolução e a invariância que o pooling ajuda a dar?",
+      "rubrica": "Boa resposta: pooling subamostra (reduz a dimensão espacial e a computação, ex.: 2×2 stride 2) e dá alguma INVARIÂNCIA local a translação (pequenos deslocamentos quase não mudam a saída). A convolução é EQUIVARIANTE: se o objeto se move, a ativação se move junto (não some). Distinção: equivariância = a saída acompanha o deslocamento; invariância (parcial, via pooling) = a saída tende a NÃO mudar com pequenos deslocamentos. Acertar essa diferença é o foco.",
+      "dica": "Equivariante: mexeu a entrada, a ativação 'anda junto'. Invariante: pequenos deslocamentos não mudam o resultado."
+    },
+    {
+      "pergunta": "Como surge a HIERARQUIA de features ao empilhar camadas, e por que isso casa bem com a estrutura de imagens?",
+      "rubrica": "Boa resposta: camadas iniciais aprendem features simples/de baixo nível (bordas, cores); camadas mais profundas COMBINAM essas em features mais complexas (texturas → partes → objetos), e o campo receptivo efetivo cresce com a profundidade. Casa com imagens porque objetos são composições espaciais de partes, que são composições de bordas/texturas. Reconhecer 'simples → complexo / composição em níveis' é o núcleo.",
+      "dica": "Pense de baixo para cima: bordas formam partes, partes formam objetos — cada camada vê um pedaço maior."
+    }
+  ],
+  "ponteiros": [
+    "Stanford CS231n — Convolutional Networks (notas oficiais: conectividade local, parameter sharing, pooling): https://cs231n.github.io/convolutional-networks/",
+    "fast.ai — CNNs aplicadas (lessons 1-2), abordagem top-down e hands-on: https://course.fast.ai",
+    "Aula da LigIA: Redes Convolucionais (CNN) (botão “Ver aula” no painel da trilha)"
+  ]
+}

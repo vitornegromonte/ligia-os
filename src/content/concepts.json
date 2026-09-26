@@ -1,0 +1,310 @@
+{
+  "$schema_note": "Modelo de dados do briefing-plataforma-futura.md. Cada conceito (não cada aula) é um nó; arestas = pré-requisito. Estado por membro (⚪/🟡/🟢/🔒) vive fora deste JSON (localStorage no MVP). M2–M5 cruzados com os syllabi das fontes — ver skill-tree/curadoria-fontes.md; +batchnorm (Karpathy V4) e +positional-encoding (Alammar) por exigência das fontes.",
+  "version": "0.3.1",
+  "modules": {
+    "M0": "Math Refresher (opcional)",
+    "M1": "ML Clássico",
+    "M2": "DL Básico",
+    "M3": "DL Aplicado",
+    "M4": "Transformers e LLMs",
+    "M5": "Capstone"
+  },
+  "concepts": [
+    {
+      "id": "algebra-linear-basica",
+      "label": "Álgebra Linear Básica",
+      "module": "M0",
+      "prereqs": [],
+      "materials": [
+        { "type": "video", "title": "3B1B — Essence of Linear Algebra", "url": "https://www.youtube.com/@3blue1brown", "duration_min": 180 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "calculo-vetorial",
+      "label": "Cálculo Vetorial",
+      "module": "M0",
+      "prereqs": [],
+      "materials": [
+        { "type": "video", "title": "3B1B — Essence of Calculus", "url": "https://www.youtube.com/@3blue1brown", "duration_min": 150 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "probabilidade-basica",
+      "label": "Probabilidade Básica",
+      "module": "M0",
+      "prereqs": [],
+      "materials": [
+        { "type": "video", "title": "StatQuest — Probabilidade e Estatística", "url": "https://www.youtube.com/@statquest", "duration_min": 120 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "gradiente",
+      "label": "Gradiente e Regra da Cadeia",
+      "module": "M0",
+      "prereqs": ["algebra-linear-basica", "calculo-vetorial"],
+      "materials": [
+        { "type": "video", "title": "3B1B — Gradient descent / chain rule", "url": "https://www.youtube.com/@3blue1brown", "duration_min": 40 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "train-val-test",
+      "label": "Split Treino/Validação/Teste",
+      "module": "M1",
+      "prereqs": ["probabilidade-basica"],
+      "materials": [
+        { "type": "course", "title": "Andrew Ng — ML Specialization Curso 1 (audit free)", "url": "https://www.coursera.org/specializations/machine-learning-introduction", "duration_min": 120 },
+        { "type": "book", "title": "ISL caps. 1-2", "url": "https://www.statlearning.com", "duration_min": 120 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "regressao-linear",
+      "label": "Regressão Linear",
+      "module": "M1",
+      "prereqs": ["algebra-linear-basica", "gradiente"],
+      "materials": [
+        { "type": "course", "title": "Andrew Ng — ML Specialization Curso 1 (audit free)", "url": "https://www.coursera.org/specializations/machine-learning-introduction", "duration_min": 90 },
+        { "type": "book", "title": "ISL cap. 3", "url": "https://www.statlearning.com", "duration_min": 90 }
+      ],
+      "validation": { "type": "project", "rubric": "notebook Iris: regressão linear com split treino/teste + métrica" }
+    },
+    {
+      "id": "regressao-logistica",
+      "label": "Regressão Logística",
+      "module": "M1",
+      "prereqs": ["regressao-linear", "probabilidade-basica"],
+      "materials": [
+        { "type": "course", "title": "Andrew Ng — ML Specialization Curso 1 (audit free)", "url": "https://www.coursera.org/specializations/machine-learning-introduction", "duration_min": 90 },
+        { "type": "book", "title": "ISL cap. 4", "url": "https://www.statlearning.com", "duration_min": 90 }
+      ],
+      "validation": { "type": "project", "rubric": "notebook Iris: regressão logística + acurácia" }
+    },
+    {
+      "id": "knn",
+      "label": "K-Nearest Neighbors",
+      "module": "M1",
+      "prereqs": ["train-val-test"],
+      "materials": [
+        { "type": "doc", "title": "scikit-learn — Iris dataset example", "url": "https://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html", "duration_min": 45 }
+      ],
+      "validation": { "type": "project", "rubric": "KNN no Iris + plot da fronteira de decisão" }
+    },
+    {
+      "id": "overfitting",
+      "label": "Overfitting",
+      "module": "M1",
+      "prereqs": ["train-val-test", "knn"],
+      "materials": [
+        { "type": "book", "title": "ISL cap. 2 (bias-variance)", "url": "https://www.statlearning.com", "duration_min": 60 }
+      ],
+      "validation": { "type": "report", "rubric": "2-page report explicando overfitting visto no KNN com k=1" }
+    },
+    {
+      "id": "regularizacao",
+      "label": "Regularização (L2)",
+      "module": "M1",
+      "prereqs": ["overfitting", "regressao-linear"],
+      "materials": [
+        { "type": "course", "title": "Andrew Ng — ML Specialization Curso 1 (regularization)", "url": "https://www.coursera.org/specializations/machine-learning-introduction", "duration_min": 45 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "loss-functions",
+      "label": "Funções de Perda",
+      "module": "M2",
+      "prereqs": ["regressao-logistica"],
+      "materials": [
+        { "type": "video", "title": "3B1B — Neural Networks (cost function)", "url": "https://www.youtube.com/@3blue1brown", "duration_min": 30 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "ativacoes",
+      "label": "Funções de Ativação",
+      "module": "M2",
+      "prereqs": ["regressao-logistica"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — Zero to Hero (makemore)", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 60 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "gradient-descent",
+      "label": "Gradiente Descendente",
+      "module": "M2",
+      "prereqs": ["gradiente", "loss-functions"],
+      "materials": [
+        { "type": "video", "title": "3B1B — Gradient descent, how NNs learn (Neural Networks cap. 2)", "url": "https://www.youtube.com/@3blue1brown", "duration_min": 30 },
+        { "type": "course", "title": "Andrew Ng — ML Specialization C1 (gradient descent)", "url": "https://www.coursera.org/specializations/machine-learning-introduction", "duration_min": 45 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "mlp",
+      "label": "Perceptron Multicamadas (MLP)",
+      "module": "M2",
+      "prereqs": ["ativacoes", "regressao-logistica"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — Zero to Hero (micrograd → makemore MLP)", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 120 }
+      ],
+      "validation": { "type": "project", "rubric": "MLP no MNIST atingindo ≥95% de acurácia" }
+    },
+    {
+      "id": "backprop",
+      "label": "Backpropagation",
+      "module": "M2",
+      "prereqs": ["mlp", "gradient-descent"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — The spelled-out intro to backpropagation (micrograd)", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 150 }
+      ],
+      "validation": { "type": "project", "rubric": "implementar mini-framework estilo micrograd (forward + backward)" }
+    },
+    {
+      "id": "batchnorm",
+      "label": "Batch Normalization",
+      "module": "M2",
+      "prereqs": ["backprop"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — makemore Part 3: Activations & Gradients, BatchNorm", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 115 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "pytorch",
+      "label": "PyTorch básico",
+      "module": "M3",
+      "prereqs": ["backprop"],
+      "materials": [
+        { "type": "doc", "title": "PyTorch — Learn the Basics", "url": "https://pytorch.org/tutorials/", "duration_min": 90 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "dataloaders",
+      "label": "Datasets e DataLoaders",
+      "module": "M3",
+      "prereqs": ["pytorch"],
+      "materials": [
+        { "type": "doc", "title": "PyTorch — Datasets & DataLoaders", "url": "https://pytorch.org/tutorials/beginner/basics/data_tutorial.html", "duration_min": 45 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "cnn",
+      "label": "Redes Convolucionais (CNN)",
+      "module": "M3",
+      "prereqs": ["backprop", "pytorch"],
+      "materials": [
+        { "type": "doc", "title": "Stanford CS231n — Convolutional Networks (internals)", "url": "https://cs231n.github.io/convolutional-networks/", "duration_min": 120 },
+        { "type": "course", "title": "fast.ai — CNNs aplicadas (lessons 1-2)", "url": "https://course.fast.ai", "duration_min": 90 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "transfer-learning",
+      "label": "Transfer Learning",
+      "module": "M3",
+      "prereqs": ["cnn"],
+      "materials": [
+        { "type": "doc", "title": "PyTorch — Transfer Learning tutorial", "url": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html", "duration_min": 60 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "fine-tuning",
+      "label": "Fine-tuning",
+      "module": "M3",
+      "prereqs": ["transfer-learning", "dataloaders"],
+      "materials": [
+        { "type": "course", "title": "fast.ai — fine-tuning de modelos pré-treinados", "url": "https://course.fast.ai", "duration_min": 90 }
+      ],
+      "validation": { "type": "project", "rubric": "classificar CIFAR-10 com ResNet pré-treinado + análise de ≥10 erros" }
+    },
+    {
+      "id": "tokenizacao",
+      "label": "Tokenização",
+      "module": "M4",
+      "prereqs": ["pytorch"],
+      "materials": [
+        { "type": "course", "title": "HuggingFace — LLM Course (cap. 1-2)", "url": "https://huggingface.co/learn/llm-course", "duration_min": 60 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "embeddings",
+      "label": "Embeddings",
+      "module": "M4",
+      "prereqs": ["tokenizacao", "mlp"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — makemore Part 2 (tabela de embeddings)", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 40 },
+        { "type": "doc", "title": "Jay Alammar — The Illustrated Word2vec (embeddings semânticos)", "url": "https://jalammar.github.io/illustrated-word2vec/", "duration_min": 40 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "atencao",
+      "label": "Mecanismo de Atenção",
+      "module": "M4",
+      "prereqs": ["embeddings"],
+      "materials": [
+        { "type": "doc", "title": "Jay Alammar — The Illustrated Transformer", "url": "http://jalammar.github.io/illustrated-transformer/", "duration_min": 60 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "multi-head-attention",
+      "label": "Multi-Head Attention",
+      "module": "M4",
+      "prereqs": ["atencao"],
+      "materials": [
+        { "type": "doc", "title": "Jay Alammar — The Illustrated Transformer (multi-head)", "url": "http://jalammar.github.io/illustrated-transformer/", "duration_min": 40 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "positional-encoding",
+      "label": "Positional Encoding",
+      "module": "M4",
+      "prereqs": ["embeddings"],
+      "materials": [
+        { "type": "doc", "title": "Jay Alammar — The Illustrated Transformer (positional encoding)", "url": "http://jalammar.github.io/illustrated-transformer/", "duration_min": 30 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "transformer",
+      "label": "Arquitetura Transformer",
+      "module": "M4",
+      "prereqs": ["multi-head-attention", "positional-encoding"],
+      "materials": [
+        { "type": "video", "title": "Karpathy — Let's build GPT (nanoGPT)", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ", "duration_min": 120 }
+      ],
+      "validation": { "type": "quiz", "questions": 5, "passing": 4 }
+    },
+    {
+      "id": "geracao-de-texto",
+      "label": "Geração de Texto",
+      "module": "M4",
+      "prereqs": ["transformer"],
+      "materials": [
+        { "type": "course", "title": "HuggingFace — LLM Course (cap. 3)", "url": "https://huggingface.co/learn/llm-course", "duration_min": 90 }
+      ],
+      "validation": { "type": "project", "rubric": "treinar nanoGPT em corpus PT-BR pequeno + análise de attention heads" }
+    },
+    {
+      "id": "projeto-final",
+      "label": "Projeto Final (Capstone)",
+      "module": "M5",
+      "prereqs": ["fine-tuning", "geracao-de-texto", "regularizacao"],
+      "materials": [
+        { "type": "doc", "title": "Catálogo de recursos LigIA (escolha livre por tema)", "url": "https://www.statlearning.com", "duration_min": 0 }
+      ],
+      "validation": { "type": "project", "rubric": "repo reprodutível + paper 1pg estilo workshop + apresentação ~15min na Ágora; peer review 2/2" }
+    }
+  ]
+}

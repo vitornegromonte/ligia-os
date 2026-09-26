@@ -1,0 +1,37 @@
+{
+  "conceptId": "backprop",
+  "orientacao": "Backpropagation é o algoritmo que calcula com eficiência os gradientes da perda em relação a cada parâmetro da rede, aplicando a regra da cadeia de trás pra frente sobre o grafo de computação. Antes de reabrir o vídeo, tente responder às checagens do seu jeito — recuperar ativamente o passo-a-passo fixa muito mais que reassistir.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Backpropagation = forma EFICIENTE de calcular o gradiente da função de perda em relação a TODOS os parâmetros (pesos e vieses) de uma rede; é uma aplicação da regra da cadeia percorrida de TRÁS PRA FRENTE no grafo de computação (é, formalmente, modo reverso de diferenciação automática). Fluxo em dois passos: (1) FORWARD pass — propaga a entrada pelo grafo, calcula a saída da rede e, ao final, a perda (loss); valores intermediários ficam guardados. (2) BACKWARD pass — começa na perda e propaga gradientes em direção às entradas; em cada nó/operação combina-se o gradiente que chega de cima (do nó seguinte) com o gradiente LOCAL daquela operação (derivada da saída do nó em relação às suas entradas), multiplicando-os — isso é a regra da cadeia. Pontos de referência por checagem: (1) Backprop CALCULA/FORNECE os gradientes (∂Loss/∂param); NÃO atualiza os parâmetros — quem dá o passo e atualiza os pesos é o otimizador (gradiente descendente: param ← param − η·grad). Backprop é o 'provedor de informação', o GD é a 'ação'. (2) A eficiência vem de REAPROVEITAR gradientes intermediários: ao ir de trás pra frente, o gradiente acumulado até cada nó é calculado UMA vez e reusado por tudo que está atrás dele, em vez de refazer a cadeia desde a perda para cada parâmetro do zero — por isso o custo do backward é da mesma ordem do forward (≈ proporcional ao tamanho da rede), e não explode com o número de parâmetros. É isso que torna o treino de redes PROFUNDAS (milhões/bilhões de parâmetros) viável. (3) Regra da cadeia aplicada de trás pra frente: o gradiente em relação a um parâmetro lá no começo da rede é o PRODUTO dos gradientes locais ao longo do caminho da perda até ele; cada nó precisa apenas saber calcular sua saída e seu gradiente local (processo 'local'). (4) Precisa-se dos valores do forward (ativações intermediárias) guardados para calcular os gradientes locais no backward — por isso forward vem ANTES e seus resultados são armazenados. (5) Backprop fornece os gradientes; o otimizador escolhe o tamanho/forma do passo (learning rate, momentum etc.). Backprop em si não tem learning rate. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: gradientes que somem/explodem ao multiplicar muitos fatores em redes profundas); não afirme fatos fora desta base nem invente fórmulas específicas que o aluno não precise.",
+  "checagens": [
+    {
+      "pergunta": "Em uma frase: o que backpropagation produz durante o treino — e, depois que ele roda, os pesos da rede já saíram atualizados?",
+      "rubrica": "Boa resposta: backprop CALCULA/FORNECE os gradientes da perda em relação a cada parâmetro (pesos e vieses); NÃO atualiza os parâmetros — quem dá o passo e atualiza os pesos é o otimizador / gradiente descendente. Reconhecer a separação 'backprop fornece os gradientes, o otimizador usa' é o núcleo.",
+      "dica": "Backprop responde 'quanto cada peso influencia a perda'. Calcular essa informação é a mesma coisa que dar o passo que muda o peso?"
+    },
+    {
+      "pergunta": "Descreva os dois passos do treino de uma rede ao processar um lote: o que acontece no forward pass e o que acontece no backward pass?",
+      "rubrica": "Boa resposta: (1) FORWARD — propaga a entrada pela rede, calcula a saída e, no fim, a perda (loss). (2) BACKWARD — começa na perda e propaga os gradientes de trás pra frente até as entradas/parâmetros, aplicando a regra da cadeia. Citar a ordem (forward → backward) e que o backward parte da perda é o esperado.",
+      "dica": "Primeiro a rede 'chuta' uma saída e mede o erro; depois ela descobre de quem é a culpa, indo de trás pra frente."
+    },
+    {
+      "pergunta": "Qual regra do cálculo backprop aplica, e por que ele percorre o grafo de TRÁS PRA FRENTE (da perda para as entradas) em vez de da frente pra trás?",
+      "rubrica": "Boa resposta: aplica a REGRA DA CADEIA — o gradiente em relação a um parâmetro é o produto dos gradientes locais ao longo do caminho da perda até ele. Ir de trás pra frente (a partir da perda, que é uma saída escalar) permite calcular o gradiente acumulado uma vez por nó e propagá-lo; ir da frente pra trás obrigaria a refazer trabalho. Citar 'regra da cadeia' é obrigatório.",
+      "dica": "A perda é um único número no fim do grafo. Começar dela e descer a cadeia evita recomeçar o cálculo para cada peso."
+    },
+    {
+      "pergunta": "Por que backprop é EFICIENTE? O que ele reaproveita, em contraste com calcular a derivada de cada parâmetro do zero?",
+      "rubrica": "Boa resposta: ele REAPROVEITA os gradientes intermediários — o gradiente acumulado até cada nó é calculado uma vez e reusado por tudo que vem antes dele, em vez de refazer a cadeia inteira (desde a perda) separadamente para cada parâmetro. Resultado: o backward custa da mesma ordem do forward, não explode com o número de parâmetros. Reconhecer o reuso/evitar recomputação é o ponto.",
+      "dica": "Imagine milhões de pesos. Recalcular a cadeia inteira do zero para cada um seria absurdo. O que dá pra guardar e reusar?"
+    },
+    {
+      "pergunta": "Por que backprop é considerado o que tornou viável treinar redes PROFUNDAS (com muitas camadas e milhões de parâmetros)?",
+      "rubrica": "Boa resposta: liga a eficiência (custo do gradiente ≈ proporcional ao tamanho da rede, graças ao reuso) à escala: sem backprop, obter os gradientes de tantos parâmetros seria custoso demais a cada passo de treino. Como ele dá todos os gradientes em uma única passada de trás pra frente, o gradiente descendente consegue atualizar redes enormes iterativamente. Mencionar viabilidade computacional / custo gerenciável em escala é o esperado.",
+      "dica": "Não é que a ideia (regra da cadeia) seja nova — é que fazê-la barata o bastante para milhões de parâmetros é o que destrava o resto."
+    }
+  ],
+  "ponteiros": [
+    "Andrej Karpathy — The spelled-out intro to neural networks and backpropagation: building micrograd (vídeo, ~2h30): https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+    "micrograd (repo de Karpathy) — autograd engine de ~100 linhas: construa um nó Value, chame .backward() e veja a regra da cadeia propagando gradientes pelo grafo",
+    "Aula da LigIA: Backpropagation (botão “Ver aula” no painel da trilha)"
+  ]
+}

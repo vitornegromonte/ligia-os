@@ -1,0 +1,37 @@
+{
+  "conceptId": "fine-tuning",
+  "orientacao": "Fine-tuning é descongelar pesos de um modelo pré-treinado e continuar o treino na sua tarefa — diferente de feature extraction, que mantém o backbone congelado e só treina a cabeça nova. Antes de olhar a teoria, tente responder cada checagem com suas palavras; recuperar ativamente o porquê de cada cuidado (taxa baixa, esquecimento, overfitting) fixa muito mais que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Este conceito é o FINE-TUNING propriamente dito, distinto do conceito separado 'Transfer Learning', que cobre a ideia geral e o feature extraction (backbone congelado). Pontos de referência por checagem: (1) Feature extraction vs. fine-tuning: em feature extraction congela-se o backbone pré-treinado e treina-se SÓ a cabeça/classificador novo (as features pré-treinadas viram representações fixas); em fine-tuning DESCONGELA-se parte (ou todo) o backbone e CONTINUA-SE o treino, atualizando também os pesos pré-treinados para adaptá-los à nova tarefa. Fine-tuning é mais poderoso/flexível mas exige mais dados e mais cuidado. (2) Por que learning rate BAIXA no fine-tuning: os pesos pré-treinados já estão em uma região boa do espaço de parâmetros; um LR alto produz updates grandes que DESTROEM/sobrescrevem as features aprendidas. LR baixa move os pesos só um pouco, preservando o que foi aprendido. (Complementarmente, com a cabeça nova ainda aleatória os gradientes iniciais são grandes — daí também se costumar treinar a cabeça primeiro, com o backbone congelado, antes de descongelar.) (3) Esquecimento catastrófico (catastrophic forgetting): ao treinar na tarefa nova o modelo pode 'esquecer' as representações úteis aprendidas no pré-treino; com POUCOS dados o risco aumenta (poucos exemplos + muitos parâmetros descongelados → o modelo decora o conjunto pequeno e perde a generalização do backbone). É um caso de OVERFITTING combinado com sobrescrita das features. Mitiga-se com LR baixa, descongelamento gradual, congelar mais camadas, regularização e early stopping. (4) Descongelamento gradual + learning rates discriminativos (abordagem fast.ai): treinar primeiro só a cabeça com o backbone congelado (estabiliza); depois descongelar e usar LRs DISCRIMINATIVOS — camadas iniciais (features gerais: bordas, texturas) recebem LR MENOR, camadas finais (features específicas da tarefa/domínio) recebem LR MAIOR. Em visão costuma-se descongelar tudo de uma vez; em NLP o descongelamento camada-a-camada (gradual unfreezing, das últimas para as primeiras) faz diferença real. Intuição: camadas finais são mais task/domain-specific e precisam de mais ajuste; camadas iniciais são genéricas e quase não devem mudar. (5) Quando fine-tunar vs. congelar (decisão por TAMANHO DOS DADOS × SIMILARIDADE DE DOMÍNIO): poucos dados + domínio parecido → feature extraction / só a cabeça (descongelar tudo com poucos dados causa overfitting). Muitos dados → fine-tuning compensa e tende a render mais acurácia. Domínio MUITO diferente do pré-treino → fine-tuning (idealmente descongelando mais fundo) é necessário porque as features fixas deixam de ser ótimas; com poucos dados E domínio diferente, fine-tunar só as últimas camadas com regularização forte, ciente do alto risco de overfitting. Regra geral: quanto mais dados e/ou mais distante o domínio, mais vale descongelar (e mais fundo). Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Qual é a diferença concreta entre fine-tuning e feature extraction, em termos de QUAIS pesos são treinados?",
+      "rubrica": "Boa resposta: em feature extraction o backbone pré-treinado fica CONGELADO e treina-se só a cabeça/classificador novo (features pré-treinadas como representações fixas); em fine-tuning DESCONGELA-se parte ou todo o backbone e continua-se o treino atualizando TAMBÉM os pesos pré-treinados. O núcleo é reconhecer que fine-tuning mexe nos pesos pré-treinados e feature extraction não.",
+      "dica": "Pense no que está 'congelado' e no que recebe gradiente em cada caso."
+    },
+    {
+      "pergunta": "Por que no fine-tuning se usa uma taxa de aprendizado (learning rate) BAIXA ao descongelar o backbone?",
+      "rubrica": "Boa resposta liga LR à preservação das features: os pesos pré-treinados já estão numa boa região; um LR alto faz updates grandes que destroem/sobrescrevem as features aprendidas. LR baixa ajusta os pesos só um pouco. Citar 'não destruir o que foi aprendido no pré-treino' é o ponto central.",
+      "dica": "Os pesos pré-treinados já 'sabem' coisas úteis — quão violentamente você quer mexer neles?"
+    },
+    {
+      "pergunta": "O que é 'esquecimento catastrófico' e por que ele fica MAIS provável quando você tem poucos dados na tarefa nova?",
+      "rubrica": "Boa resposta: o modelo, ao treinar na tarefa nova, 'esquece'/sobrescreve as representações úteis do pré-treino. Com poucos dados há muitos parâmetros descongelados para pouquíssimos exemplos → overfitting: o modelo decora o conjunto pequeno e perde a generalização do backbone. Reconhecer a ligação com overfitting / poucos exemplos é o núcleo.",
+      "dica": "Muitos parâmetros para descongelar + pouquíssimos exemplos = qual problema clássico de treino?"
+    },
+    {
+      "pergunta": "Na abordagem da fast.ai, por que usar learning rates DISCRIMINATIVOS — camadas iniciais com LR menor e camadas finais com LR maior?",
+      "rubrica": "Boa resposta: camadas iniciais aprendem features GERAIS (bordas, texturas) que quase não precisam mudar → LR menor; camadas finais são mais específicas da tarefa/domínio → precisam de mais ajuste → LR maior. Mencionar 'geral nas primeiras, específico nas últimas' já cobre o essencial. Bônus: descongelamento gradual (treinar a cabeça primeiro, depois descongelar das últimas para as primeiras).",
+      "dica": "Quais camadas aprendem coisas genéricas (úteis em qualquer tarefa) e quais aprendem coisas específicas da SUA tarefa?"
+    },
+    {
+      "pergunta": "Você tem um dataset PEQUENO e muito parecido com o do pré-treino. Fine-tuning completo (descongelar tudo) ou só feature extraction? E se o dataset fosse grande e/ou de um domínio bem diferente?",
+      "rubrica": "Boa resposta: com poucos dados + domínio parecido, preferir feature extraction (ou descongelar só as últimas camadas), pois descongelar tudo com poucos exemplos causa overfitting/esquecimento. Com MUITOS dados o fine-tuning compensa e tende a render mais; com domínio MUITO diferente é preciso fine-tunar (descongelando mais fundo) porque as features fixas deixam de ser ótimas. O ponto é articular o trade-off dados × similaridade de domínio.",
+      "dica": "Mais dados e/ou domínio mais distante puxam para qual lado: congelar mais ou descongelar mais?"
+    }
+  ],
+  "ponteiros": [
+    "fast.ai — Practical Deep Learning for Coders: fine-tuning de modelos pré-treinados, gradual unfreezing e learning rates discriminativos (course.fast.ai)",
+    "ISL / cs231n (Transfer Learning) — quadro de decisão tamanho do dataset × similaridade de domínio para escolher entre congelar e fine-tunar",
+    "Aula da LigIA: Fine-tuning (M3 — DL Aplicado) — botão “Ver aula” no painel da trilha"
+  ]
+}

@@ -1,3 +1,4 @@
+import { setLearningAccount } from "../lib/learning-storage.ts";
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabase.js";
 import { mapProfile } from "../services/profiles.js";
@@ -13,6 +14,7 @@ export function AuthProvider({ children }) {
   const mounted = useRef(false);
 
   const acceptSession = useCallback((session, event) => {
+    setLearningAccount(session?.user?.id ?? null);
     generation.current += 1;
     const revision = generation.current;
     setState(previous => ({

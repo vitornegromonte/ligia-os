@@ -1,0 +1,32 @@
+{
+  "conceptId": "gradiente",
+  "orientacao": "O gradiente empacota todas as derivadas parciais de uma função em um vetor, e a regra da cadeia diz como derivar funções compostas. Juntos, são o que faz uma rede neural aprender. Antes de assistir ao vídeo, tente responder às checagens com suas palavras — recuperar de cabeça fixa muito mais que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Pontos de referência por checagem: (1) GRADIENTE: para f: R^n → R, o gradiente ∇f é o VETOR cujas componentes são as derivadas parciais ∂f/∂x1, …, ∂f/∂xn (uma por variável de entrada). É um vetor (não escalar) e mora no espaço das ENTRADAS. (2) DIREÇÃO/SENTIDO: ∇f aponta na direção de MAIOR CRESCIMENTO de f no ponto; sua magnitude ||∇f|| é a taxa de subida nessa direção (inclinação mais íngreme). O NEGATIVO do gradiente, −∇f, aponta na direção de maior DECRESCIMENTO. Isso é o que conecta gradiente↔otimização: para MINIMIZAR uma loss, damos passos no sentido −∇f (gradiente descendente): x ← x − η·∇f, com η = taxa de aprendizado/step size. Bônus verdadeiro: ∇f é perpendicular às curvas/superfícies de nível de f. (3) REGRA DA CADEIA: derivada de uma composição. Para y = f(g(x)), dy/dx = f'(g(x))·g'(x) — multiplica-se a derivada da função de fora (avaliada no valor de dentro) pela derivada da de dentro. Versão multivariável: somam-se as contribuições por todos os caminhos. A ideia-chave é que a sensibilidade total é o PRODUTO das sensibilidades locais ao longo da cadeia. (4) POR QUE É O MOTOR DA BACKPROP: uma rede neural é uma COMPOSIÇÃO de muitas funções (camada após camada, terminando na loss) — uma função aninhada gigante. Para treinar, precisamos do gradiente da loss em relação a CADA peso. A regra da cadeia permite calcular isso propagando a derivada de TRÁS pra FRENTE (da loss de volta aos pesos), reaproveitando os fatores locais de cada camada em vez de recomputar tudo — é isso que torna o cálculo viável em redes profundas. Backprop = aplicação organizada/eficiente da regra da cadeia para obter os gradientes; o gradiente descendente é o passo que usa esses gradientes para atualizar os pesos. (5) Distinção útil: derivada PARCIAL trata as outras variáveis como constantes e mede o efeito de UMA entrada; o gradiente é o vetor que junta todas elas. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: gradiente de campo escalar, Jacobiano como generalização para saídas vetoriais, problema de vanishing gradients); não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "O gradiente de uma função de várias variáveis: que tipo de objeto matemático ele é (e por quê), e o que ele guarda em relação a cada variável de entrada?",
+      "rubrica": "Boa resposta: o gradiente é um VETOR (não um escalar), com uma componente por variável de entrada, e cada componente é a derivada PARCIAL de f em relação àquela variável. Citar 'vetor das derivadas parciais' é o núcleo. Bônus se notar que vive no espaço das entradas.",
+      "dica": "Quantas derivadas parciais uma função de n variáveis tem? E em que formato o gradiente as apresenta?"
+    },
+    {
+      "pergunta": "Para que direção o gradiente aponta, e por isso, ao MINIMIZAR uma função de perda, em que sentido damos o passo de atualização?",
+      "rubrica": "Boa resposta: ∇f aponta na direção de MAIOR CRESCIMENTO (subida mais íngreme); logo, para minimizar, andamos no sentido OPOSTO, −∇f (gradiente descendente). Mencionar que andamos contra o gradiente / no negativo do gradiente é o ponto. Bônus: citar o passo x ← x − η·∇f e o papel da taxa de aprendizado η.",
+      "dica": "Se o gradiente sobe o morro o mais rápido possível, para descer você vai para onde?"
+    },
+    {
+      "pergunta": "Enuncie a regra da cadeia para y = f(g(x)). Em uma frase, qual é a intuição do que ela faz?",
+      "rubrica": "Boa resposta: dy/dx = f'(g(x))·g'(x) — derivada da função de fora avaliada no valor de dentro, vezes a derivada da de dentro. Intuição aceitável: a sensibilidade total é o PRODUTO das sensibilidades locais ao longo da composição (como taxas que se multiplicam). Acertar a estrutura 'produto de derivadas' é o essencial; a notação exata é bônus.",
+      "dica": "Derivada da de fora (no ponto de dentro) vezes derivada da de dentro."
+    },
+    {
+      "pergunta": "Uma rede neural é uma composição de muitas funções, e a backpropagation é 'a regra da cadeia organizada'. Por que a regra da cadeia é exatamente a ferramenta certa para obter o gradiente da loss em relação a cada peso?",
+      "rubrica": "Boa resposta liga: a rede é uma função COMPOSTA/aninhada (camada após camada até a loss); a regra da cadeia é justamente como se deriva composições, então ela dá ∂loss/∂peso multiplicando as derivadas locais de cada camada ao longo do caminho. Bônus forte: a backprop propaga essas derivadas de TRÁS pra FRENTE (da loss para os pesos) REAPROVEITANDO os fatores locais, o que evita recomputar e torna o cálculo viável em redes profundas. Reconhecer 'composição → regra da cadeia' já é o núcleo.",
+      "dica": "Se cada camada é uma função e você as encaixa uma na outra, que regra deriva esse encaixe?"
+    }
+  ],
+  "ponteiros": [
+    "3Blue1Brown — Gradient descent / chain rule (vídeo, ~40min): https://www.youtube.com/@3blue1brown — a intuição visual de gradiente como direção de subida mais íngreme e de como a regra da cadeia vira backprop.",
+    "3Blue1Brown — série 'Neural networks' (caps. de backpropagation e backpropagation calculus): mostra a regra da cadeia propagando o gradiente da loss camada a camada.",
+    "Aula da LigIA: Gradiente e Regra da Cadeia (botão “Ver aula” no painel da trilha)."
+  ]
+}

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Users, BookOpen, Award, Blocks, Sparkles, ChevronsUpDown, BarChart3, Kanban, House, LogOut, Settings,
-  Sun, CalendarDays, StickyNote, Globe, Code2
+  Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints, ClipboardList
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { INTERNAL_ROLES, ROLES, homeFor } from "../auth/access.js";
@@ -39,10 +39,21 @@ const navGroups = [
     ]
   },
   {
+    // Sem `roles`: a área de aprendizado é aberta a todos os papéis.
     label: "Aprender",
-    roles: INTERNAL_ROLES,
     items: [
-      { to: "/pratica", icon: Code2, label: "Prática Torch" },
+      {
+        to: "/aprender",
+        icon: Waypoints,
+        label: "Trilha",
+        // NavLink casa por prefixo, então /aprender/codar acenderia este
+        // item também. A prática de código é um irmão, não um filho.
+        ativoSe: (p) =>
+          p.startsWith("/aprender") && !p.startsWith("/aprender/codar") && !p.startsWith("/aprender/itens"),
+      },
+      { to: "/aprender/codar", icon: Code2, label: "Prática Torch" },
+      // O grupo é aberto a todos; só este item é de staff.
+      { to: "/aprender/itens", icon: ClipboardList, label: "Análise do nivelamento", roles: ["admin"] },
     ]
   },
   {
@@ -55,31 +66,15 @@ const navGroups = [
 
 export default function Sidebar({ open, onClose }) {
   const { profile, signOut } = useAuth();
+  const { pathname } = useLocation();
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   return (
     <>
       {profileEditOpen && <ProfileEdit open onClose={() => setProfileEditOpen(false)} />}
-      {open && <div className="mobile-overlay" onClick={onClose} style={{
-        position: "fixed", inset: 0, zIndex: 35,
-        background: "rgba(0,0,0,.55)",
-        overscrollBehavior: "contain"
-      }} />}
-      <aside aria-label="Navegação principal" className="sidebar" data-open={open} style={{
-        position: "fixed", inset: "0 auto 0 0", zIndex: 40,
-        width: "var(--sidebar-width)", display: "flex",
-        flexDirection: "column",
-        borderRight: "1px solid var(--line-soft)",
-        background: "rgba(20,18,14,.92)",
-        backdropFilter: "blur(18px)",
-        overscrollBehavior: "contain",
-        transform: open ? "translateX(0)" : undefined,
-        transition: "transform .25s ease"
-      }}>
+      {open && <div className="mobile-overlay" onClick={onClose} />}
+      <aside aria-label="Navegação principal" className={`sidebar${open ? " is-open" : ""}`}>
         <div className="gradient-bar" style={{ width: "100%", height: 2, flex: "0 0 auto" }} />
-        <NavLink to={homeFor(profile)} className="brand" style={{
-          display: "flex", alignItems: "center", gap: 12,
-          height: 78, padding: "0 22px", textDecoration: "none", color: "inherit"
-        }}>
+        <NavLink to={homeFor(profile)} className="brand">
           <img src="/media/logo.svg" alt="Ligia" width="32" height="32"
             style={{ height: 32, width: "auto", flex: "0 0 auto" }} />
           <div style={{
@@ -90,23 +85,14 @@ export default function Sidebar({ open, onClose }) {
 
         {navGroups.filter(g => !g.roles || g.roles.includes(profile?.role)).map(group => (
           <div key={group.label}>
-            <div className="nav-label" style={{
-              padding: "12px 22px 7px", color: "var(--muted-2)",
-              fontSize: 10, fontWeight: 700, letterSpacing: ".12em",
-              textTransform: "uppercase", fontFamily: "var(--font-body)"
-            }}>{group.label}</div>
-            <nav className="nav" style={{ padding: "0 10px" }}>
-              {group.items.map(item => (
+            <div className="nav-label">{group.label}</div>
+            <nav className="nav">
+              {group.items.filter(item => !item.roles || item.roles.includes(profile?.role)).map(item => (
                 <NavLink key={item.to} to={item.to} end={item.to === "/"}
                   onClick={onClose}
-                  className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: 11,
-                    margin: "2px 0", padding: "10px 12px", border: 0,
-                    borderRadius: 9, background: "transparent", cursor: "pointer",
-                    textAlign: "left", fontFamily: "var(--font-body)",
-                    textDecoration: "none", color: "var(--muted)",
-                    transition: "color var(--transition), background var(--transition)"
+                  className={({ isActive }) => {
+                    const ativo = item.ativoSe ? item.ativoSe(pathname) : isActive;
+                    return `nav-item${ativo ? " active" : ""}`;
                   }}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
                   {item.to === "/membros" && profile.role === "admin" ? "Gestão de membros" : item.label}

@@ -304,7 +304,8 @@
     "function_name": "MultiHeadAttention",
     "hint": "Use nn.Linear for Q/K/V/O projections. d_k = d_model // num_heads. Reshape to (B, heads, S, d_k), SDPA per head, concat, output projection.",
     "tests_count": 6,
-    "description": ""
+    "description": "# 🔴 Hard: Multi-Head Attention\n\nImplement **multi-head attention** — o bloco que o Transformer usa para olhar a sequência por vários \"ângulos\" ao mesmo tempo.\n\nEm vez de uma única atenção sobre $d_{model}$ dimensões, projete $Q$, $K$ e $V$ e divida em `num_heads` cabeças de tamanho $d_k = d_{model} / \\text{num\\_heads}$. Cada cabeça faz atenção por conta própria; os resultados são concatenados e passam por uma projeção final.\n\n$$\\text{head}_i = \\text{softmax}\\!\\left(\\frac{Q W^Q_i (K W^K_i)^\\top}{\\sqrt{d_k}}\\right) V W^V_i$$\n\n$$\\text{MHA}(Q,K,V) = \\text{Concat}(\\text{head}_1, \\dots, \\text{head}_h)\\, W^O$$\n\n### Signature\n```python\nclass MultiHeadAttention(nn.Module):\n    def __init__(self, d_model, num_heads):\n        ...\n    def forward(self, x):\n        # x: (batch, seq, d_model) → saída: (batch, seq, d_model)\n```\n\n### Rules\n- Do **NOT** use `F.scaled_dot_product_attention` nem `nn.MultiheadAttention`\n- Use `nn.Linear` para as projeções de Q, K, V e para a saída\n- $d_{model}$ é divisível por `num_heads`\n- Reshape para `(batch, num_heads, seq, d_k)` antes da atenção, e volte a `(batch, seq, d_model)` depois\n",
+    "initial_code": "import torch\nimport torch.nn as nn\nimport torch.nn.functional as F\nimport math\n\n# ✏️ YOUR IMPLEMENTATION HERE\n\nclass MultiHeadAttention(nn.Module):\n    def __init__(self, d_model, num_heads):\n        pass  # store d_model/num_heads, d_k, and the Q/K/V/O projections\n\n    def forward(self, x):\n        pass  # project, split into heads, attend per head, concat, project out\n"
   },
   {
     "id": "mlp",

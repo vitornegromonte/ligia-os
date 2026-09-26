@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    /* O código do ligia-os é .jsx e continua assim: é compilado, mas NÃO
+       type-checked. `strict` vale só para o que escrevemos em .ts/.tsx. */
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Permite import com extensão .ts explícita — é o que faz os módulos de
+       supabase/functions/_shared/ serem importáveis pelo Deno E pelo Vitest. */
+    "allowImportingTsExtensions": true,
+
+    "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  },
+  "include": ["src", "test", "e2e", "scripts"],
+  // test/_fase3: parqueados até os componentes chegarem.
+  // supabase/functions: runtime Deno (jsr:, Deno.serve, import attributes).
+  // Os módulos de _shared que os testes importam seguem checados por
+  // transitividade — `exclude` não vale para arquivo alcançado por import.
+  "exclude": ["test/_fase3", "supabase/functions"]
+}

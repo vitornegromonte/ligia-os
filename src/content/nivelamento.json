@@ -1,0 +1,2263 @@
+{
+  "version": "10",
+  "note": "Banco do nivelamento v2. Etapa 1: 20 MCQ que pontuam a matriz de competências (4 por competência, dificuldades {1,2,2,3}). Etapa 2: mais 4 por competência, com as mesmas dificuldades, só para quem pede para confirmar a dispensa de um módulo; a decisão usa a nota acumulada das 8. O auto-relato calibra o prior e a mensagem, nunca a dispensa. Cada questão tem uma variante em `variantes` (mesma competência, etapa, dificuldade e conceitos); a prova sorteia uma forma por questão, preferindo a que o aluno viu há mais tempo. Toda forma tem 'Não sei' na última posição. Questão fora de uso ganha `aposentada: true` em vez de ser apagada: um id nunca muda de significado.",
+  "auto_relato": [
+    {
+      "id": "ar1",
+      "tipo": "multi",
+      "pergunta": "Quais destes assuntos você já estudou?",
+      "opcoes": [
+        { "texto": "Álgebra linear: vetores e matrizes", "competencia": "matematica" },
+        { "texto": "Cálculo: derivadas e gradiente", "competencia": "matematica" },
+        { "texto": "Probabilidade e estatística", "competencia": "matematica" },
+        { "texto": "Regressão e classificação (linear, logística, k-NN)", "competencia": "ml-classico" },
+        { "texto": "Overfitting e regularização", "competencia": "ml-classico" },
+        { "texto": "Redes neurais: backpropagation e ativações", "competencia": "dl-fundamentos" },
+        { "texto": "Treino em PyTorch: CNNs, transfer learning", "competencia": "dl-aplicado" },
+        { "texto": "Transformers, atenção e LLMs", "competencia": "transformers-llms" },
+        { "texto": "Nenhum destes", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar2",
+      "tipo": "multi",
+      "pergunta": "Linguagens que você domina?",
+      "opcoes": [
+        "Python",
+        "C / C++",
+        "Java",
+        "R",
+        { "texto": "Outra", "outro": true },
+        { "texto": "Nenhuma destas", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar3",
+      "tipo": "multi",
+      "pergunta": "Frameworks de ML/DL que já usou?",
+      "opcoes": [
+        "PyTorch",
+        "TensorFlow / Keras",
+        "scikit-learn",
+        "HuggingFace",
+        { "texto": "Outro", "outro": true },
+        { "texto": "Nenhum destes", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar4",
+      "tipo": "multi",
+      "maxEscolhas": 2,
+      "pergunta": "Suas áreas de maior interesse?",
+      "opcoes": [
+        "Visão (CV)",
+        "NLP / LLMs",
+        "RL",
+        "Teoria / Matemática",
+        "MLOps / Engenharia",
+        "Safety / Alinhamento",
+        { "texto": "Outra", "outro": true },
+        { "texto": "Ainda não sei", "exclusiva": true }
+      ]
+    },
+    {
+      "id": "ar5",
+      "tipo": "multi",
+      "pergunta": "Seus objetivos principais na trilha?",
+      "opcoes": [
+        "TCC / pesquisa",
+        "Estágio / mercado",
+        "Curiosidade / base",
+        { "texto": "Outro", "outro": true }
+      ]
+    }
+  ],
+  "mcq": [
+    {
+      "id": "n-matematica-1",
+      "competencia": "matematica",
+      "dificuldade": 1,
+      "conceitos": ["algebra-linear-basica"],
+      "pergunta": "O produto escalar entre dois vetores mede, essencialmente:",
+      "opcoes": [
+        {
+          "texto": "A distância entre as pontas dos dois vetores",
+          "equivoco": "Confunde produto escalar com distância. A distância é o tamanho de $\\mathbf{a} - \\mathbf{b}$; o produto escalar mede alinhamento."
+        },
+        {
+          "texto": "O comprimento do vetor resultante da soma deles",
+          "equivoco": "Confunde com a norma da soma, $\\|\\mathbf{a} + \\mathbf{b}\\|$. O produto escalar é um número que mede o quanto os vetores apontam juntos."
+        },
+        "O quanto um vetor aponta na direção do outro",
+        {
+          "texto": "O ângulo entre eles, em graus",
+          "equivoco": "O ângulo entra na conta, via $\\cos\\theta$, mas o resultado não é o ângulo: depende também do tamanho dos vetores."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "O produto escalar $\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|\\,\\|\\mathbf{b}\\|\\cos\\theta$ cresce quando os vetores apontam para o mesmo lado, zera quando são perpendiculares e fica negativo quando apontam em sentidos opostos. Distância e ângulo em graus são outras contas.",
+      "variantes": [
+        {
+          "id": "n-matematica-1b",
+          "pergunta": "Se o produto escalar entre dois vetores não nulos é zero, esses vetores são:",
+          "opcoes": [
+            {
+              "texto": "Paralelos e de mesmo sentido",
+              "equivoco": "Vetores paralelos de mesmo sentido dão o maior produto escalar possível, não zero ($\\cos 0^\\circ = 1$)."
+            },
+            {
+              "texto": "Iguais",
+              "equivoco": "Um vetor não nulo com ele mesmo dá $\\|\\mathbf{a}\\|^2$, que é positivo, não zero."
+            },
+            "Perpendiculares",
+            {
+              "texto": "De mesmo comprimento",
+              "equivoco": "O comprimento não decide o zero: só o ângulo de $90^\\circ$ zera o produto de vetores não nulos."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "$\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|\\,\\|\\mathbf{b}\\|\\cos\\theta$. Com vetores não nulos, o produto só zera quando $\\cos\\theta = 0$, isto é, quando o ângulo entre eles é $90^\\circ$: os vetores são perpendiculares."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-2",
+      "competencia": "matematica",
+      "dificuldade": 2,
+      "conceitos": ["gradiente", "calculo-vetorial"],
+      "pergunta": "Num ponto de uma função de várias variáveis, o vetor gradiente aponta para:",
+      "opcoes": [
+        {
+          "texto": "O ponto de mínimo mais próximo",
+          "equivoco": "O gradiente é local: diz para onde a função sobe mais rápido neste ponto, sem saber onde fica mínimo algum."
+        },
+        "A direção de maior crescimento da função",
+        {
+          "texto": "A direção em que a função não muda",
+          "equivoco": "A direção em que a função não muda é perpendicular ao gradiente (curva de nível), não o próprio gradiente."
+        },
+        {
+          "texto": "O ponto onde todas as derivadas são zero",
+          "equivoco": "Confunde com ponto crítico. O gradiente é um vetor de direção, não um destino."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "O gradiente reúne as derivadas parciais e aponta para onde a função sobe mais rápido. Por isso a descida de gradiente anda no sentido oposto a ele.",
+      "variantes": [
+        {
+          "id": "n-matematica-2b",
+          "pergunta": "Num ponto de mínimo local de uma função suave, o gradiente é:",
+          "opcoes": [
+            "O vetor nulo",
+            {
+              "texto": "Um vetor que aponta para o mínimo global",
+              "equivoco": "Num mínimo local o gradiente é zero e não tem direção; ele também nunca 'enxerga' o mínimo global."
+            },
+            {
+              "texto": "Um vetor de norma 1",
+              "equivoco": "A norma do gradiente mede a inclinação local; num mínimo ela é 0, não 1."
+            },
+            {
+              "texto": "Indefinido, porque a função para de variar",
+              "equivoco": "A função continua definida e derivável ali; as derivadas só valem zero."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Num mínimo de uma função suave, nenhuma direção faz a função subir à primeira ordem: todas as derivadas parciais valem zero e o gradiente é o vetor nulo. É por isso que a descida de gradiente para ali."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-3",
+      "competencia": "matematica",
+      "dificuldade": 2,
+      "conceitos": ["probabilidade-basica"],
+      "pergunta": "Uma doença atinge 1 em cada 1000 pessoas. Um teste que acerta 99% das vezes deu positivo para alguém. A chance de essa pessoa estar de fato doente é:",
+      "opcoes": [
+        {
+          "texto": "99%, o mesmo acerto do teste",
+          "equivoco": "Ignora a taxa-base: com a doença rara, a maioria dos positivos vem dos 1% de erro entre os saudáveis."
+        },
+        "Bem menor que 99%, porque a doença é rara na população",
+        {
+          "texto": "50%, já que só há dois resultados possíveis",
+          "equivoco": "Ter dois resultados possíveis não os torna igualmente prováveis."
+        },
+        {
+          "texto": "Impossível de estimar sem mais dados clínicos",
+          "equivoco": "Os dados bastam: prevalência e acerto do teste permitem aplicar o teorema de Bayes."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Em 1000 pessoas, cerca de 1 está doente e o teste ainda acusa uns 10 saudáveis (1% de 999). Entre os ~11 positivos, só 1 está doente: a chance fica perto de 9%. É o teorema de Bayes, com a raridade da doença pesando.",
+      "variantes": [
+        {
+          "id": "n-matematica-3b",
+          "pergunta": "Numa caixa de entrada, 1% das mensagens é spam. Um filtro marca 95% dos spams, mas também marca 5% das mensagens normais. Se uma mensagem foi marcada, a chance de ser spam é:",
+          "opcoes": [
+            {
+              "texto": "95%, o acerto do filtro",
+              "equivoco": "Confunde P(marcada | spam) com P(spam | marcada). Com spam raro, os falsos alarmes dominam."
+            },
+            {
+              "texto": "5%, a taxa de erro do filtro",
+              "equivoco": "5% é a taxa de alarme falso entre mensagens normais, não a chance de a marcada ser spam."
+            },
+            {
+              "texto": "50%, já que ela é spam ou não é",
+              "equivoco": "Ser spam ou não ser são dois casos, mas com probabilidades muito diferentes."
+            },
+            "Cerca de 16%, porque spam é raro",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Em 10.000 mensagens, 100 são spam e 95 delas são marcadas. Das 9.900 normais, 5% (495) também são. Entre as 590 marcadas, só 95 são spam: cerca de 16%. A raridade do spam pesa mais que o acerto do filtro."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-4",
+      "competencia": "matematica",
+      "dificuldade": 3,
+      "conceitos": ["calculo-vetorial", "gradiente"],
+      "pergunta": "Por que a regra da cadeia é o que torna viável treinar redes profundas?",
+      "opcoes": [
+        "Permite derivar funções compostas, camada a camada",
+        {
+          "texto": "Garante que a função de custo tenha um único mínimo",
+          "equivoco": "A regra da cadeia não muda a forma da função de custo; redes profundas têm muitos mínimos."
+        },
+        {
+          "texto": "Dispensa o cálculo de derivadas parciais",
+          "equivoco": "Ela usa as derivadas parciais de cada camada e as combina; não as dispensa."
+        },
+        {
+          "texto": "Acelera a multiplicação de matrizes na GPU",
+          "equivoco": "Velocidade na GPU vem do hardware e da álgebra linear, não da regra da cadeia."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "Uma rede é uma composição de funções, camada sobre camada. A regra da cadeia deriva essa composição multiplicando as derivadas locais, o que permite calcular o gradiente de todos os pesos numa única passada para trás.",
+      "variantes": [
+        {
+          "id": "n-matematica-4b",
+          "pergunta": "Numa rede $f_3(f_2(f_1(x)))$, como o backpropagation calcula o gradiente da loss em relação aos pesos de $f_1$?",
+          "opcoes": [
+            {
+              "texto": "Derivando só $f_1$, porque as outras camadas não dependem desses pesos",
+              "equivoco": "Os pesos de $f_1$ mudam a entrada de $f_2$ e $f_3$, então a loss depende deles através dessas camadas."
+            },
+            "Multiplicando as derivadas locais de $f_3$, $f_2$ e $f_1$, de trás para frente",
+            {
+              "texto": "Somando as derivadas de cada camada",
+              "equivoco": "Em composição as derivadas se multiplicam ao longo do caminho; somar vale para caminhos paralelos."
+            },
+            {
+              "texto": "Perturbando cada peso e medindo quanto a loss muda",
+              "equivoco": "Isso são diferenças finitas: funciona, mas exige uma passada por peso. O backprop calcula tudo numa só."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Os pesos de $f_1$ afetam a loss passando por $f_2$ e $f_3$. A regra da cadeia multiplica as derivadas locais ao longo desse caminho, a partir da loss. Derivar só $f_1$ ignora o efeito das camadas seguintes."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-e2-1",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["algebra-linear-basica"],
+      "pergunta": "Uma matriz $A$ tem formato $3 \\times 2$ e um vetor $\\mathbf{x}$ tem 2 componentes. O produto $A\\mathbf{x}$ é:",
+      "opcoes": [
+        {
+          "texto": "Um vetor com 2 componentes",
+          "equivoco": "O resultado herda as linhas de $A$ (3), não o tamanho de $\\mathbf{x}$ (2)."
+        },
+        "Um vetor com 3 componentes",
+        {
+          "texto": "Uma matriz $2 \\times 3$",
+          "equivoco": "Multiplicar matriz por vetor dá vetor, com uma entrada por linha de $A$."
+        },
+        {
+          "texto": "Indefinido, porque os formatos não são compatíveis",
+          "equivoco": "Os formatos são compatíveis: as 2 colunas de $A$ batem com as 2 componentes de $\\mathbf{x}$."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "No produto $A\\mathbf{x}$, o número de colunas de $A$ (2) precisa bater com o tamanho de $\\mathbf{x}$ (2), e o resultado tem o número de linhas de $A$: um vetor com 3 componentes.",
+      "variantes": [
+        {
+          "id": "n-matematica-e2-1b",
+          "pergunta": "Se $A$ tem formato $2 \\times 3$ e $B$ tem formato $3 \\times 4$, o produto $AB$ tem formato:",
+          "opcoes": [
+            {
+              "texto": "$3 \\times 3$",
+              "equivoco": "O 3 é a dimensão interna, que precisa bater e some do resultado."
+            },
+            {
+              "texto": "$4 \\times 2$",
+              "equivoco": "A ordem é linhas de $A$ por colunas de $B$: $2 \\times 4$, não $4 \\times 2$."
+            },
+            "$2 \\times 4$",
+            {
+              "texto": "Indefinido, porque os formatos não são compatíveis",
+              "equivoco": "São compatíveis: as 3 colunas de $A$ batem com as 3 linhas de $B$."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "O produto $AB$ exige que as colunas de $A$ sejam tantas quanto as linhas de $B$ ($3 = 3$). O resultado herda as linhas de $A$ e as colunas de $B$: $2 \\times 4$."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-e2-2",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["probabilidade-basica"],
+      "pergunta": "Uma moeda honesta deu cara 5 vezes seguidas. A probabilidade de dar cara no 6º lançamento é:",
+      "opcoes": [
+        {
+          "texto": "Menor que 50%, porque agora coroa está “devendo”",
+          "equivoco": "Falácia do apostador: a moeda não tem memória para 'compensar' as caras."
+        },
+        {
+          "texto": "Maior que 50%, porque a moeda está numa sequência",
+          "equivoco": "Sequências passadas não mudam a probabilidade de uma moeda honesta."
+        },
+        "50%, porque cada lançamento é independente dos anteriores",
+        {
+          "texto": "$1/64$, a chance de sair cara 6 vezes seguidas",
+          "equivoco": "$1/64$ é a chance de 6 caras seguidas vista antes de começar; o 6º lançamento sozinho continua $1/2$."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "A moeda não tem memória: cada lançamento é independente, então a chance continua 50%. O $1/64$ vale para prever 6 caras seguidas antes de começar, não para o próximo lançamento.",
+      "variantes": [
+        {
+          "id": "n-matematica-e2-2b",
+          "pergunta": "Dois eventos independentes têm probabilidades 0,5 e 0,2. A probabilidade de os dois acontecerem é:",
+          "opcoes": [
+            {
+              "texto": "0,7",
+              "equivoco": "Somar serviria (descontando a interseção) para 'A ou B', não para 'A e B'."
+            },
+            "0,1",
+            {
+              "texto": "0,35",
+              "equivoco": "0,35 é a média das duas probabilidades, que não tem significado aqui."
+            },
+            {
+              "texto": "0,3",
+              "equivoco": "0,3 é a diferença entre elas. Para eventos independentes, multiplica-se."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Para eventos independentes, $P(A \\cap B) = P(A)\\,P(B) = 0{,}5 \\cdot 0{,}2 = 0{,}1$. Somar não serve nem para “A ou B”, que precisa descontar a interseção: $0{,}5 + 0{,}2 - 0{,}1 = 0{,}6$."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-e2-3",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["gradiente", "calculo-vetorial"],
+      "pergunta": "Para $f(x, y) = x^2 + 3y$, o gradiente no ponto $(1, 2)$ é:",
+      "opcoes": [
+        "$(2, 3)$",
+        { "texto": "$(1, 3)$", "equivoco": "Usou $x$ no lugar da derivada de $x^2$, que é $2x$." },
+        {
+          "texto": "$(2, 6)$",
+          "equivoco": "Derivou $x^2$ certo, mas multiplicou 3 por $y$. A derivada de $3y$ em relação a $y$ é só 3."
+        },
+        {
+          "texto": "$7$, o valor de $f$ nesse ponto",
+          "equivoco": "$7$ é o valor de $f$ em $(1, 2)$; o gradiente é o vetor das derivadas parciais."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "O gradiente é o vetor das derivadas parciais: $\\partial f/\\partial x = 2x$, que vale 2 em $x = 1$, e $\\partial f/\\partial y = 3$, constante. O resultado é $$(2, 3)$$; o $7$ é o valor da função, não a derivada.",
+      "variantes": [
+        {
+          "id": "n-matematica-e2-3b",
+          "pergunta": "Para $f(x, y) = xy$, qual é o gradiente no ponto $$(3, 2)$$?",
+          "opcoes": [
+            {
+              "texto": "$(3, 2)$",
+              "equivoco": "Trocou as componentes: $\\partial f/\\partial x = y$ e $\\partial f/\\partial y = x$."
+            },
+            {
+              "texto": "$(6, 6)$",
+              "equivoco": "Usou o valor de $f$ nas duas componentes em vez das derivadas parciais."
+            },
+            {
+              "texto": "$6$, o valor de $f$ nesse ponto",
+              "equivoco": "$6$ é o valor de $f$ em $$(3, 2)$$, não o gradiente."
+            },
+            "$(2, 3)$",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "$\\partial f/\\partial x$ trata $y$ como constante e dá $y$; $\\partial f/\\partial y$ dá $x$. No ponto $$(3, 2)$$, o gradiente é $$(2, 3)$$. Trocar as coordenadas, dando $$(3, 2)$$, é um erro comum."
+        }
+      ]
+    },
+    {
+      "id": "n-matematica-e2-4",
+      "competencia": "matematica",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["calculo-vetorial", "gradiente"],
+      "pergunta": "Para $L(w) = (wx - y)^2$, com $x = 2$ e $y = 1$, quanto vale $dL/dw$ em $w = 1$?",
+      "opcoes": [
+        { "texto": "1", "equivoco": "1 é o valor da loss em $w = 1$, não a derivada." },
+        {
+          "texto": "2",
+          "equivoco": "Esqueceu o fator $x$ da regra da cadeia: a derivada de dentro de $(wx - y)$ é $x$."
+        },
+        { "texto": "8", "equivoco": "Esqueceu o $-y$ dentro do parêntese: $2 \\cdot wx \\cdot x = 8$." },
+        "4",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "Pela regra da cadeia, $dL/dw = 2(wx - y)\\,x$. Em $w = 1$: $2 \\cdot (2 - 1) \\cdot 2 = 4$. Esquecer o fator $x$ dá 2; esquecer o $-y$ dá 8.",
+      "variantes": [
+        {
+          "id": "n-matematica-e2-4b",
+          "pergunta": "Para $L(w) = (wx - y)^2$, com $x = 3$ e $y = 2$, quanto vale $dL/dw$ em $w = 1$?",
+          "opcoes": [
+            "6",
+            { "texto": "2", "equivoco": "Esqueceu o fator $x$ da regra da cadeia." },
+            { "texto": "1", "equivoco": "1 é o valor da loss em $w = 1$, não a derivada." },
+            {
+              "texto": "18",
+              "equivoco": "Esqueceu o $-y$ dentro do parêntese: $2 \\cdot wx \\cdot x = 18$."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Pela regra da cadeia, $dL/dw = 2(wx - y)\\,x$. Em $w = 1$: $2 \\cdot (3 - 2) \\cdot 3 = 6$. Esquecer o fator $x$ dá 2; esquecer o $-y$ dá 18."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-1",
+      "competencia": "ml-classico",
+      "dificuldade": 1,
+      "conceitos": ["train-val-test"],
+      "pergunta": "Por que separamos um conjunto de teste antes de treinar o modelo?",
+      "opcoes": [
+        {
+          "texto": "Para deixar mais dados disponíveis no treino",
+          "equivoco": "Separar o teste deixa MENOS dados para treinar; a troca vale pela avaliação honesta."
+        },
+        "Para medir o desempenho em dados que o modelo nunca viu",
+        {
+          "texto": "Para acelerar o treinamento",
+          "equivoco": "Separar dados não acelera o treino de forma relevante; o objetivo é medir generalização."
+        },
+        {
+          "texto": "Para equilibrar a quantidade de exemplos de cada classe",
+          "equivoco": "Equilibrar classes é outra técnica (estratificação, reamostragem), não a razão do teste."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "O teste faz o papel de dados novos. Se ele participa do treino ou das escolhas, a nota final fica otimista e deixa de dizer como o modelo se sai no mundo real.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-1b",
+          "pergunta": "Para que serve o conjunto de validação?",
+          "opcoes": [
+            {
+              "texto": "Para treinar os pesos com mais dados",
+              "equivoco": "Dados de validação não treinam os pesos; se treinassem, a validação deixaria de medir generalização."
+            },
+            "Para escolher hiperparâmetros sem tocar no teste",
+            {
+              "texto": "Para corrigir rótulos errados do treino",
+              "equivoco": "Nenhum conjunto de dados corrige rótulos; isso é limpeza de dados."
+            },
+            {
+              "texto": "Para medir a nota final que vai no relatório",
+              "equivoco": "A nota final vem do teste, usado uma vez. A validação já foi usada para escolher e fica otimista."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "A validação guia as escolhas durante o desenvolvimento: hiperparâmetros, arquitetura, quando parar. Como essas escolhas se ajustam a ela, a nota final honesta vem do teste, usado só no fim."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-2",
+      "competencia": "ml-classico",
+      "dificuldade": 2,
+      "conceitos": ["knn", "overfitting"],
+      "pergunta": "Um k-NN com $k = 1$ acerta 100% no treino e 62% na validação. A explicação é:",
+      "opcoes": [
+        "Com $k = 1$, cada exemplo é seu próprio vizinho: o treino é decorado",
+        {
+          "texto": "A validação tem distribuição diferente da do treino",
+          "equivoco": "Distribuições diferentes explicariam uma queda, mas não o acerto de 100% no treino, que vem do próprio $k = 1$."
+        },
+        {
+          "texto": "O modelo precisa de mais épocas de treino",
+          "equivoco": "k-NN não tem épocas: ele só guarda os exemplos de treino."
+        },
+        {
+          "texto": "Faltou normalizar o conjunto de validação",
+          "equivoco": "Normalizar pode mudar o resultado, mas não explica 100% no treino: com $k = 1$ cada ponto acerta a si mesmo."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "Com $k = 1$, o vizinho mais próximo de cada exemplo de treino é ele mesmo, então o acerto no treino é 100% por construção. A queda na validação mostra que o modelo decorou em vez de generalizar. Aumentar $k$ suaviza a fronteira.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-2b",
+          "pergunta": "Num k-NN com 200 exemplos de treino, o que acontece ao aumentar $k$ de 1 para 50?",
+          "opcoes": [
+            {
+              "texto": "O modelo decora ainda mais o treino",
+              "equivoco": "É o contrário: $k$ maior suaviza a fronteira e decora menos."
+            },
+            {
+              "texto": "O custo de treino cresce 50 vezes",
+              "equivoco": "k-NN não tem treino; o custo fica na previsão, que cresce pouco com $k$."
+            },
+            {
+              "texto": "Nada muda se as classes forem balanceadas",
+              "equivoco": "Mudar $k$ muda a fronteira independentemente do balanceamento das classes."
+            },
+            "A fronteira suaviza, indo do overfitting ao underfitting",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Com $k$ maior, cada previsão é a votação de mais vizinhos, então ruídos locais pesam menos e a fronteira suaviza. Com $k$ grande demais, tudo tende à classe majoritária. E o k-NN nem tem treino: o custo está na previsão."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-3",
+      "competencia": "ml-classico",
+      "dificuldade": 2,
+      "conceitos": ["regressao-logistica", "regressao-linear"],
+      "pergunta": "Apesar do nome, a regressão logística serve para:",
+      "opcoes": [
+        {
+          "texto": "Prever valores contínuos, como preço ou temperatura",
+          "equivoco": "Prever valores contínuos é a regressão linear; a logística devolve probabilidade de classe."
+        },
+        {
+          "texto": "Agrupar dados que não têm rótulo",
+          "equivoco": "Agrupar sem rótulo é clusterização (ex.: k-means), aprendizado não supervisionado."
+        },
+        {
+          "texto": "Reduzir a dimensionalidade das features",
+          "equivoco": "Reduzir dimensionalidade é tarefa de métodos como PCA."
+        },
+        "Classificar, estimando a probabilidade de uma classe",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "A regressão logística aplica a sigmoide a uma combinação linear das features e devolve a probabilidade da classe positiva. Com um limiar, como 0,5, essa probabilidade vira classificação. O nome vem da função logística, não da tarefa.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-3b",
+          "pergunta": "Uma regressão logística devolveu 0,8 para um e-mail. Isso significa que:",
+          "opcoes": [
+            "O modelo estima 80% de chance de ser da classe positiva",
+            {
+              "texto": "80% das palavras do e-mail são suspeitas",
+              "equivoco": "A saída é uma probabilidade da classe, não uma contagem de palavras."
+            },
+            {
+              "texto": "O modelo acerta 80% das vezes",
+              "equivoco": "Confunde a saída de um exemplo com a acurácia, que é medida sobre muitos exemplos."
+            },
+            {
+              "texto": "O e-mail está a 0,8 unidade da fronteira de decisão",
+              "equivoco": "0,8 é probabilidade, não distância; a distância à fronteira aparece no valor antes da sigmoide."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "A saída da logística é a sigmoide de uma combinação linear e se lê como probabilidade da classe positiva. Com limiar 0,5, o e-mail seria classificado como positivo. Acurácia é outra medida, calculada sobre muitos exemplos."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-4",
+      "competencia": "ml-classico",
+      "dificuldade": 3,
+      "conceitos": ["regularizacao", "overfitting"],
+      "pergunta": "O que a regularização L2 faz durante o treino?",
+      "opcoes": [
+        "Penaliza pesos grandes, favorecendo soluções mais simples",
+        {
+          "texto": "Remove do dataset os exemplos que o modelo erra",
+          "equivoco": "A regularização age nos pesos, pela loss; não mexe nos exemplos do dataset."
+        },
+        {
+          "texto": "Aumenta a taxa de aprendizado quando o erro estagna",
+          "equivoco": "Ajustar a taxa de aprendizado é papel do otimizador ou do agendador, não da L2."
+        },
+        {
+          "texto": "Descarta as features menos correlacionadas com o alvo",
+          "equivoco": "Descartar features é seleção de features; a L2 encolhe pesos sem remover nenhum."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "A L2 soma à loss um termo proporcional ao quadrado dos pesos. Pesos grandes passam a custar caro, o modelo fica mais suave e tende a generalizar melhor.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-4b",
+          "pergunta": "Qual a diferença típica entre as regularizações L1 e L2?",
+          "opcoes": [
+            {
+              "texto": "A L1 só funciona em classificação e a L2, em regressão",
+              "equivoco": "As duas servem para regressão e classificação; mudam o tipo de penalidade nos pesos."
+            },
+            {
+              "texto": "A L2 zera pesos e a L1 apenas os encolhe",
+              "equivoco": "Inverteu: é a L1 que tende a zerar pesos; a L2 encolhe sem zerar."
+            },
+            "A L1 zera pesos; a L2 encolhe sem zerar",
+            {
+              "texto": "As duas têm o mesmo efeito e mudam só a velocidade do treino",
+              "equivoco": "Os efeitos são diferentes: a L1 produz pesos esparsos, a L2 pesos pequenos."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "A L1 penaliza $|w|$, cujo empurrão para zero não enfraquece perto de zero, então muitos pesos chegam exatamente a zero. A L2 penaliza $w^2$, cujo empurrão some perto de zero: os pesos ficam pequenos, mas raramente nulos."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-e2-1",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["regressao-linear"],
+      "pergunta": "Na regressão linear $y = wx + b$, o que o coeficiente $w$ indica?",
+      "opcoes": [
+        { "texto": "O valor previsto de $y$ quando $x$ é zero", "equivoco": "Esse é o intercepto $b$." },
+        {
+          "texto": "O erro médio das previsões do modelo",
+          "equivoco": "O erro é medido comparando previsões com valores reais; $w$ é um coeficiente do modelo."
+        },
+        {
+          "texto": "A correlação entre $x$ e $y$, sempre entre $-1$ e $1$",
+          "equivoco": "$w$ tem a unidade de $y$ por unidade de $x$ e pode passar de 1; correlação é outra medida."
+        },
+        "Quanto $y$ muda, em média, quando $x$ aumenta uma unidade",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "$w$ é a inclinação da reta: quanto a previsão de $y$ sobe quando $x$ aumenta uma unidade. O valor previsto com $x = 0$ é o intercepto $b$.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-e2-1b",
+          "pergunta": "Na regressão linear, os coeficientes costumam ser ajustados para minimizar:",
+          "opcoes": [
+            {
+              "texto": "O número de features usadas",
+              "equivoco": "Escolher features é outra etapa; o ajuste minimiza o erro das previsões."
+            },
+            "A soma dos erros ao quadrado",
+            {
+              "texto": "A correlação entre as features",
+              "equivoco": "A correlação entre features não é o alvo do ajuste; ela até atrapalha a regressão (multicolinearidade)."
+            },
+            {
+              "texto": "A quantidade de exemplos de treino",
+              "equivoco": "A quantidade de exemplos é dada; o ajuste escolhe $w$ e $b$."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "O método dos mínimos quadrados escolhe $w$ e $b$ que minimizam a soma (ou a média) dos erros ao quadrado. Elevar ao quadrado deixa todos os erros positivos e pune mais os grandes."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-e2-2",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["train-val-test", "overfitting"],
+      "pergunta": "Você testou 50 combinações de hiperparâmetros e ficou com a de melhor nota no conjunto de teste. Qual o problema?",
+      "opcoes": [
+        {
+          "texto": "Nenhum: o conjunto de teste existe justamente para escolher o melhor modelo",
+          "equivoco": "O teste existe para a avaliação final. Usado para escolher, ele deixa de ser dado novo."
+        },
+        "A nota no teste deixa de ser uma estimativa honesta, porque o teste entrou na escolha",
+        {
+          "texto": "50 combinações são poucas para encontrar um modelo realmente bom",
+          "equivoco": "O número de combinações não é o problema; o problema é qual conjunto guiou a escolha."
+        },
+        {
+          "texto": "O treino fica mais lento, porque cada combinação precisa ser treinada de novo",
+          "equivoco": "Custo de treino é outra questão; o erro aqui é de avaliação."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Ao escolher pelo teste, você ajusta o modelo a ele, e a nota fica otimista. Hiperparâmetros se escolhem na validação, ou com validação cruzada; o teste é usado uma vez, no fim.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-e2-2b",
+          "pergunta": "Você calculou média e desvio para normalizar os dados usando o dataset inteiro, antes de separar treino e teste. Qual o problema?",
+          "opcoes": [
+            "Informação do teste vaza para o treino (data leakage)",
+            {
+              "texto": "Nenhum: a normalização não depende dos dados",
+              "equivoco": "Média e desvio saem dos dados, então calculá-los com o teste leva informação dele para o treino."
+            },
+            {
+              "texto": "O modelo passa a sofrer underfitting",
+              "equivoco": "Vazamento de dados infla a nota de teste; não causa underfitting."
+            },
+            {
+              "texto": "O treino fica mais lento",
+              "equivoco": "O custo não muda; o que muda é a honestidade da avaliação."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Média e desvio devem sair só do treino e depois ser aplicados ao teste. Calculados com tudo, carregam informação do teste para dentro do treino (data leakage), e a avaliação deixa de simular dados novos."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-e2-3",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["knn"],
+      "pergunta": "Por que normalizar as features antes de usar k-NN?",
+      "opcoes": [
+        "Porque, sem isso, a distância fica dominada pelas features de maior escala",
+        {
+          "texto": "Porque o k-NN só aceita valores de entrada entre 0 e 1",
+          "equivoco": "O k-NN aceita qualquer escala; o problema é a distância ficar dominada por uma feature."
+        },
+        {
+          "texto": "Para o treino do k-NN convergir em menos épocas",
+          "equivoco": "k-NN não tem épocas nem convergência."
+        },
+        {
+          "texto": "Para reduzir o número de vizinhos necessários para classificar",
+          "equivoco": "Normalizar não muda o k; muda quem são os vizinhos."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "O k-NN decide pela distância entre exemplos. Se uma feature vai de 0 a 100.000 e outra de 0 a 1, a primeira domina a distância sozinha. Normalizar põe as features na mesma escala.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-e2-3b",
+          "pergunta": "Num k-NN de classificação com $k = 5$, como a classe de um ponto novo é decidida?",
+          "opcoes": [
+            {
+              "texto": "Pela média das features dos 5 vizinhos",
+              "equivoco": "Média das features não dá classe; em classificação, os vizinhos votam."
+            },
+            {
+              "texto": "Pela classe do exemplo mais distante",
+              "equivoco": "O k-NN usa os mais próximos, não o mais distante."
+            },
+            "Pela classe mais comum entre os 5 vizinhos",
+            {
+              "texto": "Pela primeira classe que aparece no dataset",
+              "equivoco": "A ordem do dataset não influencia; o que conta é a distância."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "O k-NN guarda o treino e, para cada ponto novo, procura os $k$ exemplos mais próximos. Em classificação vence a classe mais votada entre eles; em regressão, usa-se a média dos alvos."
+        }
+      ]
+    },
+    {
+      "id": "n-ml-classico-e2-4",
+      "competencia": "ml-classico",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["regularizacao", "overfitting"],
+      "pergunta": "Se você aumenta demais a força da regularização ($\\lambda$), o que tende a acontecer?",
+      "opcoes": [
+        {
+          "texto": "O modelo decora o treino e piora na validação",
+          "equivoco": "Isso é overfitting, efeito de regularização fraca demais."
+        },
+        {
+          "texto": "O erro de treino cai a zero",
+          "equivoco": "Regularização forte aumenta o erro de treino, porque impede o modelo de se ajustar."
+        },
+        {
+          "texto": "Nada relevante: a regularização só afeta o tempo de treino",
+          "equivoco": "Regularização muda o que o modelo aprende, não só o tempo de treino."
+        },
+        "O modelo fica simples demais e erra tanto no treino quanto na validação",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "Regularização forte demais empurra os pesos para perto de zero, e o modelo não captura nem o padrão real. É underfitting: erro alto no treino e na validação.",
+      "variantes": [
+        {
+          "id": "n-ml-classico-e2-4b",
+          "pergunta": "Seu modelo tem erro de 2% no treino e de 25% na validação. Qual ação tende a ajudar mais?",
+          "opcoes": [
+            {
+              "texto": "Aumentar a complexidade do modelo",
+              "equivoco": "Mais complexidade aumenta a variância, e o problema já é overfitting."
+            },
+            {
+              "texto": "Treinar por mais épocas",
+              "equivoco": "Mais épocas tendem a decorar ainda mais o treino."
+            },
+            { "texto": "Diminuir a regularização", "equivoco": "Menos regularização piora o overfitting." },
+            "Regularizar mais ou conseguir mais dados",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Treino muito melhor que validação indica overfitting, ou alta variância. Regularizar mais, simplificar o modelo ou usar mais dados reduz a variância; mais complexidade, mais épocas ou menos regularização tendem a piorar."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-1",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 1,
+      "conceitos": ["ativacoes", "mlp"],
+      "pergunta": "Para que serve uma função de ativação não-linear (como a ReLU) numa rede neural?",
+      "opcoes": [
+        {
+          "texto": "Para acelerar o cálculo na GPU",
+          "equivoco": "Não-linearidade é sobre o que a rede consegue representar, não sobre velocidade."
+        },
+        {
+          "texto": "Para manter todos os valores positivos",
+          "equivoco": "A ReLU zera negativos, mas a tanh, por exemplo, tem saídas negativas; a razão comum é a não-linearidade."
+        },
+        "Para que a rede consiga aprender relações não-lineares",
+        {
+          "texto": "Para normalizar a entrada de cada camada",
+          "equivoco": "Normalizar entradas é papel de técnicas como batch norm."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "Sem não-linearidade, várias camadas lineares empilhadas equivalem a uma única transformação linear. A ativação é o que deixa a rede representar relações não-lineares.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-1b",
+          "pergunta": "A função de ativação ReLU é definida como:",
+          "opcoes": [
+            {
+              "texto": "$\\frac{1}{1 + e^{-x}}$",
+              "equivoco": "Essa é a sigmoide, que espreme a saída entre 0 e 1."
+            },
+            "$\\max(0, x)$",
+            {
+              "texto": "$x^2$",
+              "equivoco": "$x^2$ não é usada como ativação: explode para $|x|$ grande e trata $x$ e $-x$ igual."
+            },
+            {
+              "texto": "$\\min(0, x)$",
+              "equivoco": "$\\min(0, x)$ zeraria os positivos; a ReLU zera os negativos."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "A ReLU devolve $x$ quando $x$ é positivo e 0 caso contrário. É barata de calcular e tem derivada 1 para entradas positivas, o que ajuda o gradiente a atravessar muitas camadas. $\\frac{1}{1 + e^{-x}}$ é a sigmoide."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-2",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["gradient-descent"],
+      "aposentada": true,
+      "pergunta": "O que costuma acontecer quando a taxa de aprendizado é alta demais?",
+      "opcoes": [
+        "O treino fica mais lento, mas converge do mesmo jeito",
+        "A loss oscila ou diverge, sem convergir",
+        "O modelo passa a sofrer overfitting",
+        "Os gradientes deixam de ser calculados",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Com passo grande demais, cada atualização passa do mínimo e cai do outro lado, mais longe. A loss oscila ou explode. O remédio é reduzir a taxa ou usar um agendamento que a diminua ao longo do treino.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-2b",
+          "pergunta": "A loss de treino cai muito devagar ao longo de muitas épocas, sem oscilar. Uma causa provável é:",
+          "opcoes": [
+            "Taxa de aprendizado alta demais",
+            "Conjunto de teste pequeno demais",
+            "Taxa de aprendizado baixa demais",
+            "Mini-batches embaralhados a cada época",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "Com passos minúsculos, cada atualização mal move os pesos, e a loss desce devagar e sem oscilar. Taxa alta demais faz o contrário: a loss pula ou explode. O tamanho do conjunto de teste não afeta o treino."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-5",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["batchnorm"],
+      "pergunta": "Que efeito prático costuma aparecer ao pôr batch normalization entre as camadas de uma rede profunda?",
+      "opcoes": [
+        {
+          "texto": "A rede deixa de precisar de funções de ativação",
+          "equivoco": "A batch norm normaliza, mas não cria não-linearidade; as ativações continuam necessárias."
+        },
+        "O treino fica mais estável e tolera taxas de aprendizado maiores",
+        {
+          "texto": "O modelo ganha tantos parâmetros quanto uma camada densa a mais",
+          "equivoco": "Ela acrescenta só $\\gamma$ e $\\beta$ por canal, muito menos que uma camada densa."
+        },
+        {
+          "texto": "O conjunto de validação deixa de ser necessário",
+          "equivoco": "Validação continua necessária para medir generalização."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Mantendo a escala das ativações sob controle camada a camada, a batch norm deixa o treino menos sensível à inicialização e a taxas de aprendizado altas, e costuma acelerar a convergência. Ela não substitui as ativações e acrescenta poucos parâmetros.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-5b",
+          "pergunta": "Numa camada de batch normalization, o que é aprendido pelo gradiente durante o treino?",
+          "opcoes": [
+            {
+              "texto": "A média e a variância de cada mini-batch",
+              "equivoco": "Média e variância são calculadas dos dados, não aprendidas por gradiente."
+            },
+            {
+              "texto": "Uma matriz de pesos do tamanho de uma camada densa",
+              "equivoco": "Não há matriz de pesos: só uma escala e um deslocamento por canal."
+            },
+            {
+              "texto": "Nada: a camada só normaliza",
+              "equivoco": "$\\gamma$ e $\\beta$ são aprendidos, permitindo reescalar a saída normalizada."
+            },
+            "Uma escala ($\\gamma$) e um deslocamento ($\\beta$) por canal",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Média e variância vêm dos próprios dados e não recebem gradiente. O que se aprende são $\\gamma$ e $\\beta$, que deixam a rede reescalar e deslocar as ativações normalizadas, inclusive desfazer a normalização quando isso ajuda."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-3",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 2,
+      "conceitos": ["loss-functions"],
+      "pergunta": "Por que se usa cross-entropy em vez de erro quadrático (MSE) em classificação?",
+      "opcoes": [
+        {
+          "texto": "Porque o MSE só funciona com problemas de uma única classe",
+          "equivoco": "O MSE funciona com várias saídas; o problema é o gradiente fraco quando a previsão é confiante e errada."
+        },
+        {
+          "texto": "Porque a cross-entropy é mais rápida de calcular",
+          "equivoco": "A diferença de custo computacional é irrelevante; a razão é o comportamento do gradiente."
+        },
+        "Porque ela penaliza mais forte a previsão confiante e errada",
+        {
+          "texto": "Porque o MSE exige que os dados estejam normalizados",
+          "equivoco": "Nenhuma das duas exige dados normalizados."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "A cross-entropy vale $-\\log$ da probabilidade dada à classe certa: dar 0,01 à classe correta custa muito, e o gradiente continua forte. Com MSE sobre probabilidades, o erro confiante gera gradiente fraco e o treino anda devagar.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-3b",
+          "pergunta": "Para prever o preço de um imóvel, um número real, qual loss é a escolha natural?",
+          "opcoes": [
+            {
+              "texto": "Cross-entropy",
+              "equivoco": "Cross-entropy compara distribuições de classes; preço é um número real."
+            },
+            {
+              "texto": "Acurácia",
+              "equivoco": "Acurácia não é derivável e nem faz sentido para valores contínuos."
+            },
+            { "texto": "Hinge loss", "equivoco": "Hinge loss é para classificação com margem (SVM)." },
+            "Erro quadrático médio (MSE)",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Regressão compara números: o MSE mede o quadrado da diferença entre previsto e real. A cross-entropy compara distribuições de probabilidade entre classes, e a acurácia não é derivável, então não serve de loss."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-4",
+      "competencia": "dl-fundamentos",
+      "dificuldade": 3,
+      "conceitos": ["backprop", "gradient-descent"],
+      "pergunta": "No backpropagation, o que é de fato propagado de volta pela rede?",
+      "opcoes": [
+        {
+          "texto": "Os dados de entrada, em ordem inversa",
+          "equivoco": "Os dados só passam para frente; o que volta é o gradiente."
+        },
+        {
+          "texto": "Os pesos já atualizados de cada camada",
+          "equivoco": "Os pesos são atualizados depois, com os gradientes que o backprop calculou."
+        },
+        {
+          "texto": "As ativações calculadas na passagem para frente",
+          "equivoco": "As ativações são guardadas e usadas no cálculo, mas o que se propaga é o gradiente."
+        },
+        "O gradiente da loss em relação a cada parâmetro",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "O backprop aplica a regra da cadeia de trás para frente e calcula quanto a loss muda com cada parâmetro. São esses gradientes que o otimizador usa para atualizar os pesos; os dados não voltam pela rede.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-4b",
+          "pergunta": "Numa rede com $y = w_2 (w_1 x)$, sabe-se que $dL/dy = 3$, $x = 2$ e $w_2 = 5$. Quanto vale $dL/dw_1$?",
+          "opcoes": [
+            "30",
+            { "texto": "15", "equivoco": "Esqueceu o fator $x$: $dy/dw_1 = w_2 x$." },
+            { "texto": "6", "equivoco": "Esqueceu o fator $w_2$: $dy/dw_1 = w_2 x$." },
+            {
+              "texto": "10",
+              "equivoco": "10 é $dy/dw_1$; falta multiplicar pelo gradiente que chega, $dL/dy = 3$."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Pela regra da cadeia, $dL/dw_1 = dL/dy \\cdot dy/dw_1$. Como $y = w_2 w_1 x$, $dy/dw_1 = w_2 x = 10$, e o resultado é $3 \\cdot 10 = 30$. É o que o backprop faz: multiplica o gradiente que chega pelas derivadas locais."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-e2-1",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["gradient-descent"],
+      "pergunta": "Uma época de treino corresponde a:",
+      "opcoes": [
+        {
+          "texto": "Uma única atualização dos pesos",
+          "equivoco": "Uma atualização corresponde a um mini-batch; a época tem várias."
+        },
+        "Uma passada completa pelo conjunto de treino",
+        { "texto": "O processamento de um mini-batch", "equivoco": "Um mini-batch é só uma parte da época." },
+        {
+          "texto": "O tempo até a loss parar de cair",
+          "equivoco": "A época é uma passada fixa pelos dados, não um critério de parada."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Uma época é uma passada por todos os exemplos de treino. Com mini-batches, ela contém várias atualizações de pesos, uma por lote.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-e2-1b",
+          "pergunta": "Com 10.000 exemplos de treino e batch size 100, quantas atualizações de pesos acontecem numa época?",
+          "opcoes": [
+            { "texto": "10.000", "equivoco": "Isso seria uma atualização por exemplo (batch size 1)." },
+            {
+              "texto": "1",
+              "equivoco": "Isso seria um único lote com todos os exemplos (batch size 10.000)."
+            },
+            "100",
+            {
+              "texto": "1.000.000",
+              "equivoco": "Multiplicou em vez de dividir: são $10.000 \\div 100$ lotes."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "Cada mini-batch gera uma atualização. 10.000 exemplos em lotes de 100 dão 100 lotes, portanto 100 atualizações por época."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-e2-2",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["batchnorm"],
+      "pergunta": "O que a batch normalization faz numa camada da rede?",
+      "opcoes": [
+        {
+          "texto": "Normaliza o dataset inteiro uma única vez, antes de o treino começar, com média e desvio globais",
+          "equivoco": "Isso é normalizar a entrada no pré-processamento. A batch norm age nas ativações, a cada mini-batch."
+        },
+        {
+          "texto": "Divide o dataset em mini-batches de mesmo tamanho, para os gradientes terem escala parecida",
+          "equivoco": "Dividir em lotes é papel do DataLoader."
+        },
+        "Normaliza as ativações com a média e a variância do mini-batch, com escala e deslocamento aprendidos",
+        {
+          "texto": "Zera ao acaso parte das ativações a cada passo, para a rede não depender de neurônios específicos",
+          "equivoco": "Zerar ativações ao acaso é o dropout."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "A batch norm normaliza as ativações de cada mini-batch para média 0 e variância 1 e depois aplica escala ($\\gamma$) e deslocamento ($\\beta$) aprendidos. Isso estabiliza e acelera o treino. Zerar ativações ao acaso é o dropout.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-e2-2b",
+          "pergunta": "Por que a batch normalization se comporta de um jeito no treino e de outro na inferência?",
+          "opcoes": [
+            "No treino usa as estatísticas do mini-batch; na inferência, médias acumuladas durante o treino",
+            {
+              "texto": "Na inferência ela é removida e os pesos são recalculados",
+              "equivoco": "A camada fica na rede; só troca as estatísticas do lote pelas médias acumuladas no treino."
+            },
+            {
+              "texto": "No treino ela zera ativações ao acaso, e na inferência não",
+              "equivoco": "Zerar ativações ao acaso é o dropout, que também muda entre treino e inferência."
+            },
+            {
+              "texto": "Na inferência ela recalcula média e variância sobre o conjunto de teste inteiro",
+              "equivoco": "Usar estatísticas do teste vazaria dados e faria a previsão depender dos outros exemplos."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Na inferência pode chegar um exemplo só, e a previsão não deve depender de quem está no lote. Por isso a batch norm guarda médias móveis de média e variância no treino e usa essas estatísticas fixas depois. Zerar ativações ao acaso é o dropout."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-e2-3",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["ativacoes", "backprop"],
+      "pergunta": "Por que redes profundas com sigmoide nas camadas ocultas costumam treinar mal?",
+      "opcoes": [
+        "A derivada da sigmoide é pequena, e o gradiente encolhe ao atravessar muitas camadas",
+        {
+          "texto": "A sigmoide não é diferenciável em zero, o que interrompe o backpropagation",
+          "equivoco": "A sigmoide é suave e diferenciável em todo ponto; quem não é diferenciável em zero é a ReLU."
+        },
+        {
+          "texto": "A sigmoide gera valores negativos que cancelam os gradientes entre camadas",
+          "equivoco": "A sigmoide só produz valores entre 0 e 1; o problema é a derivada pequena, no máximo $0{,}25$."
+        },
+        {
+          "texto": "A sigmoide só funciona na camada de saída; nas ocultas, ela zera as ativações",
+          "equivoco": "A sigmoide funciona nas ocultas, só treina mal em redes profundas; ela não zera ativações."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "A derivada da sigmoide vale no máximo $0{,}25$. No backprop essas derivadas se multiplicam camada a camada, e o gradiente some antes de chegar às primeiras camadas. Por isso a ReLU virou o padrão nas camadas ocultas.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-e2-3b",
+          "pergunta": "Um neurônio com ReLU que recebe entrada negativa para todos os exemplos (a “ReLU morta”):",
+          "opcoes": [
+            {
+              "texto": "Passa a se comportar como uma sigmoide",
+              "equivoco": "O neurônio continua ReLU; ele só fica preso na parte em que a saída e a derivada são zero."
+            },
+            "Tem gradiente zero e para de aprender",
+            {
+              "texto": "Aprende mais rápido, porque sua saída fica estável",
+              "equivoco": "Saída constante em zero com gradiente zero quer dizer que ele parou de aprender."
+            },
+            {
+              "texto": "Faz o gradiente explodir nas camadas anteriores",
+              "equivoco": "Gradiente zero não explode nada: ele simplesmente não passa por esse neurônio."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Para entradas negativas a ReLU devolve 0 e tem derivada 0. Se isso vale para todos os exemplos, nenhum gradiente passa pelo neurônio e seus pesos não mudam mais. Variantes como a Leaky ReLU mantêm uma inclinação pequena para evitar isso."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-fundamentos-e2-4",
+      "competencia": "dl-fundamentos",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["backprop", "mlp"],
+      "pergunta": "Se todos os pesos de uma MLP começarem com o mesmo valor, o que acontece no treino?",
+      "opcoes": [
+        {
+          "texto": "O treino converge mais rápido, porque parte de um ponto equilibrado",
+          "equivoco": "Começar igual não ajuda: a simetria nunca se quebra e os neurônios continuam redundantes."
+        },
+        "Os neurônios da mesma camada continuam idênticos entre si",
+        {
+          "texto": "A rede passa a se comportar como um modelo linear",
+          "equivoco": "A rede continua não-linear por causa das ativações; o problema é ter neurônios idênticos."
+        },
+        {
+          "texto": "Os gradientes explodem já nas primeiras iterações",
+          "equivoco": "Explosão de gradiente vem de pesos grandes ou redes muito profundas, não de pesos iguais."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Se os pesos começam iguais, os neurônios da mesma camada calculam a mesma coisa e recebem o mesmo gradiente, então continuam iguais para sempre. A inicialização aleatória quebra essa simetria.",
+      "variantes": [
+        {
+          "id": "n-dl-fundamentos-e2-4b",
+          "pergunta": "Por que inicializar os pesos de uma rede profunda com valores muito grandes costuma atrapalhar o treino?",
+          "opcoes": [
+            {
+              "texto": "Pesos grandes deixam a rede linear",
+              "equivoco": "O que torna uma rede linear é faltar ativação, não o tamanho dos pesos."
+            },
+            {
+              "texto": "O backprop não funciona com pesos maiores que 1",
+              "equivoco": "O backprop funciona com qualquer valor; pesos grandes só deixam os números instáveis."
+            },
+            {
+              "texto": "A rede passa a ter menos parâmetros treináveis",
+              "equivoco": "O número de parâmetros depende da arquitetura, não da inicialização."
+            },
+            "Ativações e gradientes explodem ou saturam camada a camada",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Cada camada multiplica o sinal pelos pesos. Com pesos grandes, as ativações crescem a cada camada, ou saturam com sigmoide e tanh, e os gradientes explodem ou somem. Inicializações como Xavier e He escolhem a escala para manter a variância estável."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-1",
+      "competencia": "dl-aplicado",
+      "dificuldade": 1,
+      "conceitos": ["cnn"],
+      "pergunta": "O que torna uma CNN adequada para imagens?",
+      "opcoes": [
+        {
+          "texto": "Ela trata a imagem inteira como um único vetor achatado",
+          "equivoco": "Achatar a imagem é o que uma rede densa faz; a CNN preserva a estrutura espacial."
+        },
+        {
+          "texto": "Ela precisa de menos dados que qualquer outro modelo",
+          "equivoco": "CNNs costumam precisar de muitos dados; a vantagem é compartilhar filtros entre posições."
+        },
+        {
+          "texto": "Ela dispensa funções de ativação",
+          "equivoco": "CNNs usam ativações (como ReLU) depois das convoluções."
+        },
+        "Ela detecta padrões locais que se repetem em qualquer posição",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "Uma convolução aplica o mesmo filtro pequeno em todas as posições da imagem. Assim a rede detecta bordas e texturas onde quer que apareçam, com bem menos parâmetros que uma camada densa sobre a imagem achatada.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-1b",
+          "pergunta": "Numa CNN, o max pooling $2 \\times 2$ serve principalmente para:",
+          "opcoes": [
+            {
+              "texto": "Aumentar o número de canais",
+              "equivoco": "Quem define o número de canais é a convolução (quantos filtros); o pooling mantém os canais."
+            },
+            {
+              "texto": "Corrigir a escala das ativações antes da próxima camada",
+              "equivoco": "Ajustar a escala das ativações é papel da batch norm; o pooling mexe no tamanho do mapa."
+            },
+            {
+              "texto": "Treinar os filtros da convolução",
+              "equivoco": "O pooling não tem parâmetros para treinar; quem aprende filtros é a convolução."
+            },
+            "Reduzir a resolução, mantendo as respostas mais fortes",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "O max pooling $2 \\times 2$ fica com o maior valor de cada janela e divide altura e largura por 2. Isso reduz o custo e dá alguma tolerância a pequenos deslocamentos. Quem aprende filtros é a convolução."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-2",
+      "competencia": "dl-aplicado",
+      "dificuldade": 2,
+      "conceitos": ["transfer-learning", "fine-tuning"],
+      "pergunta": "Por que partir de um modelo pré-treinado costuma funcionar melhor que treinar do zero?",
+      "opcoes": [
+        "Porque ele já aprendeu representações gerais e reaproveitáveis",
+        {
+          "texto": "Porque modelos pré-treinados têm mais parâmetros",
+          "equivoco": "O tamanho não é a razão: o ganho vem das representações que o modelo já aprendeu."
+        },
+        {
+          "texto": "Porque isso elimina a necessidade de conjunto de validação",
+          "equivoco": "Validação continua necessária para medir se a adaptação generaliza."
+        },
+        {
+          "texto": "Porque ele já viu exatamente as classes do seu problema",
+          "equivoco": "O modelo pré-treinado não precisa ter visto as suas classes; ele reaproveita padrões gerais."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "As primeiras camadas de um modelo pré-treinado aprendem padrões gerais, como bordas e texturas, úteis em quase qualquer problema. Você reaproveita isso e só adapta o final, com menos dados e menos treino.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-2b",
+          "pergunta": "Você tem 800 fotos para classificar 4 tipos de folha. O ponto de partida mais sensato é:",
+          "opcoes": [
+            {
+              "texto": "Treinar do zero uma CNN grande, para ela aprender só o que importa",
+              "equivoco": "Com 800 fotos, uma CNN grande treinada do zero tende a decorar o treino."
+            },
+            "Partir de uma CNN pré-treinada e trocar a última camada por uma de 4 classes",
+            {
+              "texto": "Usar a CNN pré-treinada sem adaptação, com as 1000 classes originais",
+              "equivoco": "Sem trocar a última camada, a rede continua prevendo as 1000 classes do ImageNet, não as 4 folhas."
+            },
+            {
+              "texto": "Treinar uma CNN pequena do zero, para caber nos 800 exemplos",
+              "equivoco": "Uma CNN pequena aprende menos e ainda assim vê poucos exemplos; o pré-treino traz representações que 800 fotos não ensinam."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Com poucos dados, uma rede treinada do zero decora o treino. Uma rede pré-treinada já extrai bordas, texturas e formas; basta trocar a camada final pelas 4 classes e ajustar. Sem trocar a saída, ela continua prevendo as classes do ImageNet."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-3",
+      "competencia": "dl-aplicado",
+      "dificuldade": 2,
+      "conceitos": ["dataloaders", "pytorch"],
+      "pergunta": "Por que embaralhar os dados de treino a cada época?",
+      "opcoes": [
+        {
+          "texto": "Para aumentar o tamanho efetivo do dataset",
+          "equivoco": "Embaralhar muda a ordem, não a quantidade de exemplos; aumentar o dataset é data augmentation."
+        },
+        "Para o modelo não aprender a ordem dos exemplos",
+        {
+          "texto": "Porque o PyTorch exige dados embaralhados",
+          "equivoco": "O PyTorch não exige: shuffle é opcional no DataLoader."
+        },
+        {
+          "texto": "Para reduzir o uso de memória da GPU",
+          "equivoco": "A ordem dos exemplos não altera o uso de memória."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Se os exemplos vêm sempre na mesma ordem, por exemplo agrupados por classe, os mini-batches ficam enviesados e o modelo aprende a sequência. Embaralhar a cada época deixa os gradientes mais representativos. No PyTorch, é o shuffle=True do DataLoader.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-3b",
+          "pergunta": "No PyTorch, qual é o papel do DataLoader?",
+          "opcoes": [
+            "Entregar os exemplos do Dataset em lotes",
+            {
+              "texto": "Baixar datasets prontos da internet",
+              "equivoco": "Baixar datasets é papel de pacotes como torchvision.datasets."
+            },
+            {
+              "texto": "Definir as camadas do modelo",
+              "equivoco": "As camadas são definidas no nn.Module do modelo."
+            },
+            { "texto": "Salvar os pesos do modelo em disco", "equivoco": "Salvar pesos é com torch.save." },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "O Dataset diz como ler um exemplo; o DataLoader percorre o Dataset em lotes (batch_size), embaralha (shuffle) e pode usar vários processos (num_workers). Baixar datasets é papel de pacotes como o torchvision.datasets."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-4",
+      "competencia": "dl-aplicado",
+      "dificuldade": 3,
+      "conceitos": ["fine-tuning", "transfer-learning"],
+      "pergunta": "Ao fazer fine-tuning de uma rede pré-treinada num dataset pequeno, uma prática comum é:",
+      "opcoes": [
+        {
+          "texto": "Treinar todas as camadas com a mesma taxa de aprendizado do pré-treino",
+          "equivoco": "Com poucos dados e taxa alta, a rede inteira se ajusta demais e perde o que o pré-treino aprendeu."
+        },
+        {
+          "texto": "Descartar os pesos pré-treinados das primeiras camadas",
+          "equivoco": "As primeiras camadas guardam os padrões mais gerais; são as que mais vale manter."
+        },
+        "Congelar as camadas iniciais e ajustar as finais, com taxa menor",
+        {
+          "texto": "Aumentar a taxa de aprendizado para compensar o dataset pequeno",
+          "equivoco": "Taxa maior com poucos dados apaga o pré-treino e causa overfitting."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "Com poucos dados, ajustar a rede inteira com taxa alta apaga o que o pré-treino aprendeu e leva a overfitting. O usual é congelar as camadas iniciais, que são genéricas, e ajustar as finais com taxa de aprendizado menor.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-4b",
+          "pergunta": "No fine-tuning da rede inteira, por que se usa taxa de aprendizado menor nas camadas pré-treinadas do que na camada nova?",
+          "opcoes": [
+            {
+              "texto": "Porque camadas pré-treinadas não têm gradiente",
+              "equivoco": "Camadas pré-treinadas têm gradiente normalmente; só não recebem se forem congeladas."
+            },
+            {
+              "texto": "Para a camada nova convergir mais devagar",
+              "equivoco": "É o contrário: a camada nova usa taxa maior porque começa aleatória."
+            },
+            "Para não apagar as representações já aprendidas",
+            {
+              "texto": "Porque a GPU processa camadas antigas mais devagar",
+              "equivoco": "A GPU processa todas as camadas da mesma forma; a taxa diferente é escolha de otimização."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "Os pesos pré-treinados já estão perto de uma boa solução, e passos grandes os empurrariam para longe. A camada nova começa aleatória e precisa de passos maiores. Taxas diferentes por grupo de parâmetros são comuns no fine-tuning."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-e2-1",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["dataloaders", "pytorch"],
+      "pergunta": "Um lote de imagens em PyTorch tem formato (32, 3, 224, 224). O que é o 32?",
+      "opcoes": [
+        { "texto": "O número de canais de cor", "equivoco": "Os canais são o 3 (RGB), na segunda posição." },
+        {
+          "texto": "A altura de cada imagem",
+          "equivoco": "A altura é o primeiro 224; em PyTorch a ordem é (N, C, H, W)."
+        },
+        "O número de imagens no lote",
+        {
+          "texto": "O número de classes do problema",
+          "equivoco": "O tensor de imagens não carrega o número de classes; isso aparece na saída do modelo."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "Em PyTorch, imagens em lote seguem o formato $(N, C, H, W)$: $N$ imagens, $C$ canais, altura $H$ e largura $W$. Aqui são 32 imagens RGB de $224 \\times 224$.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-e2-1b",
+          "pergunta": "Um DataLoader com batch_size=16 percorre um Dataset de 100 exemplos, sem descartar o último lote. Quantos lotes há numa época?",
+          "opcoes": [
+            {
+              "texto": "6",
+              "equivoco": "Esqueceu o último lote, com os 4 exemplos que sobram ($100 = 6 \\times 16 + 4$)."
+            },
+            { "texto": "16", "equivoco": "16 é o tamanho de cada lote, não a quantidade de lotes." },
+            "7",
+            { "texto": "100", "equivoco": "100 é o número de exemplos; eles são agrupados em lotes de 16." },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "São 6 lotes cheios (96 exemplos) e um último com os 4 que sobram: 7 no total. Com drop_last=True, o lote incompleto seria descartado e ficariam 6."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-e2-2",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["pytorch"],
+      "pergunta": "No loop de treino em PyTorch, por que chamar optimizer.zero_grad() a cada passo?",
+      "opcoes": [
+        {
+          "texto": "Para reiniciar os pesos do modelo antes de cada novo mini-batch",
+          "equivoco": "zero_grad zera os gradientes, não os pesos; os pesos aprendidos continuam."
+        },
+        {
+          "texto": "Para liberar a memória da GPU ocupada pelo passo anterior",
+          "equivoco": "Liberar memória não é o objetivo; sem zerar, o problema é o gradiente acumulado."
+        },
+        {
+          "texto": "Para desligar o dropout enquanto o lote é processado",
+          "equivoco": "Dropout é controlado por model.train() e model.eval()."
+        },
+        "Porque backward() soma os gradientes novos aos antigos em vez de substituí-los",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "O backward() acumula: soma os gradientes novos aos que já estão em .grad. Sem zerar, cada passo usaria a soma de todos os gradientes anteriores. Acumular só faz sentido de propósito, como no gradient accumulation.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-e2-2b",
+          "pergunta": "Qual destas é a ordem certa num passo do loop de treino em PyTorch?",
+          "opcoes": [
+            {
+              "texto": "optimizer.step(), forward, loss.backward(), zero_grad()",
+              "equivoco": "O step() no começo usaria gradientes antigos, antes de calcular os do lote atual."
+            },
+            "zero_grad(), forward, loss.backward(), optimizer.step()",
+            {
+              "texto": "forward, optimizer.step(), loss.backward(), zero_grad()",
+              "equivoco": "O step() precisa vir depois do backward(), que é quem calcula os gradientes."
+            },
+            {
+              "texto": "loss.backward(), forward, zero_grad(), optimizer.step()",
+              "equivoco": "O backward() depende da loss calculada no forward; não há o que derivar antes dele."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Primeiro zeram-se os gradientes antigos, depois a passada para frente calcula a loss, o backward() calcula os gradientes e o step() atualiza os pesos com eles. Um step() antes do backward() usaria gradientes velhos ou vazios."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-e2-3",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["cnn"],
+      "pergunta": "Uma convolução $3 \\times 3$, com stride 1 e sem padding, aplicada a uma imagem $32 \\times 32$ gera um mapa de:",
+      "opcoes": [
+        "$30 \\times 30$",
+        {
+          "texto": "$32 \\times 32$",
+          "equivoco": "$32 \\times 32$ só se mantém com padding; sem padding, a borda perde 2 pixels em cada direção."
+        },
+        {
+          "texto": "$29 \\times 29$",
+          "equivoco": "Faltou o +1: o filtro cabe em $32 - 3 + 1 = 30$ posições."
+        },
+        {
+          "texto": "$10 \\times 10$",
+          "equivoco": "Dividir por 3 seria o caso de stride 3; com stride 1 o filtro anda um pixel por vez."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "Sem padding e com stride 1, o filtro $3 \\times 3$ cabe em $32 - 3 + 1 = 30$ posições em cada direção, então o mapa de saída é $30 \\times 30$.",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-e2-3b",
+          "pergunta": "Uma camada convolucional recebe 3 canais e aplica 16 filtros $3 \\times 3$. Quantos pesos ela tem, sem contar o bias?",
+          "opcoes": [
+            {
+              "texto": "144",
+              "equivoco": "$16 \\times 9$ esquece que cada filtro cobre os 3 canais de entrada."
+            },
+            { "texto": "48", "equivoco": "$16 \\times 3$ esquece a área $3 \\times 3$ de cada filtro." },
+            { "texto": "27", "equivoco": "27 é um filtro só; são 16 filtros." },
+            "432",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Cada filtro cobre todos os canais de entrada: $3 \\times 3 \\times 3 = 27$ pesos. Com 16 filtros, são $16 \\cdot 27 = 432$. O número de pesos não depende do tamanho da imagem, só do filtro e dos canais."
+        }
+      ]
+    },
+    {
+      "id": "n-dl-aplicado-e2-4",
+      "competencia": "dl-aplicado",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["pytorch"],
+      "pergunta": "Para que serve chamar model.eval() antes de avaliar um modelo em PyTorch?",
+      "opcoes": [
+        {
+          "texto": "Congela os pesos, para que não sejam atualizados durante a avaliação",
+          "equivoco": "Quem atualiza os pesos é o optimizer.step(); eval() não congela nada."
+        },
+        "Faz camadas como dropout e batch norm se comportarem como na inferência",
+        {
+          "texto": "Desliga o cálculo de gradientes, economizando memória durante a avaliação",
+          "equivoco": "Desligar gradientes é o torch.no_grad(); eval() só muda dropout e batch norm."
+        },
+        {
+          "texto": "Calcula e registra automaticamente as métricas de avaliação",
+          "equivoco": "Métricas se calculam à parte; eval() não calcula nada."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "model.eval() muda o comportamento de camadas como dropout, que desliga, e batch norm, que passa a usar as estatísticas acumuladas no treino. Ele não desliga gradientes nem congela pesos: isso é o torch.no_grad().",
+      "variantes": [
+        {
+          "id": "n-dl-aplicado-e2-4b",
+          "pergunta": "Para avaliar um modelo em PyTorch sem gastar memória com gradientes, o usual é:",
+          "opcoes": [
+            "Chamar model.eval() e rodar a avaliação dentro de with torch.no_grad()",
+            {
+              "texto": "Chamar só model.eval(), que já desliga os gradientes",
+              "equivoco": "eval() não desliga o registro de gradientes; para isso é preciso torch.no_grad()."
+            },
+            {
+              "texto": "Chamar optimizer.zero_grad() antes de cada lote de avaliação",
+              "equivoco": "zero_grad() limpa gradientes já calculados, mas não impede que o grafo seja montado."
+            },
+            {
+              "texto": "Congelar os dados de entrada com requires_grad=False",
+              "equivoco": "Os dados de entrada já não pedem gradiente; quem pede são os parâmetros do modelo."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 0,
+          "explicacao": "Os dois fazem coisas diferentes: model.eval() põe dropout e batch norm em modo de inferência, e torch.no_grad() impede o registro das operações para o backward, economizando memória. Um não substitui o outro."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-1",
+      "competencia": "transformers-llms",
+      "dificuldade": 1,
+      "conceitos": ["tokenizacao"],
+      "aposentada": true,
+      "pergunta": "O que a tokenização faz antes de um texto entrar num modelo de linguagem?",
+      "opcoes": [
+        "Traduz o texto para inglês",
+        "Remove as palavras repetidas",
+        "Corrige os erros de ortografia",
+        "Quebra o texto em unidades menores, convertidas em números",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "O modelo só lê números. O tokenizador quebra o texto em pedaços (palavras ou subpalavras) e troca cada pedaço pelo seu índice no vocabulário, que depois vira um embedding.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-1b",
+          "pergunta": "Por que tokenizadores modernos quebram palavras raras em pedaços menores (subpalavras)?",
+          "opcoes": [
+            "Para corrigir a ortografia",
+            "Para cobrir qualquer palavra com um vocabulário de tamanho fixo",
+            "Para traduzir a palavra para o inglês",
+            "Para remover prefixos e sufixos sem significado",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Um vocabulário só de palavras inteiras nunca cobre tudo: nomes, termos novos e erros de digitação ficariam de fora. Com subpalavras, qualquer palavra é montada a partir de pedaços conhecidos, com vocabulário fixo."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-5",
+      "competencia": "transformers-llms",
+      "dificuldade": 1,
+      "conceitos": ["geracao-de-texto", "tokenizacao"],
+      "pergunta": "Como um modelo de linguagem como o GPT escreve uma resposta?",
+      "opcoes": [
+        {
+          "texto": "A resposta inteira de uma vez, numa única passada pelo modelo",
+          "equivoco": "A resposta sai aos poucos: cada token novo exige uma nova passada pelo modelo."
+        },
+        "Um token por vez, a partir de tudo que veio antes",
+        {
+          "texto": "Buscando a resposta mais parecida num banco de textos prontos",
+          "equivoco": "O modelo não consulta respostas prontas; ele gera texto novo, token a token."
+        },
+        {
+          "texto": "Letra por letra, cada letra sorteada sem depender das anteriores",
+          "equivoco": "A unidade é o token, não a letra, e cada escolha depende do que veio antes."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Modelos como o GPT são autorregressivos: a cada passo preveem o próximo token, um pedaço de texto que pode ser uma palavra ou parte dela, condicionado ao prompt e ao que já geraram. Não existe banco de respostas prontas.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-5b",
+          "pergunta": "Um LLM erra ao contar quantas letras “a” há em “banana”. Qual a explicação mais provável?",
+          "opcoes": [
+            {
+              "texto": "A palavra não aparecia nos dados de treino",
+              "equivoco": "“banana” é uma palavra comum; o problema é que o modelo não vê as letras separadas."
+            },
+            {
+              "texto": "LLMs não conseguem lidar com números",
+              "equivoco": "O erro não é de aritmética: o modelo não enxerga as letras que precisaria contar."
+            },
+            "Ele lê e escreve tokens, não letras",
+            {
+              "texto": "A temperatura da geração estava baixa demais",
+              "equivoco": "Temperatura muda o sorteio entre tokens prováveis, não o que o modelo consegue ver na palavra."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "O texto entra no modelo como tokens: “banana” pode virar um ou dois pedaços, e as letras separadas não aparecem para ele. Contar letras pede uma informação que a tokenização esconde, e a resposta também sai token a token."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-2",
+      "competencia": "transformers-llms",
+      "dificuldade": 2,
+      "conceitos": ["atencao", "embeddings"],
+      "pergunta": "Numa frase, o mecanismo de atenção permite que o modelo:",
+      "opcoes": [
+        {
+          "texto": "Processe as palavras estritamente uma depois da outra",
+          "equivoco": "Processar em sequência é o que as RNNs fazem; a atenção olha todas as palavras de uma vez."
+        },
+        {
+          "texto": "Descarte as palavras menos frequentes",
+          "equivoco": "A atenção pondera palavras pela relevância no contexto, não pela frequência."
+        },
+        "Pondere quais outras palavras importam para interpretar cada palavra",
+        {
+          "texto": "Aumente o vocabulário automaticamente",
+          "equivoco": "O vocabulário é fixado pelo tokenizador; a atenção não o altera."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "Para cada palavra, a atenção calcula o quanto cada outra palavra da frase é relevante e mistura as informações com esses pesos. Em “sentou no banco do rio”, “rio” ajuda a interpretar “banco”.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-2b",
+          "pergunta": "Em “O gato subiu no telhado porque ele estava com medo”, como a atenção ajuda o modelo a entender “ele”?",
+          "opcoes": [
+            {
+              "texto": "Substituindo “ele” pelo token mais frequente do vocabulário",
+              "equivoco": "A atenção não substitui tokens; ela mistura informações de outros tokens na representação de cada um."
+            },
+            {
+              "texto": "Lendo a frase de trás para frente",
+              "equivoco": "A atenção não tem direção de leitura; cada token pode olhar para todos os outros."
+            },
+            {
+              "texto": "Apagando as palavras que vêm depois de “ele”",
+              "equivoco": "Esconder o futuro é a máscara causal, e ela não resolve a quem “ele” se refere."
+            },
+            "Dando peso alto a “gato” ao montar a representação de “ele”",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "A representação de cada token é uma média ponderada das representações dos outros. Se “ele” dá peso alto a “gato”, a informação de quem sentiu medo entra na representação de “ele”. Os pesos são aprendidos, não regras fixas."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-3",
+      "competencia": "transformers-llms",
+      "dificuldade": 2,
+      "conceitos": ["positional-encoding", "transformer"],
+      "pergunta": "Por que um Transformer precisa de codificação posicional?",
+      "opcoes": [
+        "Porque a atenção, sozinha, não distingue a ordem das palavras",
+        {
+          "texto": "Porque todas as frases precisam ter o mesmo tamanho",
+          "equivoco": "Tamanhos iguais se resolvem com padding; posição é sobre ordem."
+        },
+        {
+          "texto": "Porque isso reduz o custo computacional da atenção",
+          "equivoco": "A codificação posicional não reduz custo; ela acrescenta informação de ordem."
+        },
+        {
+          "texto": "Porque os embeddings não caberiam na memória sem compressão",
+          "equivoco": "Não há compressão envolvida; a posição é somada aos embeddings."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "A atenção compara os tokens entre si sem nenhuma noção de ordem: sem posição, “o cão mordeu o homem” e “o homem mordeu o cão” pareceriam iguais para cada palavra. A codificação posicional soma essa informação aos embeddings.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-3b",
+          "pergunta": "Uma RNN não precisa de codificação posicional, mas um Transformer precisa. Por quê?",
+          "opcoes": [
+            {
+              "texto": "A RNN repete os mesmos pesos a cada passo",
+              "equivoco": "A RNN de fato compartilha pesos entre os passos, mas o que dá a noção de ordem é ler um token de cada vez."
+            },
+            "A RNN lê em ordem; o Transformer vê tudo junto",
+            {
+              "texto": "O Transformer só aceita frases curtas",
+              "equivoco": "Transformers aceitam sequências longas; a necessidade vem de processar tudo em paralelo."
+            },
+            {
+              "texto": "A RNN usa atenção com máscara",
+              "equivoco": "RNNs clássicas não usam atenção; a ordem vem do processamento passo a passo."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "Na RNN, a ordem está embutida no processamento, passo a passo. O Transformer olha todos os tokens ao mesmo tempo, e a atenção não distingue posições; a codificação posicional devolve essa informação."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-4",
+      "competencia": "transformers-llms",
+      "dificuldade": 3,
+      "conceitos": ["multi-head-attention", "transformer"],
+      "pergunta": "Qual a vantagem de usar várias cabeças de atenção em vez de uma só?",
+      "opcoes": [
+        {
+          "texto": "Permite processar várias frases ao mesmo tempo",
+          "equivoco": "Processar várias frases ao mesmo tempo é o lote (batch), não as cabeças."
+        },
+        "Cada cabeça foca um tipo diferente de relação",
+        {
+          "texto": "Reduz o número total de parâmetros do modelo",
+          "equivoco": "Várias cabeças dividem a dimensão do modelo; o total de parâmetros fica parecido, não menor."
+        },
+        {
+          "texto": "Impede que o modelo repita palavras na geração",
+          "equivoco": "Evitar repetição é assunto da decodificação (penalidades, amostragem), não das cabeças."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "Cada cabeça tem as próprias projeções de Q, K e V, então pode se especializar num tipo de relação, como concordância ou a quem um pronome se refere. Uma cabeça só teria de misturar tudo numa única média ponderada.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-4b",
+          "pergunta": "Num Transformer com dimensão de modelo 512 e 8 cabeças de atenção, qual é, tipicamente, a dimensão de cada cabeça?",
+          "opcoes": [
+            {
+              "texto": "512",
+              "equivoco": "512 é a dimensão do modelo inteira; ela é dividida entre as 8 cabeças."
+            },
+            { "texto": "4096", "equivoco": "Multiplicou em vez de dividir: $512 \\times 8$." },
+            "64",
+            { "texto": "8", "equivoco": "8 é o número de cabeças, não a dimensão de cada uma." },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "As cabeças dividem a dimensão do modelo: $512 / 8 = 64$ por cabeça. As saídas são concatenadas de volta para 512, então o custo fica parecido com o de uma cabeça única, mas cada cabeça pode aprender um padrão diferente."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-e2-1",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 1,
+      "conceitos": ["embeddings"],
+      "pergunta": "Num modelo de linguagem, o embedding de um token é:",
+      "opcoes": [
+        {
+          "texto": "O índice do token no vocabulário",
+          "equivoco": "O índice só diz qual linha buscar na tabela; o embedding é o vetor guardado nela."
+        },
+        "Um vetor aprendido que representa o token",
+        {
+          "texto": "A frequência do token nos dados de treino",
+          "equivoco": "Frequência é uma estatística do corpus; o embedding é aprendido no treino."
+        },
+        {
+          "texto": "Uma versão comprimida do texto de entrada",
+          "equivoco": "O embedding representa um token, não o texto inteiro."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 1,
+      "explicacao": "O embedding é um vetor denso, aprendido no treino, que representa o token; tokens com usos parecidos ficam com vetores próximos. O índice no vocabulário só diz qual linha buscar na tabela de embeddings.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-e2-1b",
+          "pergunta": "Por que modelos de linguagem representam tokens com embeddings em vez de vetores one-hot?",
+          "opcoes": [
+            {
+              "texto": "O one-hot precisa ser recalculado a cada época",
+              "equivoco": "O one-hot é fixo e não depende de treino; o problema dele é ser enorme e não codificar semelhança."
+            },
+            {
+              "texto": "Embeddings dispensam a tokenização",
+              "equivoco": "Embeddings dependem da tokenização: cada token precisa virar um índice antes."
+            },
+            "São densos, aprendidos e aproximam tokens de uso parecido",
+            {
+              "texto": "One-hot só funciona com palavras em inglês",
+              "equivoco": "One-hot funciona com qualquer vocabulário; a limitação é outra."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 2,
+          "explicacao": "Um one-hot tem o tamanho do vocabulário, dezenas de milhares de posições, e trata todos os tokens como igualmente diferentes. O embedding tem poucas centenas de números, é aprendido, e tokens de uso parecido ficam próximos."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-e2-2",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["geracao-de-texto"],
+      "pergunta": "Na geração de texto, aumentar a temperatura da amostragem tende a:",
+      "opcoes": [
+        {
+          "texto": "Deixar as respostas mais determinísticas",
+          "equivoco": "É o contrário: temperatura baixa deixa a escolha mais determinística."
+        },
+        {
+          "texto": "Aumentar o tamanho máximo da resposta",
+          "equivoco": "O tamanho máximo é outro parâmetro (limite de tokens)."
+        },
+        "Tornar a escolha dos próximos tokens mais aleatória e variada",
+        {
+          "texto": "Fazer o modelo considerar um contexto mais longo",
+          "equivoco": "O contexto considerado é fixado pela janela do modelo, não pela temperatura."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 2,
+      "explicacao": "A temperatura divide os logits antes da softmax. Acima de 1, a distribuição fica mais achatada e tokens menos prováveis saem mais vezes. Perto de 0, a escolha fica quase sempre no token mais provável.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-e2-2b",
+          "pergunta": "Na geração de texto, o que a decodificação gulosa (greedy) faz a cada passo?",
+          "opcoes": [
+            {
+              "texto": "Sorteia um token proporcionalmente às probabilidades",
+              "equivoco": "Sortear pelas probabilidades é amostragem; a gulosa pega sempre o máximo."
+            },
+            "Escolhe sempre o token mais provável",
+            {
+              "texto": "Gera várias continuações e fica com a mais longa",
+              "equivoco": "Gerar várias continuações lembra beam search, e o critério não é o tamanho."
+            },
+            {
+              "texto": "Escolhe o token menos repetido até ali",
+              "equivoco": "Evitar repetição é uma penalidade à parte, não a regra da decodificação gulosa."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "A decodificação gulosa pega o token de maior probabilidade a cada passo: é determinística e tende a repetir frases. Amostrar das probabilidades, com temperatura, top-k ou top-p, dá textos mais variados."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-e2-3",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 2,
+      "conceitos": ["atencao", "transformer"],
+      "pergunta": "Na atenção, para que servem os vetores $Q$ (query), $K$ (key) e $V$ (value)?",
+      "opcoes": [
+        "$Q$ é comparado com $K$ para dar os pesos da atenção, que então combinam os $V$",
+        {
+          "texto": "São três camadas empilhadas, aplicadas em sequência em cada bloco do Transformer",
+          "equivoco": "$Q$, $K$ e $V$ são projeções dentro de uma mesma camada de atenção, não camadas empilhadas."
+        },
+        {
+          "texto": "Representam, respectivamente, os tokens de entrada, os de saída e o vocabulário",
+          "equivoco": "Os três vêm dos mesmos tokens (na self-attention); não separam entrada, saída e vocabulário."
+        },
+        {
+          "texto": "Normalizam, comprimem e decodificam os embeddings antes da camada de saída",
+          "equivoco": "$Q$, $K$ e $V$ servem para calcular e aplicar os pesos da atenção, não para normalizar ou comprimir."
+        },
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 0,
+      "explicacao": "Cada token gera uma consulta ($Q$), uma chave ($K$) e um valor ($V$). A similaridade entre a $Q$ de um token e as $K$ dos outros define os pesos, e a saída é a média dos $V$ com esses pesos.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-e2-3b",
+          "pergunta": "Na self-attention, de onde vêm $Q$, $K$ e $V$?",
+          "opcoes": [
+            {
+              "texto": "$Q$ vem da entrada; $K$ e $V$ vêm de um banco de dados externo",
+              "equivoco": "Na self-attention os três vêm da mesma sequência; não há banco externo."
+            },
+            {
+              "texto": "São vetores fixos, iguais em todos os modelos",
+              "equivoco": "As projeções $W_Q$, $W_K$ e $W_V$ são aprendidas, e cada modelo tem as suas."
+            },
+            {
+              "texto": "$Q$ é o token atual, $K$ o anterior e $V$ o seguinte",
+              "equivoco": "Cada token gera o próprio $Q$, $K$ e $V$; não é uma questão de vizinhos."
+            },
+            "Das mesmas entradas, por três projeções lineares aprendidas",
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 3,
+          "explicacao": "Na self-attention, a representação de cada token é multiplicada por três matrizes aprendidas, $W_Q$, $W_K$ e $W_V$, que geram sua consulta, sua chave e seu valor. Na atenção cruzada, como no decoder de tradução, $K$ e $V$ vêm de outra sequência."
+        }
+      ]
+    },
+    {
+      "id": "n-transformers-llms-e2-4",
+      "competencia": "transformers-llms",
+      "etapa": 2,
+      "dificuldade": 3,
+      "conceitos": ["geracao-de-texto", "transformer"],
+      "pergunta": "Por que um modelo gerador como o GPT usa máscara causal na atenção?",
+      "opcoes": [
+        {
+          "texto": "Para esconder os tokens de preenchimento (padding) quando as frases têm tamanhos diferentes",
+          "equivoco": "Esconder padding é a máscara de padding, outra máscara."
+        },
+        {
+          "texto": "Para reduzir o custo quadrático da atenção em sequências longas",
+          "equivoco": "A máscara causal não reduz o custo quadrático; só bloqueia posições futuras."
+        },
+        {
+          "texto": "Para impedir que o modelo repita a mesma palavra várias vezes seguidas",
+          "equivoco": "Repetição se controla na decodificação; a máscara é sobre não ver o futuro."
+        },
+        "Para cada posição só enxergar os tokens anteriores, como na geração, em que o futuro ainda não existe",
+        { "texto": "Não sei", "naoSei": true }
+      ],
+      "correta": 3,
+      "explicacao": "Um modelo gerador aprende a prever o próximo token. Se cada posição pudesse ver as seguintes, bastaria copiar a resposta. A máscara causal esconde o futuro e deixa o treino igual à geração, que avança um token por vez.",
+      "variantes": [
+        {
+          "id": "n-transformers-llms-e2-4b",
+          "pergunta": "Um LLM gera texto um token por vez. O que acontece depois que ele escolhe um token?",
+          "opcoes": [
+            {
+              "texto": "O modelo gera todos os tokens seguintes de uma vez",
+              "equivoco": "A geração é autorregressiva: um token por passada."
+            },
+            "O token é anexado à sequência e o modelo roda de novo para prever o próximo",
+            {
+              "texto": "O token é descartado e só o último estado oculto segue adiante",
+              "equivoco": "O token escolhido entra na sequência; é assim que o próximo passo o leva em conta."
+            },
+            {
+              "texto": "O prompt original é tokenizado de novo do zero, sem o token",
+              "equivoco": "O prompt não é tokenizado de novo; o token novo só é anexado (e o KV cache evita recalcular)."
+            },
+            { "texto": "Não sei", "naoSei": true }
+          ],
+          "correta": 1,
+          "explicacao": "A geração é autorregressiva: cada token escolhido entra no fim da entrada, e o modelo prevê o seguinte condicionado a tudo que veio antes. As implementações guardam chaves e valores já calculados (o KV cache) para não refazer a conta inteira."
+        }
+      ]
+    }
+  ],
+  "codigo": {
+    "nota": "Leitura de código: mede se o aluno lê Python, NumPy e PyTorch. Não entra na matriz de competências; decide por qual nível de prática de código começar.",
+    "notebook": "https://colab.research.google.com/github/lucasddmc/trilha-ligia/blob/main/templates/notebook.ipynb",
+    "questoes": [
+      {
+        "id": "n-codigo-1",
+        "dificuldade": 1,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import numpy as np\nx = np.array([[1, 2, 3],\n              [4, 5, 6]])\nprint(x.shape, x.sum(axis=0))",
+        "opcoes": [
+          "(2, 3) [5 7 9]",
+          {
+            "texto": "(3, 2) [6 15]",
+            "equivoco": "Trocou as duas coisas: shape é (linhas, colunas), e axis=0 soma ao longo das linhas, coluna por coluna."
+          },
+          {
+            "texto": "(2, 3) [6 15]",
+            "equivoco": "Shape certo, mas axis=0 soma cada coluna; somar cada linha é axis=1."
+          },
+          {
+            "texto": "(3, 2) [5 7 9]",
+            "equivoco": "axis certo, mas shape é (linhas, colunas): 2 linhas, 3 colunas."
+          },
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 0,
+        "explicacao": "O array tem 2 linhas e 3 colunas, então shape é (2, 3). sum(axis=0) soma ao longo das linhas, coluna por coluna: 1+4, 2+5, 3+6. Somar cada linha seria axis=1, que dá [6 15].",
+        "variantes": [
+          {
+            "id": "n-codigo-1b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import numpy as np\nx = np.arange(6).reshape(2, 3)\nprint(x[1, 2], x[:, 0])",
+            "opcoes": [
+              {
+                "texto": "2 [0 1 2]",
+                "equivoco": "x[1, 2] é linha 1, coluna 2 (contando do zero), que vale 5; e x[:, 0] é a coluna 0, não a linha 0."
+              },
+              "5 [0 3]",
+              {
+                "texto": "5 [0 1 2]",
+                "equivoco": "x[1, 2] certo, mas x[:, 0] pega a coluna 0 de todas as linhas: [0 3]."
+              },
+              {
+                "texto": "2 [0 3]",
+                "equivoco": "x[:, 0] certo, mas x[1, 2] é linha 1, coluna 2: o 5. O 2 está na linha 0."
+              },
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 1,
+            "explicacao": "np.arange(6).reshape(2, 3) dá [[0 1 2], [3 4 5]]. x[1, 2] é linha 1, coluna 2: o 5. x[:, 0] pega a coluna 0 de todas as linhas: [0 3]."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-2",
+        "dificuldade": 2,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import numpy as np\na = np.array([1, 2, 3])\nb = a.reshape(3, 1)\nprint((a + b).shape)",
+        "opcoes": [
+          {
+            "texto": "(3,)",
+            "equivoco": "Somar arrays de formatos diferentes não mantém o formato de um deles: há broadcasting."
+          },
+          {
+            "texto": "(3, 1)",
+            "equivoco": "O resultado não fica com o formato de b; as dimensões de tamanho 1 se esticam."
+          },
+          {
+            "texto": "Erro: formatos incompatíveis",
+            "equivoco": "(3,) e (3, 1) são compatíveis por broadcasting: dimensão de tamanho 1 casa com qualquer tamanho."
+          },
+          "(3, 3)",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 3,
+        "explicacao": "Broadcasting: a tem forma (3,), tratada como (1, 3), e b tem (3, 1). Cada dimensão de tamanho 1 se estica para casar com a outra, e a soma sai (3, 3), uma tabela com todas as somas a[j] + b[i].",
+        "variantes": [
+          {
+            "id": "n-codigo-2b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import numpy as np\nX = np.ones((4, 3))\nw = np.array([1.0, 2.0, 3.0])\nprint((X @ w).shape, (X @ w)[0])",
+            "opcoes": [
+              "(4,) 6.0",
+              {
+                "texto": "(3,) 6.0",
+                "equivoco": "O produto de matriz (4, 3) por vetor (3,) dá uma entrada por linha de X: (4,)."
+              },
+              {
+                "texto": "(4, 3) 1.0",
+                "equivoco": "Isso seria X * w, elemento a elemento. O @ é produto de matrizes."
+              },
+              {
+                "texto": "Erro: formatos incompatíveis",
+                "equivoco": "(4, 3) @ (3,) é compatível: as 3 colunas de X batem com as 3 componentes de w."
+              },
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 0,
+            "explicacao": "X @ w é o produto de matriz (4, 3) por vetor (3,), que dá um vetor (4,): uma previsão linear por linha. Cada linha de X é [1, 1, 1], então cada valor é $1 \\cdot 1 + 1 \\cdot 2 + 1 \\cdot 3 = 6$."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-3",
+        "dificuldade": 2,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import torch\ncamada = torch.nn.Linear(10, 3)\nx = torch.randn(32, 10)\nprint(camada(x).shape)",
+        "opcoes": [
+          {
+            "texto": "torch.Size([3, 10])",
+            "equivoco": "(3, 10) é o formato da matriz de pesos da camada (saídas por entradas), não da saída."
+          },
+          {
+            "texto": "torch.Size([32, 10])",
+            "equivoco": "(32, 10) é a entrada; a camada troca as 10 features por 3 saídas."
+          },
+          "torch.Size([32, 3])",
+          {
+            "texto": "torch.Size([10, 3])",
+            "equivoco": "(10, 3) lembra os argumentos da camada, mas a saída mantém o lote de 32."
+          },
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 2,
+        "explicacao": "nn.Linear(10, 3) leva 10 features em 3 saídas e se aplica a cada linha do lote. Um lote de 32 exemplos com 10 features vira 32 exemplos com 3 saídas: (32, 3).",
+        "variantes": [
+          {
+            "id": "n-codigo-3b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import torch\nx = torch.randn(8, 3, 28, 28)\nprint(x.view(8, -1).shape)",
+            "opcoes": [
+              {
+                "texto": "torch.Size([8, 84])",
+                "equivoco": "$84 = 3 \\times 28$: faltou multiplicar pela outra dimensão de 28."
+              },
+              "torch.Size([8, 2352])",
+              {
+                "texto": "torch.Size([24, 784])",
+                "equivoco": "view(8, -1) mantém a primeira dimensão em 8; não mistura lote com canais."
+              },
+              {
+                "texto": "torch.Size([8, 3, 784])",
+                "equivoco": "view(8, -1) produz 2 dimensões: o -1 junta canais, altura e largura numa só."
+              },
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 1,
+            "explicacao": "view(8, -1) mantém o lote de 8 e deduz a outra dimensão: $3 \\cdot 28 \\cdot 28 = 2352$. É o achatamento usado antes de passar imagens para uma camada linear."
+          }
+        ]
+      },
+      {
+        "id": "n-codigo-4",
+        "dificuldade": 3,
+        "pergunta": "O que este código imprime?",
+        "codigo": "import torch\nw = torch.tensor(2.0, requires_grad=True)\nloss = (3 * w - 1) ** 2\nloss.backward()\nprint(w.grad)",
+        "opcoes": [
+          {
+            "texto": "tensor(25.)",
+            "equivoco": "25 é o valor da loss em $w = 2$; w.grad guarda a derivada."
+          },
+          {
+            "texto": "tensor(10.)",
+            "equivoco": "Faltou o fator 3 da regra da cadeia: a derivada de dentro de $(3w - 1)$ é 3."
+          },
+          {
+            "texto": "None, porque backward() não altera w",
+            "equivoco": "backward() não altera w, mas preenche w.grad com a derivada."
+          },
+          "tensor(30.)",
+          { "texto": "Não sei", "naoSei": true }
+        ],
+        "correta": 3,
+        "explicacao": "O backward() guarda em w.grad a derivada da loss: $d/dw\\,(3w - 1)^2 = 2(3w - 1) \\cdot 3$. Em $w = 2$, dá $2 \\cdot 5 \\cdot 3 = 30$. O 25 é o valor da loss; o 10 esquece o fator 3 da regra da cadeia.",
+        "variantes": [
+          {
+            "id": "n-codigo-4b",
+            "pergunta": "O que este código imprime?",
+            "codigo": "import torch\nx = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)\ny = (x ** 2).sum()\ny.backward()\nprint(x.grad)",
+            "opcoes": [
+              {
+                "texto": "tensor(14.)",
+                "equivoco": "14 é o valor de $y$; x.grad guarda a derivada em relação a cada x."
+              },
+              {
+                "texto": "tensor([1., 4., 9.])",
+                "equivoco": "$[1, 4, 9]$ é $x^2$, não a derivada de $x^2$, que é $2x$."
+              },
+              "tensor([2., 4., 6.])",
+              {
+                "texto": "tensor([1., 1., 1.])",
+                "equivoco": "[1, 1, 1] seria a derivada de sum(x); com o quadrado, a derivada é 2x."
+              },
+              { "texto": "Não sei", "naoSei": true }
+            ],
+            "correta": 2,
+            "explicacao": "$y = x_1^2 + x_2^2 + x_3^2$, então a derivada de $y$ em relação a cada $x_i$ é $2x_i$, e o backward() guarda [2, 4, 6] em x.grad. O 14 é o valor de $y$; $[1, 4, 9]$ é o próprio $x^2$."
+          }
+        ]
+      }
+    ]
+  }
+}

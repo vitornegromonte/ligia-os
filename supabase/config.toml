@@ -1,0 +1,17 @@
+# Configuração do projeto Supabase.
+#
+# `project_id` é só o nome da pasta local; o vínculo com o projeto remoto é
+# feito por `supabase link --project-ref <ref>`.
+project_id = "ligia-os"
+
+[functions.loop-avaliar]
+# `verify_jwt = false` porque a própria função valida o JWT (ver
+# _shared/http.ts) e precisa devolver 401 em JSON, e não o erro genérico do
+# gateway — a UI distingue "não autenticado" de "sem cota" de "falhou".
+verify_jwt = false
+
+[functions.loop-perguntar]
+verify_jwt = false
+
+[functions.judge]
+verify_jwt = false

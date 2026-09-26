@@ -1,0 +1,37 @@
+{
+  "conceptId": "positional-encoding",
+  "orientacao": "A auto-atenção sozinha enxerga a sequência como um conjunto de tokens, sem noção de ordem; o positional encoding é o que devolve essa noção ao modelo. Antes de abrir a aula, tente reconstruir do zero por que a ordem precisa ser injetada e como ela entra — recuperar ativamente fixa muito mais que reler. Não se cobre a fórmula exata; busque a intuição.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). O Transformer (Vaswani et al., 2017, 'Attention Is All You Need') troca recorrência (RNN) e convolução por auto-atenção pura. A auto-atenção calcula relações entre TODOS os pares de tokens via Q/K/V; nada nesse cálculo depende da posição do token na sequência. Consequência: a operação é PERMUTAÇÃO-INVARIANTE — ela trata a entrada como um CONJUNTO, não como uma lista ordenada. Permutar os tokens de entrada permuta as saídas correspondentes, mas não muda a representação de cada token. Sem informação posicional, 'cão morde homem' e 'homem morde cão' produziriam, para cada palavra, a mesma representação — apesar de significados opostos. O positional encoding resolve isso INJETANDO informação de posição. No artigo original ela é SOMADA (não concatenada) ao embedding de cada token, na base das pilhas de encoder/decoder; por isso o vetor posicional tem a MESMA dimensão d_model do embedding (ex.: 512), para que os dois possam ser somados. Pontos de referência por checagem: (1) Auto-atenção é permutação-invariante / sem ordem intrínseca porque não há recorrência nem convolução; trata a entrada como conjunto. (2) Por que a ordem importa: em linguagem a ordem carrega significado ('cão morde homem' ≠ 'homem morde cão'); sem posição o modelo não distinguiria anagramas de ordem. (3) Como se injeta: SOMA-se um vetor posicional ao embedding do token, mesma dimensão d_model; a posição vira parte do próprio vetor de entrada que alimenta Q/K/V. (4) Senoidal vs. aprendida: a versão original é SENOIDAL e FIXA — para cada dimensão um seno/cosseno de frequência diferente (comprimentos de onda em progressão geométrica de 2π a 10000·2π), PE(pos,2i)=sin(pos/10000^(2i/d)) e PE(pos,2i+1)=cos(...); não tem parâmetros treináveis. A alternativa é APRENDIDA: um embedding de posição treinado junto, como o de tokens. Vaswani et al. testaram as duas e obtiveram resultados quase idênticos; escolheram a senoidal por (a) poder extrapolar para comprimentos maiores que os vistos no treino e (b) facilitar atenção por posições RELATIVAS, já que para um deslocamento fixo k, PE(pos+k) é função linear de PE(pos). (5) Distinção fina: positional encoding dá noção de ORDEM/posição; não substitui o embedding semântico — soma-se a ele. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: aluno citar RoPE/encodings relativos modernos como evolução); não afirme fatos fora desta base nem invente fórmulas/números.",
+  "checagens": [
+    {
+      "pergunta": "A auto-atenção, sozinha, é 'permutação-invariante' e trata a entrada como um conjunto. O que isso quer dizer, e por que ela não tem noção intrínseca de ordem?",
+      "rubrica": "Boa resposta: a auto-atenção calcula relações entre todos os pares de tokens sem usar a posição deles, então embaralhar a ordem dos tokens não muda a representação de cada um — ela vê um CONJUNTO, não uma sequência ordenada. O núcleo é ligar a ausência de ordem ao fato de não haver recorrência/convolução; basta a ideia, não a prova formal.",
+      "dica": "Pergunte-se: se eu embaralhar as palavras antes de entrar na atenção, a conta de cada token muda?"
+    },
+    {
+      "pergunta": "Dê um exemplo de linguagem que mostre por que a ordem precisa importar, e explique o que se perderia se o modelo ignorasse a posição.",
+      "rubrica": "Boa resposta: cita um par com as MESMAS palavras em ordens diferentes e significados distintos (ex.: 'cão morde homem' vs. 'homem morde cão') e conclui que, sem posição, o modelo daria a mesma representação aos dois — perdendo o significado que vem da ordem. Qualquer exemplo válido de reordenação que muda o sentido serve.",
+      "dica": "Pense em duas frases com exatamente as mesmas palavras, mas sentidos opostos."
+    },
+    {
+      "pergunta": "Como o positional encoding é combinado com o embedding do token na entrada do modelo — e o que essa forma de combinar exige sobre a dimensão do vetor posicional?",
+      "rubrica": "Boa resposta: gera-se um vetor posicional e ele é SOMADO ao embedding de cada token (na entrada, antes da atenção); por ser somado, precisa ter a MESMA dimensão (d_model) do embedding. Citar 'somar' e 'mesma dimensão' é o esperado; reconhecer que a posição passa a fazer parte do vetor que alimenta Q/K/V é um plus.",
+      "dica": "Pense na operação mais simples que junta dois vetores sem mudar a dimensão do resultado — e no que ela exige sobre o tamanho de cada um."
+    },
+    {
+      "pergunta": "Contraste a versão SENOIDAL original com a versão APRENDIDA do positional encoding: como cada uma é construída e que vantagem a senoidal busca?",
+      "rubrica": "Boa resposta: a senoidal é FIXA, sem parâmetros treináveis — usa senos e cossenos de frequências diferentes por dimensão para gerar um padrão único por posição; a aprendida é um embedding de posição TREINADO junto com o modelo (como o de tokens). Vantagem citada para a senoidal: extrapolar para comprimentos maiores que os do treino e/ou facilitar posições relativas. Não precisa da fórmula; o eixo fixo-determinístico vs. treinável é o núcleo.",
+      "dica": "Uma versão é calculada por uma fórmula fixa; a outra é mais um conjunto de pesos que o modelo aprende."
+    },
+    {
+      "pergunta": "Verdadeiro ou falso, justificando: 'o positional encoding substitui o embedding semântico do token'.",
+      "rubrica": "Boa resposta: FALSO. O positional encoding é SOMADO ao embedding semântico, não o substitui — o vetor de entrada final combina significado (embedding) e posição (encoding). Reconhecer que são informações complementares somadas no mesmo vetor é o ponto.",
+      "dica": "A posição entra por uma soma com o embedding semântico. Pense no que acontece com cada um dos dois vetores nessa soma — algum deles chega a ser descartado?"
+    }
+  ],
+  "ponteiros": [
+    "Jay Alammar — The Illustrated Transformer, seção 'Representing The Order of The Sequence Using Positional Encoding' (http://jalammar.github.io/illustrated-transformer/)",
+    "Vaswani et al. (2017), 'Attention Is All You Need', seção 3.5 — Positional Encoding (a fórmula senoidal e a nota sobre embeddings aprendidos)",
+    "Aula da LigIA: Positional Encoding (botão “Ver aula” no painel da trilha)"
+  ]
+}

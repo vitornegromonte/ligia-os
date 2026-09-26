@@ -1,0 +1,37 @@
+{
+  "conceptId": "dataloaders",
+  "orientacao": "No PyTorch, dois objetos dividem o trabalho de alimentar o modelo: o Dataset, que sabe acessar UMA amostra de cada vez, e o DataLoader, que organiza essas amostras para o laço de treino. Antes de abrir a doc, tente responder às checagens do seu jeito — recuperar de memória qual objeto faz o quê fixa muito mais do que reler o tutorial.",
+  "contexto": "Base teórica de referência para AVALIAR (NÃO repasse cru ao aluno; é grounding LLM-only). No PyTorch, o pipeline de dados é dividido em duas abstrações com responsabilidades distintas, e a aula é sobre entender essa divisão. (A) Dataset: encapsula o acesso aos dados. Uma subclasse de torch.utils.data.Dataset implementa três métodos: __init__ (roda uma vez ao instanciar; guarda caminhos/anotações e as funções de transform — NÃO carrega tudo na memória necessariamente), __len__ (retorna o número de amostras do dataset) e __getitem__(idx) (carrega e retorna UMA amostra do índice idx, aplica os transforms, e devolve tipicamente uma tupla (amostra, rótulo) — ex.: (imagem_tensor, label)). Ou seja, o Dataset é indexável amostra-a-amostra e é onde mora a lógica de I/O e pré-processamento. (B) DataLoader: torch.utils.data.DataLoader ENVOLVE um Dataset e expõe um iterável que abstrai a complexidade do treino. Ele agrupa amostras individuais em MINI-BATCHES (batch_size), faz SHUFFLE (reembaralha a cada época) e carrega os dados em PARALELO com múltiplos processos (num_workers), sobrepondo a preparação dos dados na CPU com a computação na GPU. Cada iteração do DataLoader devolve um batch (ex.: batch_size=64 features + 64 rótulos empilhados em tensores). Pontos de referência por checagem: (1) Divisão de papéis: Dataset = acessa/transforma UMA amostra por índice (__len__ + __getitem__); DataLoader = envolve o Dataset e entrega mini-batches embaralhados, possivelmente em paralelo. Reconhecer que são camadas separadas (separar a fonte de dados do consumo no treino) é o núcleo. (2) __getitem__ recebe um índice, carrega UMA amostra, aplica transforms e retorna (amostra, rótulo); __len__ retorna o total de amostras — juntos eles tornam o dataset indexável e iterável. (3) Por que mini-batches em vez de uma amostra (SGD puro) ou o dataset inteiro (batch GD): o batch inteiro estima o gradiente com precisão mas é caro/inviável em memória e dá poucos passos por época; uma amostra só é barata mas o gradiente é muito ruidoso; o mini-batch é o meio-termo — estimativa de gradiente razoável + uso eficiente de hardware vetorizado/GPU (uma matriz de batch processada de uma vez). (4) Por que embaralhar (shuffle=True): se os dados estão ordenados (ex.: todos os exemplos da classe 0, depois classe 1...), batches consecutivos ficam correlacionados/enviesados e o SGD recebe gradientes tendenciosos; reembaralhar a cada época quebra essa ordem, descorrelaciona os batches, melhora a convergência do SGD e reduz overfitting à ORDEM dos dados. (5) Treino vs. teste: shuffle=True tipicamente só no DataLoader de TREINO; na validação/teste usa-se shuffle=False, porque ali só se calcula uma métrica agregada (sem atualização de pesos) e a ordem não afeta o resultado — manter a ordem dá reprodutibilidade e não atrapalha. Defaults úteis do construtor do DataLoader: batch_size=1 e shuffle=False (o tutorial de exemplo usa 64 e True explicitamente). Aceite como corretas respostas verdadeiras e pertinentes mesmo que não listadas aqui (ex.: num_workers>0 usa multiprocessing; pin_memory acelera a transferência p/ GPU). Não afirme fatos fora desta base nem invente nomes de métodos/argumentos.",
+  "checagens": [
+    {
+      "pergunta": "No PyTorch há dois objetos — Dataset e DataLoader. Em uma ou duas frases, qual é a responsabilidade de cada um, e como eles se relacionam?",
+      "rubrica": "Boa resposta: o Dataset sabe ACESSAR uma amostra (e seu rótulo) por índice, aplicando transforms; o DataLoader ENVOLVE o Dataset e entrega o conjunto em MINI-BATCHES (com shuffle e/ou carregamento paralelo) para o laço de treino. O núcleo é reconhecer que são camadas separadas — a fonte de dados (uma amostra) vs. o consumo no treino (batches) — e que o DataLoader recebe um Dataset.",
+      "dica": "Um dos dois é a 'fonte' (de onde sai cada amostra individual); o outro é o 'organizador' que prepara os dados para o laço de treino. Qual é qual, e quem envolve quem?"
+    },
+    {
+      "pergunta": "Quais métodos uma subclasse de Dataset precisa implementar, e o que cada um faz? Foque no que recebe e no que retorna.",
+      "rubrica": "Boa resposta cita __len__ (retorna o NÚMERO de amostras do dataset) e __getitem__(idx) (recebe um ÍNDICE, carrega UMA amostra, aplica os transforms e retorna a amostra com seu rótulo — tipicamente uma tupla). Mencionar __init__ (guarda caminhos/anotações/transforms ao instanciar) é um plus. O essencial é entender que __getitem__ é por-amostra e indexável.",
+      "dica": "Pense em como você faria dataset[7] devolver a 8ª amostra — e como o objeto saberia quantas amostras existem."
+    },
+    {
+      "pergunta": "O DataLoader entrega os dados em mini-batches. Por que treinar com mini-batches em vez de uma amostra de cada vez OU o dataset inteiro de uma vez?",
+      "rubrica": "Boa resposta contrasta os extremos: o dataset inteiro (batch GD) dá um gradiente preciso mas é caro/pode não caber na memória e dá poucos passos; uma única amostra (SGD puro) é barata mas o gradiente fica muito ruidoso. O mini-batch é o meio-termo: estimativa de gradiente razoável + uso eficiente de hardware vetorizado/GPU (processa o lote de uma vez). Citar 'eficiência/GPU' E 'estimativa do gradiente' é o esperado.",
+      "dica": "Há um trade-off entre quão BOA é a estimativa do gradiente e quão CARO é cada passo."
+    },
+    {
+      "pergunta": "Por que normalmente passamos shuffle=True no DataLoader de treino? O que pode dar errado se os dados não forem embaralhados?",
+      "rubrica": "Boa resposta liga shuffle à ORDEM dos dados: se as amostras vêm ordenadas (ex.: agrupadas por classe), batches consecutivos ficam correlacionados/enviesados e o SGD recebe gradientes tendenciosos, prejudicando a convergência e induzindo overfitting à ordem. Reembaralhar a cada época quebra essa correlação. Citar 'quebrar a ordem/correlação entre batches' é o núcleo.",
+      "dica": "Imagine um dataset com TODOS os exemplos da classe A, depois TODOS da classe B. Como ficariam os primeiros batches?"
+    },
+    {
+      "pergunta": "Por que costumamos usar shuffle=True só no DataLoader de treino e shuffle=False na validação/teste?",
+      "rubrica": "Boa resposta: na validação/teste não há atualização de pesos — só se calcula uma métrica agregada sobre todas as amostras, então a ORDEM não muda o resultado; manter shuffle=False dá reprodutibilidade e não há motivo para embaralhar. O embaralhamento importa no treino porque é onde o gradiente é estimado por batch e a correlação de ordem atrapalha o SGD.",
+      "dica": "No teste o modelo não aprende — você só está medindo. A ordem das amostras muda a métrica final?"
+    }
+  ],
+  "ponteiros": [
+    "PyTorch — Datasets & DataLoaders (tutorial oficial): https://pytorch.org/tutorials/beginner/basics/data_tutorial.html",
+    "PyTorch docs — torch.utils.data (referência de Dataset e DataLoader, argumentos como batch_size, shuffle e num_workers)",
+    "Aula da LigIA: Datasets e DataLoaders (botão “Ver aula” no painel da trilha)"
+  ]
+}

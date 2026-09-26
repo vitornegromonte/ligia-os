@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { canAccessInternalArea } from "../auth/access.js";
 import Sidebar from "./Sidebar.jsx";
+import SyncEstado from "../aprender/SyncEstado.tsx";
 import Toast from "./Toast.jsx";
 import SearchModal from "./SearchModal.jsx";
 import { toastState } from "../utils/toast.js";
@@ -40,11 +41,9 @@ function AccountLayout({ internal }) {
   }, [internal]);
 
   return (
-    <div className="app-shell" style={{
-      display: "grid",
-      gridTemplateColumns: "var(--sidebar-width) minmax(0, 1fr)",
-      minHeight: "100vh"
-    }}>
+    <div className="app-shell">
+      {/* Sincroniza o estado da trilha com o Postgres. Não renderiza nada. */}
+      <SyncEstado />
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="main" style={{ gridColumn: 2, minWidth: 0 }}>
         <Outlet context={{ menuOpen, setMenuOpen }} />

@@ -1,0 +1,37 @@
+{
+  "conceptId": "calculo-vetorial",
+  "orientacao": "Em ML, cálculo é a linguagem de como o erro muda quando você mexe nos parâmetros — derivada é inclinação, gradiente é o vetor que aponta ladeira acima, e treinar é andar na direção oposta. Antes de olhar as fórmulas, tente responder cada checagem com suas palavras: recuperar ativamente fixa muito mais que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Cálculo vetorial aqui serve de fundamento para otimização em ML/deep learning. Pontos de referência por checagem: (1) DERIVADA — a derivada f'(x) é a inclinação da reta tangente ao gráfico em x, ou seja, a melhor aproximação constante da taxa de variação local; intuitivamente, quanto a saída muda por uma mudança infinitesimal na entrada (df/dx ≈ Δsaída/Δentrada quando Δentrada→0). É o que diz 'se eu empurrar x um tiquinho, para onde e quão rápido f vai?'. Sinal indica direção (sobe/desce), magnitude indica sensibilidade. (2) REGRA DA CADEIA — para uma composição f(g(x)), a derivada é f'(g(x))·g'(x); as taxas de variação se MULTIPLICAM ao longo da cadeia de dependências. É o motor do backpropagation: a rede é uma composição enorme de funções, e a cadeia decompõe 'quanto o erro final é sensível a este peso lá no começo' como o produto das sensibilidades locais elo a elo. (3) DERIVADAS PARCIAIS — quando f depende de várias variáveis (x1,…,xn), ∂f/∂xi é a derivada tratando todas as outras como constantes: a inclinação ao longo de um único eixo. Em ML há milhares/milhões de parâmetros, então cada um tem sua parcial. (4) GRADIENTE — ∇f é o vetor que empilha todas as parciais: ∇f = (∂f/∂x1, …, ∂f/∂xn). Aponta na direção de MAIOR crescimento de f, e sua magnitude é a taxa de subida nessa direção. Razão: a taxa de variação numa direção unitária u é a derivada direcional = ∇f · u (produto escalar); por Cauchy-Schwarz / cos(θ), esse produto é máximo quando u aponta no mesmo sentido de ∇f (θ=0). Logo o gradiente é a direção de subida mais íngreme; -∇f é a de descida mais íngreme. (5) OTIMIZAÇÃO / GRADIENTE DESCENDENTE — treinar minimiza uma função de custo/perda L(θ). Como ∇L aponta para onde L cresce mais rápido, damos passos no sentido OPOSTO: θ ← θ − η·∇L, onde η (learning rate) controla o tamanho do passo. Repetindo, descemos a 'paisagem' do erro rumo a um mínimo (local). O gradiente é zero em pontos críticos (mínimos, máximos, selas). Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: a analogia da bola descendo um vale, gradiente perpendicular às curvas de nível, problemas de gradiente que some/explode); não afirme fatos fora desta base nem invente.",
+  "checagens": [
+    {
+      "pergunta": "Sem citar a definição com limite: o que a derivada f'(x) te diz sobre a função em um ponto, geometricamente e em termos de 'taxa de variação'?",
+      "rubrica": "Boa resposta liga a derivada à inclinação da reta TANGENTE ao gráfico naquele ponto, e/ou à taxa de variação local: quanto a saída muda para uma pequena mudança na entrada. Reconhecer que o sinal dá a direção (cresce/decresce) e a magnitude dá a sensibilidade é um plus. Não precisa de fórmula nem de limite.",
+      "dica": "Imagine dar um zoom infinito no gráfico até a curva virar quase uma reta — qual é a inclinação dessa reta?"
+    },
+    {
+      "pergunta": "Usando a regra da cadeia, derive f(g(x)). Mais importante: por que ela é o coração do backpropagation em redes neurais?",
+      "rubrica": "Boa resposta: a derivada de f(g(x)) é f'(g(x))·g'(x) — as taxas de variação se MULTIPLICAM ao longo da composição. Para a parte de ML: uma rede é uma composição encadeada de funções (camadas), e a regra da cadeia permite calcular quão sensível o erro final é a um peso lá no início, multiplicando as sensibilidades locais elo a elo. Citar 'composição de funções' e 'multiplicar as derivadas/sensibilidades' é o núcleo.",
+      "dica": "Pense em engrenagens encadeadas: como a velocidade da primeira afeta a última passando por todas as do meio?"
+    },
+    {
+      "pergunta": "O que é uma derivada PARCIAL ∂f/∂xi, e por que precisamos delas em ML em vez de uma derivada só?",
+      "rubrica": "Boa resposta: a parcial ∂f/∂xi é a derivada de f em relação a xi tratando todas as OUTRAS variáveis como constantes — a inclinação ao longo de um único eixo/parâmetro. Em ML o modelo tem muitos parâmetros (pesos), então uma única derivada não basta: precisamos saber a sensibilidade do custo a CADA parâmetro separadamente. Reconhecer 'segura as outras fixas' e 'um eixo por vez' é o ponto.",
+      "dica": "Se a função depende de 1000 botões, como você mede o efeito de mexer só em um deles?"
+    },
+    {
+      "pergunta": "O gradiente ∇f é o vetor das parciais. Por que ele aponta na direção de MAIOR crescimento da função — e não em outra qualquer?",
+      "rubrica": "Boa resposta: ∇f empilha todas as parciais e aponta na direção de subida mais íngreme. A justificativa: a taxa de variação numa direção (derivada direcional) é o produto escalar ∇f·u; esse produto é máximo quando a direção u está ALINHADA com ∇f (mesmo sentido). O núcleo é a justificativa via produto escalar / derivada direcional (∇f·u é máximo quando u se alinha com ∇f). A versão informal ('combinação das inclinações de cada eixo') é apenas parcial — não explica o 'porquê'. Mencionar magnitude = quão íngreme é um plus.",
+      "dica": "A variação numa direção é ∇f·u (produto escalar). Para que direção u esse produto é o maior possível?"
+    },
+    {
+      "pergunta": "Treinar um modelo minimiza uma função de custo L(θ). Usando o gradiente, qual a regra de atualização dos parâmetros, e por que o sinal de menos?",
+      "rubrica": "Boa resposta: como ∇L aponta para onde o custo CRESCE mais rápido, andamos no sentido OPOSTO para reduzi-lo: θ ← θ − η·∇L (gradiente descendente). O sinal de menos é justamente para descer a ladeira em vez de subir; η (learning rate) regula o tamanho do passo. Citar 'direção oposta ao gradiente' e 'descer a perda' é o núcleo; mencionar learning rate ou mínimo local é bônus.",
+      "dica": "O gradiente aponta ladeira ACIMA. Você quer ir para cima ou para baixo no vale do erro?"
+    }
+  ],
+  "ponteiros": [
+    "3B1B — Essence of Calculus (cap. 1–3: derivada como inclinação/taxa de variação; cap. da regra da cadeia): https://www.youtube.com/@3blue1brown",
+    "3B1B — Essence of Calculus, parte de derivadas parciais e gradiente (e o vídeo 'Backpropagation calculus' da série de Redes Neurais, que conecta a regra da cadeia ao treino)",
+    "Aula da LigIA: Cálculo Vetorial (botão “Ver aula” no painel da trilha)"
+  ]
+}

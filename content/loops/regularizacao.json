@@ -1,0 +1,37 @@
+{
+  "conceptId": "regularizacao",
+  "orientacao": "Regularização L2 (ridge) adiciona à função de perda uma penalidade que cresce com o tamanho dos pesos, empurrando os coeficientes para perto de zero e combatendo overfitting. Antes de olhar a fórmula, tente reconstruir nas checagens POR QUE encolher os pesos ajuda — recuperar ativamente o raciocínio fixa muito mais que reler a definição.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). L2/ridge modifica o objetivo de treino: minimiza erro(p.ex. MSE) + λ·Σ wj² — soma dos QUADRADOS dos pesos, multiplicada pelo hiperparâmetro λ (≥0). Isso penaliza pesos grandes, encolhendo todos os coeficientes EM DIREÇÃO a zero, mas sem zerá-los (a penalidade quadrática é suave/diferenciável e empurra cada peso por uma fração da sua magnitude, então só chega a zero no limite). Pontos de referência por checagem: (1) O TERMO acrescentado à perda é λ vezes a soma dos quadrados dos pesos (||w||²); ele compete com o erro de ajuste, então a otimização troca um pouco de ajuste por pesos menores. (2) Encolher pesos = restringir o modelo = AUMENTAR viés e REDUZIR variância; combate overfitting porque modelos com pesos grandes/instáveis encaixam ruído do treino. É o trade-off viés-variância: aceita-se mais viés para ganhar generalização. (3) λ controla a FORÇA: λ=0 recupera regressão sem regularização (mínimos quadrados puro); λ↑ → penalidade domina → pesos menores → modelo mais simples → mais viés, menos variância; λ→∞ leva os pesos a ~0 (underfit). Escolhe-se λ por validação (ex.: validação cruzada), não no teste. (4) Por convenção NÃO se penaliza o intercepto (β0/bias): ele só desloca a previsão e não controla complexidade; penalizá-lo tornaria o modelo dependente da origem/translação do alvo. (5) É preciso ESCALAR/padronizar as features antes, porque a penalidade soma quadrados dos pesos: features em escalas diferentes recebem pesos em escalas diferentes e a penalidade as trataria de forma desigual/arbitrária. (6) L2 vs L1: L1/lasso penaliza a soma dos VALORES ABSOLUTOS (Σ|wj|) e ZERA pesos (esparsidade → seleção de features); L2 só encolhe, mantém todas as features. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui (ex.: 'weight decay' como nome de L2 em redes neurais; ridge ter solução fechada); não afirme fatos fora desta base nem invente fórmulas.",
+  "checagens": [
+    {
+      "pergunta": "Em uma frase: o que a regularização L2 acrescenta à função de perda da regressão, e qual o efeito disso sobre os pesos?",
+      "rubrica": "Boa resposta menciona (1) acrescenta uma PENALIDADE proporcional à soma dos QUADRADOS dos pesos (λ·Σwj²) e (2) o efeito é ENCOLHER/reduzir os coeficientes em direção a zero. Não precisa escrever a fórmula exata; reconhecer 'soma dos quadrados dos pesos' e 'encolhe' é o núcleo.",
+      "dica": "Pense no que entra a MAIS no que o modelo minimiza, e para onde isso empurra os coeficientes."
+    },
+    {
+      "pergunta": "Por que penalizar pesos grandes ajuda a combater overfitting? Conecte sua resposta ao trade-off viés-variância.",
+      "rubrica": "Boa resposta liga pesos grandes a um modelo que encaixa ruído/é instável (alta variância) e explica que encolher os pesos restringe o modelo: AUMENTA o viés e REDUZ a variância, melhorando a generalização. Citar 'trade-off viés-variância' e a direção (mais viés / menos variância) é o esperado.",
+      "dica": "Modelo que decora o treino costuma ter coeficientes grandes; restringi-los troca um pouco de flexibilidade por estabilidade."
+    },
+    {
+      "pergunta": "O que o hiperparâmetro λ controla? Descreva o que acontece com o modelo quando λ=0 e quando λ é muito grande.",
+      "rubrica": "Boa resposta: λ controla a FORÇA da regularização. λ=0 → sem penalidade → regressão comum (mínimos quadrados), risco de overfit. λ grande → penalidade domina → pesos muito pequenos → modelo mais simples/mais viés, menos variância (no extremo, underfit). Bônus: λ é escolhido por validação, não no teste. Reconhecer a direção (λ↑ = mais simples) é o ponto central.",
+      "dica": "λ é o 'volume' da penalidade: zero a desliga; alto demais apaga os pesos."
+    },
+    {
+      "pergunta": "Por convenção, o intercepto (bias/β0) NÃO costuma ser penalizado na regularização L2. Por quê?",
+      "rubrica": "Boa resposta: o intercepto só desloca a previsão (nível-base), não controla a complexidade/flexibilidade do modelo; encolhê-lo não reduz overfitting e ainda faria o modelo depender da escala/origem do alvo (ex.: somar uma constante a y mudaria a solução). Reconhecer que o intercepto não mede complexidade é suficiente.",
+      "dica": "A penalidade existe para conter o quanto as FEATURES influenciam a saída — o intercepto não pesa nenhuma feature."
+    },
+    {
+      "pergunta": "Antes de aplicar L2 costuma-se escalar/padronizar as features. Por quê? E como o L2 difere do L1 (lasso) no efeito sobre os coeficientes?",
+      "rubrica": "Boa resposta tem duas partes: (a) ESCALA — a penalidade soma quadrados dos pesos, então features em escalas diferentes ganham pesos em escalas diferentes e a penalidade as trataria de forma desigual/arbitrária; padronizar deixa a penalização justa. (b) L2 vs L1 — L1 penaliza a soma dos valores ABSOLUTOS e ZERA pesos (esparsidade/seleção de features); L2 só ENCOLHE em direção a zero, mantendo todas as features. Acertar a distinção 'L1 zera / L2 encolhe' é o essencial.",
+      "dica": "A penalidade compara pesos entre si — e a forma da penalidade (quadrado vs valor absoluto) muda se ela consegue chegar a zero exato."
+    }
+  ],
+  "ponteiros": [
+    "Andrew Ng — Machine Learning Specialization, Curso 1 (Supervised Learning), seção de regularization: por que regularizar, o termo λ·Σwj² e o efeito de λ no viés/variância — https://www.coursera.org/specializations/machine-learning-introduction",
+    "Pré-requisitos na trilha: revise Overfitting (o problema que a L2 ataca) e Regressão Linear (a perda à qual a penalidade é somada) antes de aprofundar",
+    "Aula da LigIA: Regularização (L2) (botão “Ver aula” no painel da trilha)"
+  ]
+}

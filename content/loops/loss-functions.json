@@ -1,0 +1,37 @@
+{
+  "conceptId": "loss-functions",
+  "orientacao": "Uma função de perda transforma o quão errada está uma previsão em um único número que o treino tenta minimizar. Antes de abrir o material, tente responder às checagens com suas próprias palavras — recuperar ativamente o conceito fixa muito mais que reler a definição. Não se preocupe em acertar a fórmula exata; foque no porquê de cada escolha.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Uma função de perda (loss) mede o quão erradas estão as previsões do modelo: recebe a previsão e o valor verdadeiro e devolve um número que é MENOR quando o acerto é maior. O treino ajusta os parâmetros do modelo para MINIMIZAR essa perda; ela é o sinal que guia o aprendizado. Pontos de referência por checagem: (1) A perda é o objetivo a minimizar — quanto pior a previsão, maior a perda; o treino busca os parâmetros que a tornam menor. Acurácia não serve como objetivo de treino porque não dá direção contínua de melhora (ver checagem 4). (2) Regressão (alvo contínuo) usa tipicamente o erro quadrático médio (MSE), média de (ŷ−y)²; classificação usa entropia cruzada (cross-entropy / log-loss): para o caso binário, −[y·log(p) + (1−y)·log(1−p)], que penaliza fortemente prever uma probabilidade baixa para a classe que de fato ocorreu. (3) Por que não MSE em classificação: combinado à sigmoide/softmax, o MSE produz uma superfície não-convexa e gradientes que somem quando o modelo está confiante e errado (vanishing gradient), tornando o aprendizado lento; além disso penaliza pouco o erro confiante. A entropia cruzada gera gradiente grande exatamente quando o modelo erra com confiança (o termo log diverge), e com sigmoide/softmax o gradiente fica simples (previsão − verdade), acelerando e estabilizando o treino. (4) Por que a perda precisa ser DIFERENCIÁVEL: o treino usa gradiente descendente, que precisa da derivada da perda em relação aos parâmetros para saber em que direção ajustá-los. A perda 0-1 (conta erros: 0 se acertou, 1 se errou) tem gradiente zero quase em todo lugar e um salto onde a classe muda — não dá direção de melhora, então o gradiente descendente fica preso. Por isso usamos perdas diferenciáveis (MSE, entropia cruzada) como substitutas (surrogates) suaves do que realmente queremos. (5) Perda por exemplo vs custo no dataset: a perda é definida por exemplo; o que se minimiza no treino é o CUSTO, a média (ou soma) das perdas sobre o conjunto (ou sobre o mini-batch). Os termos perda/custo/objetivo às vezes são usados de forma intercambiável. (6) Ligação com máxima verossimilhança (MLE): minimizar a entropia cruzada equivale a minimizar a log-verossimilhança negativa, ou seja, a MAXIMIZAR a verossimilhança dos dados sob o modelo probabilístico (Bernoulli/categórica). Usa-se a versão negativa e em log por estabilidade numérica e porque transforma o produto das probabilidades em soma — o mínimo da perda coincide com o máximo da verossimilhança. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não estejam listados aqui (ex.: MAE/erro absoluto para regressão robusta a outliers, hinge loss em SVM, regularização somada à perda); não afirme fatos fora desta base nem invente fórmulas.",
+  "checagens": [
+    {
+      "pergunta": "Em uma frase: o que uma função de perda mede, e o que o treino faz com ela?",
+      "rubrica": "Boa resposta diz que a perda mede o quão erradas (ou distantes do alvo) estão as previsões — um número que é maior quando a previsão é pior — e que o treino ajusta os parâmetros para MINIMIZÁ-la. O núcleo é 'mede o erro' + 'objetivo a minimizar'.",
+      "dica": "Pense no que o modelo está tentando deixar o MENOR possível durante o treino."
+    },
+    {
+      "pergunta": "Que função de perda você usaria para um problema de REGRESSÃO (alvo contínuo) e qual para CLASSIFICAÇÃO? Por que são diferentes?",
+      "rubrica": "Boa resposta: regressão → erro quadrático médio (MSE) ou similar, porque o alvo é um número contínuo e queremos penalizar a distância numérica; classificação → entropia cruzada / log-loss, porque a saída é uma probabilidade e queremos penalizar dar probabilidade baixa à classe correta. Citar 'MSE' e 'entropia cruzada/log-loss' associados ao tipo certo é o esperado.",
+      "dica": "Em um caso a saída é um número qualquer; no outro é uma probabilidade entre 0 e 1."
+    },
+    {
+      "pergunta": "Por que normalmente NÃO se usa MSE em problemas de classificação, mesmo sendo possível calculá-lo?",
+      "rubrica": "Boa resposta cita ao menos um motivo correto: combinado à sigmoide/softmax o MSE dá superfície não-convexa e gradientes que somem quando o modelo está confiante e errado (aprendizado lento / vanishing gradient); penaliza pouco o erro confiante; a entropia cruzada dá gradiente forte justamente quando se erra com confiança e converge melhor. Reconhecer 'gradiente fraco/lento' ou 'pune pouco o erro confiante' já acerta o núcleo.",
+      "dica": "Pense no que acontece com o gradiente quando o modelo prevê 0,99 mas a resposta certa era a outra classe."
+    },
+    {
+      "pergunta": "Por que a função de perda precisa ser DIFERENCIÁVEL? O que há de errado em treinar minimizando diretamente a taxa de erro (perda 0-1)?",
+      "rubrica": "Boa resposta liga à otimização por gradiente: o gradiente descendente precisa da derivada da perda para saber em que direção mexer os parâmetros. A perda 0-1 (contar acertos/erros) tem gradiente zero quase em todo lugar e saltos, então não dá direção de melhora e o gradiente descendente fica preso. Por isso usamos perdas suaves (MSE, entropia cruzada) como substitutas. Citar 'gradiente zero' ou 'não dá direção' é o ponto.",
+      "dica": "Gradiente descendente segue a inclinação da perda — o que acontece se a 'inclinação' for sempre plana (zero)?"
+    },
+    {
+      "pergunta": "Qual a diferença entre a perda de UM exemplo e o que de fato se minimiza no treino sobre o dataset? E como a entropia cruzada se conecta à máxima verossimilhança?",
+      "rubrica": "Boa resposta: a perda é definida por exemplo; o treino minimiza o CUSTO, que é a média (ou soma) das perdas sobre o conjunto/mini-batch. Quanto à verossimilhança: minimizar a entropia cruzada (log-verossimilhança negativa) equivale a MAXIMIZAR a verossimilhança dos dados sob o modelo. Acertar a parte 'média sobre o dataset' já vale; a conexão com MLE é o bônus esperado de quem foi mais a fundo.",
+      "dica": "Uma parte é só 'somar/tirar média sobre todos os exemplos'; a outra é 'minimizar −log da probabilidade = maximizar a probabilidade'."
+    }
+  ],
+  "ponteiros": [
+    "3Blue1Brown — Neural Networks (capítulo sobre a função de custo): a visualização do custo como média do erro sobre os exemplos e do gradiente descendente buscando seu mínimo — https://www.youtube.com/@3blue1brown",
+    "Aula da LigIA: Funções de Perda (botão “Ver aula” no painel da trilha)",
+    "Revisar antes: Regressão Logística — a sigmoide e a probabilidade prevista são a base para entender a entropia cruzada e a ligação com máxima verossimilhança"
+  ]
+}
