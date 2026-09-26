@@ -1,0 +1,37 @@
+{
+  "conceptId": "gradient-descent",
+  "orientacao": "Gradiente descendente é o algoritmo iterativo que treina a maioria dos modelos de ML/DL: ele ajusta os parâmetros aos poucos para fazer a perda descer. Antes de abrir o vídeo, tente responder às checagens com suas próprias palavras — recuperar ativamente o porquê de cada passo fixa muito mais que reassistir. Você já viu gradiente/regra da cadeia e funções de perda; aqui é onde essas peças se juntam.",
+  "contexto": "Base teórica de referência para AVALIAR as respostas (NÃO repasse cru ao aluno). Gradiente descendente minimiza uma função de perda L(θ) iterativamente: a cada passo move os parâmetros θ um pouco na direção que mais reduz L. Regra de atualização: θ ← θ − η·∇L(θ). Pontos de referência por checagem: (1) É OTIMIZAÇÃO ITERATIVA: parte de θ inicial (em geral aleatório) e repete o passo até convergir/critério de parada; cada passo usa o gradiente avaliado no θ atual. Não resolve em uma fórmula fechada — vai descendo a superfície de perda. (2) O sinal de MENOS: o gradiente ∇L aponta na direção de maior CRESCIMENTO (subida mais íngreme) de L; como queremos MINIMIZAR, andamos no sentido OPOSTO (−∇L), a descida mais íngreme. Por isso θ ← θ − η·∇L (não +). Quando ∇L≈0 (mínimo/ponto crítico) o passo some e o algoritmo para de se mover. (3) TAXA DE APRENDIZADO η (learning rate): escala o tamanho do passo. η grande demais → passos enormes que ultrapassam (overshoot) o mínimo, a perda oscila e pode DIVERGIR (crescer sem parar). η pequena demais → passos minúsculos, convergência muito LENTA (pode levar épocas demais / ficar preso em platôs). Existe uma faixa 'boa' no meio; na prática se começa pequeno (ex.: 0.01, 0.001) e ajusta olhando a curva de perda; schedules/decay também são comuns. (4) BATCH vs ESTOCÁSTICO (SGD) vs MINI-BATCH — trade-off ruído×custo por passo: BATCH (full-batch) usa o dataset INTEIRO por atualização → gradiente preciso/estável, mas caro e lento por passo em dados grandes; SGD usa 1 exemplo por atualização → passos baratíssimos e frequentes, mas com gradiente RUIDOSO (caminho em ziguezague), pode não assentar exatamente no mínimo; MINI-BATCH (tipicamente dezenas a centenas de exemplos) é o meio-termo padrão → reduz o ruído do SGD, aproveita paralelismo de GPU e é eficiente. O ruído do SGD/mini-batch não é só custo: ele AJUDA a escapar de mínimos locais ruins e saddle points. (5) CONVEXIDADE e MÍNIMOS LOCAIS: se L é CONVEXA (ex.: MSE da regressão linear), todo mínimo local é global e, com η adequado, GD converge para o mínimo global. Em redes neurais L é NÃO-CONVEXA (muitos mínimos locais e saddle points) → GD em geral só garante chegar a um mínimo LOCAL / ponto crítico, não ao global. Na prática funciona bem porque a maioria dos pontos críticos em alta dimensão são saddle points (escapáveis) e a maior parte dos mínimos locais tem perda próxima do global. Convergência exige η apropriado (e suavidade da função); com η errado pode oscilar/divergir mesmo no caso convexo. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme nem exija fatos fora desta base, e não invente fórmulas, números de batch size 'corretos' ou garantias que o aluno não precisa citar.",
+  "checagens": [
+    {
+      "pergunta": "Em uma ou duas frases: o que o gradiente descendente faz, e por que ele é chamado de método 'iterativo'?",
+      "rubrica": "Boa resposta diz que ele MINIMIZA a função de perda ajustando os parâmetros aos poucos, repetindo um passo (avaliar o gradiente no θ atual → atualizar θ) até convergir. O núcleo é: otimização iterativa que faz a perda DESCER, em vez de resolver de uma vez. Não precisa escrever a fórmula.",
+      "dica": "Pense no que ele otimiza e por que precisa de vários passos em vez de um só."
+    },
+    {
+      "pergunta": "A regra é θ ← θ − η·∇L(θ). Por que aparece um sinal de MENOS na frente do gradiente?",
+      "rubrica": "Boa resposta: o gradiente ∇L aponta na direção de maior CRESCIMENTO (subida mais íngreme) da perda; como o objetivo é MINIMIZAR, andamos no sentido OPOSTO, ou seja, −∇L (a descida mais íngreme). Reconhecer 'gradiente = direção de subida, então invertemos para descer' é o ponto. Bônus se notar que em ∇L≈0 o passo desaparece.",
+      "dica": "O gradiente diz para onde a perda SOBE mais rápido. Você quer ir para qual lado?"
+    },
+    {
+      "pergunta": "O que é a taxa de aprendizado (η) e o que dá errado se ela for grande demais? E pequena demais?",
+      "rubrica": "Boa resposta: η controla o TAMANHO do passo. Grande demais → ultrapassa o mínimo (overshoot), a perda oscila e pode DIVERGIR (crescer). Pequena demais → convergência muito LENTA (passos minúsculos, muitas iterações). Citar os dois extremos e a ideia de um valor 'no meio' é o esperado.",
+      "dica": "Imagine descer uma ladeira dando passos: gigantes demais ou minúsculos demais — o que acontece em cada caso?"
+    },
+    {
+      "pergunta": "Qual é o trade-off entre usar o dataset INTEIRO por passo (batch) e usar só UM exemplo por passo (SGD)? Onde o mini-batch entra?",
+      "rubrica": "Boa resposta liga ruído × custo por passo: batch dá um gradiente preciso/estável mas é caro e lento por atualização; SGD (1 exemplo) é barato e frequente, mas o gradiente é RUIDOSO (ziguezague) e pode não assentar no mínimo exato. Mini-batch (ex.: dezenas/centenas de exemplos) é o meio-termo: menos ruído que o SGD, mais barato que o batch, aproveita a GPU. Reconhecer 'mais dados por passo = menos ruído mas mais caro' é o núcleo.",
+      "dica": "Mais exemplos por passo deixam a estimativa do gradiente mais precisa — mas custam mais. Onde fica o equilíbrio?"
+    },
+    {
+      "pergunta": "Em regressão linear (perda convexa) o GD costuma achar o melhor ajuste possível, mas em redes neurais isso não é garantido. Por quê?",
+      "rubrica": "Boa resposta usa CONVEXIDADE: numa perda convexa todo mínimo local é global, então GD (com η bom) converge para o mínimo GLOBAL. Em redes neurais a perda é NÃO-CONVEXA (vários mínimos locais e saddle points), então GD em geral só garante um mínimo LOCAL / ponto crítico, não o global. Citar 'convexo vs não-convexo' e 'mínimo local vs global' é o ponto. Bônus: na prática funciona porque muitos pontos críticos são saddle points e os mínimos locais costumam ter perda próxima do global.",
+      "dica": "Pense no formato da superfície de perda: uma tigela única vs. um terreno cheio de vales."
+    }
+  ],
+  "ponteiros": [
+    "3Blue1Brown — \"Gradient descent, how neural networks learn\" (Neural Networks, cap. 2, ~30min): https://www.youtube.com/@3blue1brown — a melhor intuição visual de descer a superfície de perda e do papel do gradiente.",
+    "Andrew Ng — Machine Learning Specialization, Curso 1 (gradient descent e learning rate): https://www.coursera.org/specializations/machine-learning-introduction — formaliza a regra de atualização e o efeito de η.",
+    "Aula da LigIA: Gradiente Descendente (botão “Ver aula” no painel da trilha)"
+  ]
+}

@@ -7,10 +7,12 @@
 /dist
 /build
 /out
-
 # Testing
 /coverage
-
+/test-results
+/playwright-report
+/blob-report
+/.playwright
 # Environment variables (Crucial for security!)
 .env
 .env.local
@@ -18,13 +20,11 @@
 .env.test.local
 .env.production.local
 *.env.json
-
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
 # IDE / Text Editor configs
 .vscode/
 .idea/
@@ -33,10 +33,12 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.swp
-
-*.sql
-!supabase/**/*.sql
-
+# SQL: o schema é versionado em supabase/migrations e supabase/seed.
+# Só dumps locais e ad-hoc ficam de fora.
+/supabase/dumps/
+*.local.sql
 # Operating System files
 .DS_Store
 Thumbs.db
+*.sql
+!supabase/**/*.sql

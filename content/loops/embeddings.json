@@ -1,0 +1,37 @@
+{
+  "conceptId": "embeddings",
+  "orientacao": "Um embedding é um vetor denso e aprendido que representa um token, posicionando significados próximos perto uns dos outros no espaço. Antes de abrir os ponteiros, tente responder às checagens com suas próprias palavras — recuperar de memória custa mais e fixa muito mais do que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Um embedding é um vetor DENSO (a maioria das entradas é diferente de zero), de dimensão fixa e relativamente baixa (ex.: 50, 100, 300), cujos valores são APRENDIDOS durante o treino — não definidos à mão. Cada token (palavra, subpalavra, caractere) recebe um embedding; tokens com significado/uso parecido acabam com vetores próximos no espaço. Pontos de referência por checagem: (1) Embedding = vetor denso e aprendido que mapeia um token a um ponto num espaço contínuo; os números codificam significado/contexto de forma distribuída (nenhuma dimensão isolada tem rótulo garantido). (2) A 'tabela de embeddings' é uma matriz [tamanho_do_vocabulário × dimensão]; o embedding de um token é obtido por LOOKUP — indexa-se a linha pelo id inteiro do token (no makemore Part 2 do Karpathy é exatamente o C[X]). Essa tabela é um parâmetro treinável: o backprop ajusta as linhas como qualquer outro peso. (3) Similaridade semântica: vetores próximos ⇒ significados/usos próximos; mede-se tipicamente por SIMILARIDADE DE COSSENO (cosseno do ângulo entre os vetores), que ignora a magnitude e foca na direção — cosseno alto (perto de 1) = muito similar, perto de 0 = não relacionados. (4) vs. ONE-HOT: one-hot é esparso, com dimensão = tamanho do vocabulário, e todos os vetores são ORTOGONAIS entre si ⇒ a similaridade de cosseno entre dois tokens distintos é sempre 0; ou seja, one-hot NÃO captura nenhuma noção de similaridade e cresce com o vocabulário. O embedding é denso, de baixa dimensão e coloca similaridade na geometria. (5) Aritmética de vetores / analogias: operar com os vetores revela estrutura semântica — o exemplo clássico é rei − homem + mulher ≈ rainha (o vetor resultante cai perto de 'rainha'). Isso é EVIDÊNCIA de que direções no espaço capturam relações (gênero, plural, etc.), não uma garantia exata para todo par. (6) Dimensão do embedding é hiperparâmetro: maior ⇒ mais capacidade de representar nuances, porém mais parâmetros/custo e risco de overfit; menor ⇒ comprime demais. Aceite como corretas respostas verdadeiras e pertinentes mesmo que não listadas aqui (ex.: word2vec/GloVe, contexto, visualização 2D); não afirme fatos fora desta base nem invente números específicos de exemplos que o aluno não trouxe.",
+  "checagens": [
+    {
+      "pergunta": "Em uma ou duas frases: o que é um embedding de um token, e o que significa dizer que ele é 'denso' e 'aprendido'?",
+      "rubrica": "Boa resposta: embedding é um vetor (lista de números) de dimensão fixa que representa um token num espaço contínuo. 'Denso' = a maioria das entradas é não-nula (contrasta com esparso); 'aprendido' = os valores são ajustados durante o treino, não definidos à mão. Citar que codifica significado/contexto é um plus.",
+      "dica": "Pense em 'vetor de números' + de onde vêm esses números + se há muitos zeros ou não."
+    },
+    {
+      "pergunta": "O que é a 'tabela de embeddings' e como se obtém o embedding de um token específico a partir dela?",
+      "rubrica": "Boa resposta: a tabela é uma matriz [tamanho_do_vocabulário × dimensão_do_embedding]; o embedding de um token é a LINHA correspondente, recuperada por lookup usando o id (inteiro) do token como índice. Reconhecer que a tabela é um parâmetro treinável (ajustada pelo backprop) é um diferencial.",
+      "dica": "Cada token tem um id inteiro. O que esse id indexa numa matriz?"
+    },
+    {
+      "pergunta": "Como uma representação one-hot de um token difere de um embedding, e por que one-hot não consegue expressar que duas palavras têm significados parecidos?",
+      "rubrica": "Boa resposta contrasta: one-hot é ESPARSO, com dimensão = tamanho do vocabulário, e os vetores são ortogonais ⇒ similaridade de cosseno entre quaisquer dois tokens distintos é 0, logo não há noção de similaridade. Embedding é denso, de baixa dimensão e coloca tokens parecidos próximos no espaço. Citar 'ortogonal' ou 'cosseno = 0' é o núcleo.",
+      "dica": "Em one-hot, dois tokens diferentes nunca compartilham uma posição '1'. O que isso faz com o ângulo entre eles?"
+    },
+    {
+      "pergunta": "Quando dizemos que dois embeddings são 'próximos', como costumamos medir essa proximidade, e o que ela indica sobre os tokens?",
+      "rubrica": "Boa resposta: mede-se tipicamente por similaridade de cosseno (cosseno do ângulo entre os vetores; foca na direção, ignora a magnitude) — também vale citar distância euclidiana. Proximidade alta (cosseno perto de 1) indica significado/uso semelhante. O núcleo é ligar 'proximidade geométrica' a 'similaridade semântica'.",
+      "dica": "É sobre o ângulo entre os vetores, não o tamanho deles."
+    },
+    {
+      "pergunta": "O cálculo 'rei − homem + mulher ≈ rainha' funciona com embeddings. O que esse resultado evidencia sobre o espaço, e por que dizer 'evidencia' em vez de 'prova'?",
+      "rubrica": "Boa resposta: a aritmética de vetores aproxima 'rainha', evidenciando que DIREÇÕES no espaço capturam relações semânticas (ex.: o 'eixo' de gênero), ou seja, o espaço tem estrutura/regularidade. 'Evidencia' e não 'prova' porque é um padrão aprendido e aproximado (≈), que não vale exatamente para todo par/analogia. Reconhecer o caráter aproximado é o ponto fino.",
+      "dica": "Subtrair 'homem' e somar 'mulher' equivale a andar numa certa direção. O que essa direção representaria? E o '≈' importa."
+    }
+  ],
+  "ponteiros": [
+    "Jay Alammar — The Illustrated Word2vec (https://jalammar.github.io/illustrated-word2vec/): intuição visual de embeddings, similaridade de cosseno e analogias de vetores",
+    "Andrej Karpathy — Building makemore Part 2: MLP (https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ): a tabela de embeddings (C[X]) como lookup pelo id do token, treinada por backprop",
+    "Aula da LigIA: Embeddings (botão “Ver aula” no painel da trilha)"
+  ]
+}

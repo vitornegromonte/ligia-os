@@ -1,0 +1,37 @@
+{
+  "conceptId": "transformer",
+  "orientacao": "Você já viu as peças soltas — self-attention, multi-head e positional encoding. Aqui o foco é como tudo se MONTA na arquitetura completa: o bloco Transformer, a pilha de blocos e a cabeça final. Antes de reler ou ver o vídeo, tente responder às checagens de memória — recuperar ativamente como as peças se encaixam fixa muito mais que reler o diagrama.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Pré-requisitos (já cobertos em loops próprios — não reexplique do zero): multi-head self-attention e positional encoding. Foco deste loop: a MONTAGEM da arquitetura. Pontos de referência por checagem: (1) BLOCO Transformer = duas subcamadas em sequência: (a) multi-head self-attention e (b) uma rede feed-forward POSITION-WISE (uma MLP de 2 camadas aplicada de forma independente e idêntica a cada posição da sequência, tipicamente expandindo a dimensão e voltando). A attention mistura informação ENTRE posições; a feed-forward processa cada posição isoladamente. (2) Em volta de CADA subcamada há uma CONEXÃO RESIDUAL (atalho que soma a entrada à saída da subcamada) seguida de LAYER NORM — o padrão 'Add & Norm', LayerNorm(x + Sublayer(x)). O residual cria um caminho direto pro gradiente fluir e a layer norm estabiliza as ativações; juntos é o que viabiliza EMPILHAR muitos blocos e treinar redes PROFUNDAS sem o gradiente sumir/explodir. (3) A arquitetura é uma PILHA de N blocos idênticos (mesma estrutura, pesos próprios por bloco); a saída de um bloco é a entrada do próximo, refinando as representações camada a camada. (4) Vantagem-chave vs. RNN: o Transformer processa toda a sequência EM PARALELO (todas as posições de uma vez, via multiplicações de matriz na attention), enquanto a RNN é SEQUENCIAL (cada passo depende do hidden state do anterior). Por isso a positional encoding é necessária (sem recorrência, a ordem precisa ser injetada). O paralelismo é o que permite treinar modelos enormes em GPU. (5) Variantes: encoder-decoder (ex.: tradução) — encoder com attention plena (bidirecional) + decoder com self-attention CAUSAL/MASCARADA mais cross-attention que olha pro encoder. Decoder-only (ex.: GPT) — só a pilha do decoder com attention CAUSAL/MASCARADA: cada token só enxerga a si e aos anteriores, nunca o futuro; isso permite gerar token a token (autorregressivo). (6) CABEÇA final (LM head): uma projeção LINEAR mapeia o vetor de saída do último bloco para um vetor do tamanho do VOCABULÁRIO (os logits), e o SOFTMAX transforma esses logits numa distribuição de probabilidade sobre o próximo token. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base nem invente números/detalhes do paper original.",
+  "checagens": [
+    {
+      "pergunta": "Descreva o que tem DENTRO de um bloco Transformer. Quais são as duas subcamadas principais, e qual a diferença de papel entre elas?",
+      "rubrica": "Boa resposta cita as duas subcamadas: (1) multi-head self-attention e (2) uma rede feed-forward position-wise (MLP aplicada a cada posição). Idealmente nota a diferença de papel: a attention MISTURA informação entre posições (cada token olha os outros), enquanto a feed-forward processa cada posição de forma independente. Não precisa detalhar dimensões.",
+      "dica": "Uma subcamada faz os tokens 'conversarem' entre si; a outra processa cada token sozinho."
+    },
+    {
+      "pergunta": "Em volta de cada subcamada do bloco há uma conexão residual (atalho) seguida de layer norm. Por que esse padrão 'Add & Norm' é o que viabiliza empilhar muitos blocos e treinar redes profundas?",
+      "rubrica": "Boa resposta liga ao treino de redes PROFUNDAS: a conexão residual (somar a entrada à saída da subcamada) cria um caminho direto pro gradiente fluir, evitando que ele suma/exploda ao atravessar muitas camadas; a layer norm estabiliza/normaliza as ativações, mantendo o treino estável. O núcleo é reconhecer que sem residual+norm empilhar N blocos seria instável/intratável. Mencionar 'gradiente' ou 'caminho/atalho' é o esperado.",
+      "dica": "Pense no que acontece com o gradiente ao atravessar dezenas de camadas — e o que um atalho que soma a entrada original faz por ele."
+    },
+    {
+      "pergunta": "Qual é a vantagem-chave do Transformer sobre uma RNN no PROCESSAMENTO da sequência? E como isso se conecta à necessidade da positional encoding?",
+      "rubrica": "Boa resposta: o Transformer processa a sequência EM PARALELO (todas as posições de uma vez, via attention/multiplicação de matrizes), enquanto a RNN é SEQUENCIAL (cada passo depende do hidden state anterior) — o paralelismo acelera o treino e escala em GPU. Conexão com positional encoding: como não há recorrência/ordem implícita, a informação de POSIÇÃO precisa ser injetada explicitamente. Reconhecer o paralelo-vs-sequencial é o ponto central.",
+      "dica": "A RNN precisa terminar o passo t antes de começar o t+1. O Transformer não — mas o que ele perde ao olhar todos os tokens 'de uma vez'?"
+    },
+    {
+      "pergunta": "Compare a arquitetura encoder-decoder (ex.: tradução) com a decoder-only do GPT. O que muda na atenção, e o que significa atenção 'causal' / mascarada?",
+      "rubrica": "Boa resposta: encoder-decoder tem um encoder (attention plena/bidirecional, todos os tokens se veem) e um decoder com self-attention causal mais cross-attention olhando pro encoder. Decoder-only (GPT) é só a pilha com attention CAUSAL/MASCARADA. 'Causal/mascarada' = cada token só pode atender a si mesmo e aos tokens ANTERIORES, nunca aos futuros — o que permite geração autorregressiva (token a token). Reconhecer a máscara causal e o 'não olhar o futuro' é o núcleo.",
+      "dica": "Na hora de prever o próximo token, faria sentido o modelo já ter 'espiado' os tokens que ainda vai gerar?"
+    },
+    {
+      "pergunta": "Depois que a entrada passa pela pilha de N blocos, como o modelo transforma o vetor de saída na previsão do PRÓXIMO token? Cite as duas etapas finais.",
+      "rubrica": "Boa resposta cita: (1) uma projeção LINEAR (a 'cabeça'/LM head) que mapeia o vetor de saída para um vetor do tamanho do VOCABULÁRIO (os logits); (2) um SOFTMAX que transforma esses logits numa distribuição de PROBABILIDADE sobre os tokens possíveis. Citar 'logits' e 'softmax'/'distribuição de probabilidade sobre o vocabulário' é o esperado.",
+      "dica": "Você tem um vetor de números reais e precisa de uma probabilidade para cada token possível — qual operação faz exatamente isso?"
+    }
+  ],
+  "ponteiros": [
+    "Karpathy — Let's build GPT: from scratch, in code, spelled out (nanoGPT): constrói um Transformer decoder-only do zero, montando bloco a bloco (attention + feed-forward + Add & Norm) — https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+    "Vaswani et al., 'Attention Is All You Need' (2017) — o paper original: figura do encoder-decoder, Add & Norm e a pilha de N blocos",
+    "The Annotated Transformer (Harvard NLP) — o paper anotado linha a linha em código, ótimo para ver como as subcamadas se conectam"
+  ]
+}

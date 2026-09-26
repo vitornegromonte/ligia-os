@@ -1,0 +1,37 @@
+{
+  "conceptId": "train-val-test",
+  "orientacao": "Separar os dados em treino, validação e teste é o que permite estimar honestamente quão bem um modelo vai generalizar para dados novos. Antes de olhar a teoria, tente responder às checagens com suas palavras — recuperar ativamente fixa o porquê de cada conjunto muito melhor que reler.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). Divide-se os dados em três papéis distintos: TREINO (ajusta os parâmetros do modelo — pesos/coeficientes), VALIDAÇÃO (compara modelos e escolhe hiperparâmetros / seleção de modelo, sem alterar parâmetros) e TESTE (uma única medida final e NÃO-ENVIESADA da generalização). Pontos de referência por checagem: (1) Cada conjunto tem função diferente: treino = aprende os parâmetros; validação = seleciona modelo/hiperparâmetros e detecta overfitting durante o desenvolvimento; teste = estimativa final de desempenho em dados nunca vistos. (2) Medir no treino é otimista porque o modelo já viu esses pontos (pode até decorá-los); o erro de treino subestima o erro em dados novos — por isso medimos fora do treino. (3) O teste fica intocado até o fim porque, no instante em que você usa o teste para escolher algo (modelo, hiperparâmetro, threshold, features), ele passa a influenciar o modelo e deixa de ser 'não visto': a estimativa vira otimista. É exatamente o papel da validação absorver esse uso repetido — escolher entre muitas configurações com base na validação já enviesa otimisticamente a própria validação (fenômeno análogo a comparações múltiplas / overfitting adaptativo), e o teste serve para corrigir isso com uma medida limpa. (4) Vazamento de dados (data leakage) é quando informação do teste/validação 'vaza' para o treino, inflando o desempenho de mentira; exemplo clássico: ajustar normalização/scaler, imputação ou seleção de features no dataset INTEIRO antes de dividir — o pré-processamento deve ser ajustado SÓ no treino e depois aplicado aos demais (idealmente dentro do loop de validação). Outros: separar mal séries temporais ou deixar duplicatas/grupos do mesmo sujeito caírem em conjuntos diferentes. (5) Validação cruzada (k-fold) é alternativa quando há poucos dados: divide o treino em k partes, treina k vezes deixando uma parte de fora como validação a cada rodada, e faz a média — usa todos os dados para validar sem reservar um bloco fixo, reduzindo a variância da estimativa; ainda assim o teste deve ficar de fora, e a seleção de hiperparâmetros sobre o CV pede idealmente CV aninhada (nested) ou um teste separado. Aceite como corretos pontos verdadeiros e pertinentes mesmo que não listados aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Para que serve cada um dos três conjuntos — treino, validação e teste? Dê a função distinta de cada um.",
+      "rubrica": "Boa resposta separa os três papéis: TREINO ajusta os parâmetros/pesos do modelo; VALIDAÇÃO serve para comparar modelos e escolher hiperparâmetros (seleção de modelo) e detectar overfitting durante o desenvolvimento; TESTE dá a estimativa final e não-enviesada do desempenho em dados nunca vistos. Acertar os três papéis distintos é o núcleo; confundir validação com teste é o erro a evitar.",
+      "dica": "Um conjunto 'aprende', outro 'escolhe entre opções', outro 'dá a nota final'."
+    },
+    {
+      "pergunta": "Por que medir o desempenho nos próprios dados de treino dá uma estimativa otimista demais do quão bom o modelo é?",
+      "rubrica": "Boa resposta liga à generalização: o modelo já viu os pontos de treino (no limite pode decorá-los), então o erro medido ali subestima o erro em dados NOVOS. O que importa é o desempenho em dados não vistos; por isso avaliamos fora do treino. Citar 'generalização' / 'dados não vistos' / 'overfitting' é o esperado.",
+      "dica": "É como corrigir uma prova com as respostas que o aluno já tinha estudado."
+    },
+    {
+      "pergunta": "Por que NÃO se deve tocar no conjunto de teste até o final? O que acontece com a estimativa se você usar o teste para escolher entre vários modelos?",
+      "rubrica": "Boa resposta: assim que o teste é usado para decidir algo (escolher modelo, hiperparâmetro, threshold), ele passa a influenciar o resultado e deixa de representar 'dados não vistos' — a estimativa fica otimista/enviesada. Escolher a melhor de várias configurações com base num conjunto já o vicia (análogo a comparações múltiplas / overfitting adaptativo); por isso esse uso repetido vai na VALIDAÇÃO e o teste é olhado uma única vez. Reconhecer que o teste perde a imparcialidade ao ser reutilizado é o ponto central.",
+      "dica": "Se você 'consulta' o teste muitas vezes para escolher, ele vira só mais um conjunto de validação."
+    },
+    {
+      "pergunta": "O que é vazamento de dados (data leakage)? Dê um exemplo concreto envolvendo pré-processamento.",
+      "rubrica": "Boa resposta: leakage é quando informação que deveria ficar fora do treino (do teste/validação, ou do alvo/futuro) 'vaza' para o treino e infla o desempenho artificialmente, dando uma estimativa boa demais que não se sustenta na prática. Exemplo aceitável: ajustar normalização/scaler, imputação de faltantes ou seleção de features usando o dataset INTEIRO antes de dividir — o correto é ajustar o pré-processamento só no treino e depois aplicar aos demais. Identificar o vazamento via pré-processamento global é o esperado; outros exemplos válidos (duplicatas entre conjuntos, usar o futuro em série temporal) também contam.",
+      "dica": "Pergunte: essa estatística (média, escala, ranking de features) foi calculada vendo dados que o modelo não deveria ter visto?"
+    },
+    {
+      "pergunta": "Quando há poucos dados, reservar um bloco fixo de validação 'desperdiça' dados. Que técnica resolve isso e como ela funciona em linhas gerais?",
+      "rubrica": "Boa resposta: validação cruzada k-fold. Divide o treino em k partes (folds); a cada rodada treina em k-1 partes e valida na parte que sobrou, repetindo k vezes para que cada parte seja validação uma vez; faz a média das k medidas. Assim todos os dados são usados para validar (estimativa mais estável / menor variância) sem precisar de um bloco fixo. Bônus: o teste ainda deve ficar de fora, e selecionar hiperparâmetros via CV pede idealmente CV aninhada ou um teste separado. Descrever a rotação dos folds + média é o ponto.",
+      "dica": "Em vez de um único 'pedaço' de validação, faça vários rodízios e tire a média."
+    }
+  ],
+  "ponteiros": [
+    "Andrew Ng — Machine Learning Specialization, Curso 1 (módulo de avaliação de modelos: conjuntos de treino/validação/teste e seleção de modelo) — https://www.coursera.org/specializations/machine-learning-introduction",
+    "ISL (An Introduction to Statistical Learning), caps. 1–2 — visão geral de aprendizado estatístico, treino vs. teste e a ideia de generalização — https://www.statlearning.com",
+    "Aula da LigIA: Split Treino/Validação/Teste (botão “Ver aula” no painel da trilha)"
+  ]
+}

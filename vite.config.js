@@ -1,8 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -24,6 +28,12 @@ export default defineConfig({
           }
           if (id.includes("node_modules/marked")) {
             return "marked";
+          }
+          if (id.includes("node_modules/monaco-editor") || id.includes("node_modules/@monaco-editor")) {
+            return "monaco";
+          }
+          if (id.includes("node_modules/katex")) {
+            return "katex";
           }
         },
       },

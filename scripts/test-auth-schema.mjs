@@ -55,6 +55,14 @@ try {
   console.log("PASS authentication migration applied twice against inspected schema");
   run("psql", [...args, "-f", path.join(root, "supabase/tests/auth-production-access.sql")]);
   console.log("PASS signup, email sync, role authorization, grants, RLS and existing memberships (synthetic users)");
+  if (process.argv.includes("--learning")) {
+    const learning = ["0018_challenges_submissions.sql","0100_learning_core.sql","0101_rate_limit.sql","0102_practice_open_access.sql","0103_practice_progress.sql","0104_pretest_respostas.sql","0105_perfil_e_rascunho_nivelamento.sql","0106_learning_privileges.sql"];
+    for (let pass=0; pass<2; pass++) for (const file of learning) run("psql", [...args,"-f",path.join(root,"supabase/migrations",file)]);
+    run("psql", [...args,"-f",path.join(root,"supabase/tests/learning-access.sql")]);
+    run("psql", [...args,"-f",path.join(root,"supabase/seed/challenges.sql")]);
+    run("psql", args, {input: "select test_assert((select count(*)=41 from challenges where slug <> 'synthetic'),'41 catalog challenges seeded');"});
+    console.log("PASS learning migrations twice, cross-user RLS, server-only outcomes, service-role rate limiter and catalog seed");
+  }
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

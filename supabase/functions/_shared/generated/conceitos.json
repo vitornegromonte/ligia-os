@@ -1,0 +1,118 @@
+[
+  {
+    "id": "algebra-linear-basica",
+    "label": "Álgebra Linear Básica"
+  },
+  {
+    "id": "calculo-vetorial",
+    "label": "Cálculo Vetorial"
+  },
+  {
+    "id": "probabilidade-basica",
+    "label": "Probabilidade Básica"
+  },
+  {
+    "id": "gradiente",
+    "label": "Gradiente e Regra da Cadeia"
+  },
+  {
+    "id": "train-val-test",
+    "label": "Split Treino/Validação/Teste"
+  },
+  {
+    "id": "regressao-linear",
+    "label": "Regressão Linear"
+  },
+  {
+    "id": "regressao-logistica",
+    "label": "Regressão Logística"
+  },
+  {
+    "id": "knn",
+    "label": "K-Nearest Neighbors"
+  },
+  {
+    "id": "overfitting",
+    "label": "Overfitting"
+  },
+  {
+    "id": "regularizacao",
+    "label": "Regularização (L2)"
+  },
+  {
+    "id": "loss-functions",
+    "label": "Funções de Perda"
+  },
+  {
+    "id": "ativacoes",
+    "label": "Funções de Ativação"
+  },
+  {
+    "id": "gradient-descent",
+    "label": "Gradiente Descendente"
+  },
+  {
+    "id": "mlp",
+    "label": "Perceptron Multicamadas (MLP)"
+  },
+  {
+    "id": "backprop",
+    "label": "Backpropagation"
+  },
+  {
+    "id": "batchnorm",
+    "label": "Batch Normalization"
+  },
+  {
+    "id": "pytorch",
+    "label": "PyTorch básico"
+  },
+  {
+    "id": "dataloaders",
+    "label": "Datasets e DataLoaders"
+  },
+  {
+    "id": "cnn",
+    "label": "Redes Convolucionais (CNN)"
+  },
+  {
+    "id": "transfer-learning",
+    "label": "Transfer Learning"
+  },
+  {
+    "id": "fine-tuning",
+    "label": "Fine-tuning"
+  },
+  {
+    "id": "tokenizacao",
+    "label": "Tokenização"
+  },
+  {
+    "id": "embeddings",
+    "label": "Embeddings"
+  },
+  {
+    "id": "atencao",
+    "label": "Mecanismo de Atenção"
+  },
+  {
+    "id": "multi-head-attention",
+    "label": "Multi-Head Attention"
+  },
+  {
+    "id": "positional-encoding",
+    "label": "Positional Encoding"
+  },
+  {
+    "id": "transformer",
+    "label": "Arquitetura Transformer"
+  },
+  {
+    "id": "geracao-de-texto",
+    "label": "Geração de Texto"
+  },
+  {
+    "id": "projeto-final",
+    "label": "Projeto Final (Capstone)"
+  }
+]

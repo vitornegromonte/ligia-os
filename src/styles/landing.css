@@ -1,0 +1,113 @@
+/* =============================================================
+   Landing pública e processo seletivo.
+
+   Escopo deliberadamente separado do resto: são peças de marketing, com
+   licença estética que as telas internas não têm (o bezel duplo, a fonte
+   serifada em itálico, transições de 700ms). Misturá-las com as primitivas
+   de `ui.css` faria o produto herdar decisões de campanha.
+   ============================================================= */
+
+/* Acento editorial do H1 (briefing nomeia Merriweather explicitamente).
+   A fonte é carregada em index.html; o fallback serifado cobre a falha. */
+.h1-accent {
+  font-family: 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  padding-right: 0.06em; /* respiro do itálico/clip do gradiente */
+}
+
+.eyebrow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.eyebrow-pill::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* Variante para a faixa clara #E4CEC8 (briefing; exceção deliberada ao theme-lock) */
+.eyebrow-pill-light {
+  border-color: rgba(36, 25, 20, 0.18);
+  background: rgba(255, 255, 255, 0.4);
+  color: #5c5447;
+}
+
+/* Double-Bezel (Doppelrand) — só na landing, fosco (sem blur de vidro) */
+.bezel {
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--landing-radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bezel-inner {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--landing-inner);
+  background: var(--surface);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+}
+
+.bezel-inner-elevated {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--landing-inner);
+  background: var(--surface-2);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.07),
+    0 24px 64px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* CTA em pílula com ícone aninhado na ponta */
+.btn-island {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition:
+    transform 700ms var(--ease-landing),
+    box-shadow 700ms var(--ease-landing),
+    filter 700ms var(--ease-landing),
+    background 700ms var(--ease-landing),
+    border-color 700ms var(--ease-landing);
+}
+
+.btn-island:active { transform: scale(0.98); }
+
+.btn-island .btn-dot {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  transition: transform 700ms var(--ease-landing);
+}
+
+.btn-island:hover .btn-dot { transform: translate(2px, -2px) scale(1.05); }
+
+/* O bloco global de prefers-reduced-motion em base.css já zera estas
+   transições; este fica por redundância explícita da landing. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-island,
+  .btn-island .btn-dot { transition: none; }
+}

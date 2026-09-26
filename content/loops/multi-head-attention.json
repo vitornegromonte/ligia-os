@@ -1,0 +1,33 @@
+{
+  "conceptId": "multi-head-attention",
+  "orientacao": "Você já sabe como UMA atenção funciona (query/key/value, softmax, soma ponderada). Aqui o foco é o que muda quando rodamos VÁRIAS atenções em paralelo. Antes de abrir o material, tente responder às checagens recuperando o que você já entende de atenção — esse esforço de recuperar fixa muito mais que reler.",
+  "contexto": "Base teórica de referência para AVALIAR as respostas (NÃO repasse cru ao aluno; o mecanismo básico de atenção é coberto por outro loop e aqui é pré-requisito). Multi-head attention roda o MESMO mecanismo de atenção (scaled dot-product: Q·Kᵀ, softmax, soma ponderada de V) várias vezes em PARALELO. A diferença essencial: cada 'head' tem suas PRÓPRIAS matrizes de projeção APRENDIDAS WᵢQ, WᵢK, WᵢV (índice i por head), que projetam as mesmas entradas em SUBESPAÇOS de representação DIFERENTES. Como as projeções são distintas e treinadas separadamente, cada head 'olha' a sequência de um ângulo diferente. Pontos de referência por checagem: (1) O que se repete h vezes é o mecanismo de atenção; o que difere entre heads são as matrizes de projeção Q/K/V aprendidas (subespaços distintos) — NÃO é a mesma atenção copiada. (2) Vantagem sobre 1 head: permite atender conjuntamente a informação de diferentes subespaços de representação em diferentes posições; com uma só head a média ponderada tende a 'diluir'/dominar por um padrão único; várias heads dão diversidade — evidências empíricas (ex.: análise de atenção em BERT, Clark et al. 2019) mostram heads que se especializam em relações distintas, como dependências sintáticas (objeto direto de verbo, determinante de nome) e correferência. Vale aceitar exemplos do aluno do tipo 'uma head pega relação de curto alcance, outra de longo alcance / sintaxe vs. semântica'. (3) Combinação das saídas: as saídas das h heads são CONCATENADAS e então multiplicadas por uma matriz de projeção de saída Wᴼ (output), que mistura as heads e devolve o vetor à dimensão do modelo (d_model). Não basta concatenar — o Wᴼ aprende a combinar. (4) Dimensão por head e custo: cada head costuma operar numa dimensão MENOR, tipicamente d_k = d_v = d_model/h (no paper original 'Attention Is All You Need': d_model=512, h=8 ⇒ 64 por head). Por causa dessa dimensão reduzida, o custo computacional total fica SEMELHANTE ao de uma única atenção na dimensão cheia — ou seja, ganha-se diversidade de heads quase 'de graça' em custo. Cláusula anti-invenção: aceite como corretos pontos verdadeiros e pertinentes mesmo que não estejam listados aqui (ex.: outros números de heads em modelos modernos, ou nomes de heads); mas NÃO valide afirmações falsas — em especial: 'cada head usa as mesmas matrizes Q/K/V' (falso, são distintas), 'as heads compartilham pesos' (falso por padrão), 'só se concatena, sem projeção final' (falso, há Wᴼ), ou que multi-head 'sempre aumenta muito o custo' (falso, por usar dimensão reduzida). Não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Multi-head attention roda o mecanismo de atenção várias vezes. O que é IGUAL e o que é DIFERENTE entre as heads?",
+      "rubrica": "Boa resposta: o mecanismo em si (scaled dot-product: Q·Kᵀ, softmax, soma ponderada de V) é o mesmo em todas as heads; o que difere são as matrizes de PROJEÇÃO Q/K/V, que são APRENDIDAS e DISTINTAS por head, projetando as entradas em subespaços de representação diferentes. O núcleo é reconhecer que não é a mesma atenção copiada — cada head tem seu próprio WQ/WK/WV.",
+      "dica": "Se todas as heads usassem as mesmas projeções, elas dariam exatamente o mesmo resultado. Então o que precisa ser diferente?"
+    },
+    {
+      "pergunta": "Por que usar VÁRIAS heads costuma ser melhor do que uma única head com a mesma dimensão total?",
+      "rubrica": "Boa resposta liga à DIVERSIDADE de subespaços: várias heads permitem atender, em paralelo, a diferentes aspectos/posições da sequência (diferentes subespaços de representação), em vez de ficar preso a um único padrão; com uma só head a média ponderada tende a 'diluir' tudo num foco só. Citar que heads diferentes podem capturar relações diferentes (ex.: sintaxe, correferência, curto vs. longo alcance) é um forte sinal. Não precisa citar o paper.",
+      "dica": "Pense no que se perde quando UMA única média ponderada precisa dar conta de TODAS as relações da frase de uma vez."
+    },
+    {
+      "pergunta": "Depois que cada head produz sua própria saída, como essas saídas viram um único resultado de novo?",
+      "rubrica": "Boa resposta: as saídas das heads são CONCATENADAS e depois passam por uma projeção linear de saída (matriz Wᴼ, aprendida) que mistura as heads e devolve o vetor à dimensão do modelo (d_model). O ponto-chave é a concatenação MAIS uma combinação/transformação que devolve o vetor à dimensão do modelo. Mencionar 'voltar a d_model' ou 'misturar/combinar as heads' já satisfaz (não exige o nome 'Wᴼ'); só 'concatena' sozinho fica incompleto.",
+      "dica": "Concatenar empilha os vetores das heads. Mas o resultado precisa voltar ao tamanho original e as heads precisam ser 'combinadas' — o que falta depois da concatenação?"
+    },
+    {
+      "pergunta": "Se temos 8 heads, cada head trabalha na dimensão cheia do modelo? Qual é a consequência disso para o custo computacional?",
+      "rubrica": "Boa resposta: NÃO — cada head costuma operar numa dimensão MENOR, tipicamente d_model/h (ex.: 512/8 = 64 por head no paper original). Por causa dessa dimensão reduzida, o custo total fica SEMELHANTE ao de uma única atenção na dimensão cheia, ou seja, ganha-se a diversidade de heads sem estourar o custo. O núcleo é: dimensão por head ≈ d_model/h e custo ~ comparável a uma head 'cheia'.",
+      "dica": "Se cada uma das 8 heads usasse a dimensão inteira, o custo multiplicaria por 8. Como o projeto evita isso?"
+    }
+  ],
+  "ponteiros": [
+    "Jay Alammar — The Illustrated Transformer, seção 'multi-head attention' (as 8 heads, projeções Q/K/V por head, concatenação e Wᴼ): http://jalammar.github.io/illustrated-transformer/",
+    "Vaswani et al., 'Attention Is All You Need' (2017), seção 3.2.2 — Multi-Head Attention (h=8, d_k=d_v=d_model/h=64, custo total semelhante ao single-head)",
+    "Clark et al., 'What Does BERT Look At? An Analysis of BERT's Attention' (2019) — evidência de heads especializadas em dependências sintáticas e correferência",
+    "Aula da LigIA: Transformers e Atenção (botão “Ver aula” no painel da trilha)"
+  ]
+}

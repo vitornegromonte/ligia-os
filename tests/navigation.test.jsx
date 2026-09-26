@@ -15,7 +15,8 @@ it("visitor navigation does not expose internal destinations",()=>{
   setup("visitante");
   expect(screen.getByRole("link",{name:"Perfil"})).toHaveAttribute("href","/perfil");
   expect(screen.queryByRole("link",{name:"Projetos"})).not.toBeInTheDocument();
-  expect(screen.queryByRole("link",{name:"Prática Torch"})).not.toBeInTheDocument();
+  expect(screen.getByRole("link",{name:/Torch/})).toHaveAttribute("href","/aprender/codar");
+  expect(screen.getByRole("link",{name:"Trilha"})).toHaveAttribute("href","/aprender");
   expect(screen.queryByRole("link",{name:"Membros"})).not.toBeInTheDocument();
 });
 it.each(["membro","admin"])("shows appropriate internal navigation to %s",role=>{

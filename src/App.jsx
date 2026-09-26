@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import Layout from "./components/Layout.jsx";
 import { AuthenticatedRoute, RoleRoute, GuestRoute } from "./components/ProtectedRoute.jsx";
@@ -20,15 +20,28 @@ const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const MyDay = lazy(() => import("./pages/MyDay.jsx"));
 const Agenda = lazy(() => import("./pages/Agenda.jsx"));
 const Notas = lazy(() => import("./pages/Notas.jsx"));
-const Practice = lazy(() => import("./pages/Practice.jsx"));
-const PracticeDetail = lazy(() => import("./pages/PracticeDetail.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
+
+const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
+const Trilha = lazy(() => import("./aprender/Trilha.jsx"));
+const Nivelamento = lazy(() => import("./aprender/Nivelamento.jsx"));
+const AnaliseItens = lazy(() => import("./aprender/AnaliseItens.jsx"));
+const Licao = lazy(() => import("./aprender/Licao.jsx"));
+const Praticar = lazy(() => import("./aprender/Praticar.jsx"));
+const Codar = lazy(() => import("./aprender/Codar.jsx"));
+const CodarDetalhe = lazy(() => import("./aprender/CodarDetalhe.jsx"));
+const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 const fallback = (
   <div style={{
     minHeight: "100vh", background: "var(--bg)"
   }} />
 );
+
+function RedirecionaPratica() {
+  const { slug } = useParams();
+  return <Navigate to={`/aprender/codar/${slug}`} replace />;
+}
 
 export default function App() {
   return (
@@ -46,6 +59,23 @@ export default function App() {
             </AuthenticatedRoute>
           }>
             <Route path="/perfil" element={<Profile />} />
+            {/* Endereços antigos: os links já compartilhados continuam vivos. */}
+            <Route path="/pratica" element={<Navigate to="/aprender/codar" replace />} />
+            <Route path="/pratica/:slug" element={<RedirecionaPratica />} />
+            {/* Área de aprendizado: acesso geral. Qualquer papel entra —
+                visitante, membro ou admin —, porque estudar não é privilégio. */}
+            <Route path="/aprender" element={<Trilha />} />
+            <Route path="/aprender/nivelamento" element={<Nivelamento />} />
+            {/* Ferramenta de staff: lê as rodadas de todos os alunos. */}
+            <Route
+              path="/aprender/itens"
+              element={<RoleRoute allowedRoles={["admin"]}><AnaliseItens /></RoleRoute>}
+            />
+            <Route path="/aprender/c/:conceptId" element={<Licao />} />
+            <Route path="/aprender/c/:conceptId/praticar" element={<Praticar />} />
+            <Route path="/aprender/codar" element={<Codar />} />
+            <Route path="/aprender/codar/:slug" element={<CodarDetalhe />} />
+            <Route path="/aprender/styleguide" element={<Styleguide />} />
             <Route element={<RoleRoute allowedRoles={INTERNAL_ROLES} />}>
               <Route path="/inicio" element={<Home />} />
               <Route path="/dia" element={<MyDay />} />
@@ -58,11 +88,9 @@ export default function App() {
               <Route path="/projetos" element={<ProjectManagement />} />
               <Route path="/projetos/:projectId" element={<ProjectView />} />
               <Route path="/projetos/:projectId/:docId" element={<ProjectView />} />
-              <Route path="/pratica" element={<Practice />} />
-              <Route path="/pratica/:slug" element={<PracticeDetail />} />
             </Route>
           </Route>
-          <Route path="*" element={<main className="access-state"><h1>Página não encontrada</h1><div className="access-actions"><a className="access-action" href="/">Voltar ao site</a></div></main>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </AuthProvider>

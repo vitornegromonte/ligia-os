@@ -1,0 +1,37 @@
+{
+  "conceptId": "atencao",
+  "orientacao": "O mecanismo de atenção (self-attention) deixa cada token da sequência \"olhar\" para os outros e montar uma representação que mistura contexto de toda a frase, em vez de depender de uma janela fixa. Antes de reler o material, tente responder cada checagem com suas palavras — recuperar de memória, mesmo travando um pouco, fixa muito mais do que reconhecer a resposta pronta.",
+  "contexto": "Base teórica de referência para avaliar (NÃO repasse cru ao aluno). SELF-ATTENTION (atenção sobre a própria sequência). A partir do embedding de cada token, três projeções APRENDIDAS produzem três vetores: QUERY (Q = embedding · W_Q), KEY (K = embedding · W_K) e VALUE (V = embedding · W_V). As matrizes W_Q, W_K, W_V são parâmetros treinados; tipicamente projetam de uma dimensão maior (ex.: 512) para uma menor d_k (ex.: 64). Intuição: a query do token diz 'o que eu procuro', a key de cada token diz 'o que eu ofereço', e o value é a 'informação' que será transportada se houver casamento. Pontos de referência por checagem: (1) Q/K/V são três projeções lineares diferentes do MESMO embedding, via matrizes aprendidas distintas — não são dados fixos nem o embedding cru; têm papéis distintos (buscar / ser indexado / conteúdo). (2) O peso de atenção do token i sobre o token j vem do PRODUTO ESCALAR query_i · key_j (mede compatibilidade/alinhamento). Esse score é ESCALADO dividindo por √d_k (ex.: √64 = 8) e, em seguida, passado por SOFTMAX sobre todos os tokens — vira uma distribuição (pesos somam 1) de 'quanto i olha para cada j'. (3) A SAÍDA do token i é a SOMA PONDERADA dos vetores VALUE: cada value_j entra com o peso de atenção correspondente; assim cada token coleta contexto da sequência inteira de uma vez, capturando dependências de longo alcance sem janela deslizante (contraste com n-gramas/janela fixa de uma RNN local). (4) Divide-se por √d_k porque, com Q e K de componentes ~independentes, a variância do produto escalar cresce com d_k; scores grandes empurram o softmax para regiões saturadas (quase one-hot), onde os gradientes ficam minúsculos. Escalar por √d_k mantém a variância controlada, o softmax mais 'suave' e os gradientes estáveis no treino (por isso é 'scaled dot-product attention'). (5) ATENÇÃO CAUSAL / MASCARADA: em decoders autorregressivos (LLMs gerando token a token), cada posição só pode atender a si mesma e às ANTERIORES, nunca ao futuro. Implementa-se somando uma máscara que põe os scores das posições futuras em −∞ ANTES do softmax; após o softmax esses pesos viram ~0, então nenhuma informação flui do futuro. Sem isso, o modelo 'espiaria' a resposta durante o treino. Notas que podem aparecer e estão corretas: multi-head attention (rodar várias atenções em paralelo, com W's diferentes, e concatenar) e que Q·K costuma ser escrito em forma matricial softmax(QKᵀ/√d_k)·V. Aceite como corretas respostas verdadeiras e pertinentes mesmo que não listadas aqui; não afirme fatos fora desta base.",
+  "checagens": [
+    {
+      "pergunta": "Na self-attention, cada token gera três vetores — query, key e value. De onde eles vêm e por que são três coisas diferentes, e não só o embedding?",
+      "rubrica": "Boa resposta: os três são projeções lineares do MESMO embedding do token, obtidas por três matrizes de pesos APRENDIDAS e distintas (W_Q, W_K, W_V). São separados porque têm papéis diferentes: a query expressa 'o que este token procura', a key 'o que este token oferece/como é indexado', e o value 'a informação que ele transporta'. Citar 'matrizes aprendidas' e a ideia de papéis distintos é o núcleo. Não precisa dar dimensões.",
+      "dica": "É o mesmo embedding passando por três 'lentes' treináveis diferentes."
+    },
+    {
+      "pergunta": "Como se calcula quanto um token A deve 'prestar atenção' a um token B?",
+      "rubrica": "Boa resposta percorre: (1) produto escalar entre a query de A e a key de B (mede alinhamento/compatibilidade); (2) divisão por √d_k (escala); (3) softmax sobre todos os tokens, transformando os scores numa distribuição de pesos que soma 1. Acertar 'produto escalar query·key' e 'softmax' é o essencial; mencionar o √d_k conta a favor mas é cobrado a fundo na próxima checagem.",
+      "dica": "Você quer transformar a compatibilidade entre os vetores de A e B em algo comparável entre todos os tokens."
+    },
+    {
+      "pergunta": "Depois de ter os pesos de atenção, como se forma a SAÍDA de um token? E o que essa operação permite que o embedding cru sozinho não permitia?",
+      "rubrica": "Boa resposta: a saída é a SOMA PONDERADA dos vetores VALUE de todos os tokens, usando os pesos de atenção (value de cada token entra proporcional a quanto se 'olha' para ele). Isso deixa cada token coletar/misturar CONTEXTO da sequência inteira de uma vez, capturando dependências de longo alcance — em vez de ficar preso a uma janela fixa/vizinhança local. Citar 'soma ponderada dos values' e a ideia de 'contexto da sequência toda' é o ponto.",
+      "dica": "Os pesos dizem 'quanto'; os values dizem 'o quê'. Combine os dois."
+    },
+    {
+      "pergunta": "Antes do softmax, os scores de atenção passam por uma divisão por uma constante ligada à dimensão dos vetores. Que constante é essa — e o que daria errado sem essa escala?",
+      "rubrica": "Boa resposta liga à estabilidade do treino: com d_k grande, a variância do produto escalar query·key cresce, gerando scores muito grandes em magnitude; isso satura o softmax (vira quase one-hot) e leva a gradientes minúsculos/instáveis. Dividir por √d_k controla a variância, mantém o softmax mais suave e os gradientes utilizáveis. Reconhecer 'scores grandes → softmax saturado → gradiente pequeno' é o núcleo; mencionar 'variância cresce com d_k' é o ideal.",
+      "dica": "O que acontece com o softmax quando uma das entradas é gigante comparada às outras?"
+    },
+    {
+      "pergunta": "Num decoder de LLM gerando texto token a token, por que se usa atenção causal (mascarada)? Como a máscara é aplicada na prática?",
+      "rubrica": "Boa resposta: o modelo é autorregressivo, então cada posição só pode atender a si mesma e às ANTERIORES, nunca a tokens futuros — senão 'espiaria' o que ainda não foi gerado (trapaça no treino e impossível na geração). Na prática, somam-se −∞ (ou um valor muito negativo) aos scores das posições futuras ANTES do softmax, de modo que esses pesos virem ~0 depois do softmax. Citar 'não olhar o futuro / só posições anteriores' e a ideia de mascarar antes do softmax é o esperado.",
+      "dica": "Durante a geração você ainda não tem os tokens da direita. O que fazer com o peso deles?"
+    }
+  ],
+  "ponteiros": [
+    "Jay Alammar — The Illustrated Transformer (http://jalammar.github.io/illustrated-transformer/): seção 'Self-Attention in Detail' mostra Q/K/V, o score query·key, a divisão por √d_k e a soma ponderada dos values com diagramas.",
+    "Vaswani et al. (2017), 'Attention Is All You Need' — seção 3.2.1 (Scaled Dot-Product Attention) formaliza softmax(QKᵀ/√d_k)·V e a máscara causal.",
+    "Aula da LigIA: Mecanismo de Atenção (módulo M4 — Transformers e LLMs; botão “Ver aula” no painel da trilha)."
+  ]
+}
