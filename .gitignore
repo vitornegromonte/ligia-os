@@ -35,6 +35,7 @@ pnpm-debug.log*
 *.swp
 
 *.sql
+!supabase/**/*.sql
 
 # Operating System files
 .DS_Store

@@ -109,4 +109,5 @@ const people = [
   }
 ];
 
-export default people;
+// Display fixtures only; never used to resolve the authenticated identity.
+export default people.map(person => ({ ...person, role: "membro" }));

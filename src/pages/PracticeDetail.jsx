@@ -4,6 +4,7 @@ import { Menu, ArrowLeft, ExternalLink, Copy, FlaskConical, Lightbulb, Check, Pl
 import Editor from "@monaco-editor/react";
 import { fetchChallenge, submitToJudge, createSubmission, fetchMySubmissions } from "../services/challenges.js";
 import { showToast } from "../utils/toast.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import MarkdownViewer from "../components/MarkdownViewer.jsx";
 
 const difficultyLabel = { Easy: "Iniciante", Medium: "Intermediário", Hard: "Avançado" };
@@ -11,6 +12,7 @@ const HF_URL = "https://huggingface.co/spaces/duoan/TorchCode";
 
 export default function PracticeDetail() {
   const { slug } = useParams();
+  const { profile } = useAuth();
   const { menuOpen, setMenuOpen } = useOutletContext();
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,19 +30,19 @@ export default function PracticeDetail() {
       setTask(t);
       if (t) {
         document.title = `Ligia — ${t.title}`;
-        const saved = localStorage.getItem(`ligia_code_${t.slug}`) || localStorage.getItem(`torchcode_code_${t.slug}`) || "";
+        const saved = localStorage.getItem(`ligia_code_${profile.id}_${t.slug}`) || "";
         setCode(saved || t.initial_code || t.starter_code || "");
         fetchMySubmissions(t.slug).then(setHistory).catch(() => {});
       }
     }).finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [slug, profile.id]);
 
-  useEffect(() => { window.scrollTo({ top: 0 }); }, [slug]);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [slug, profile.id]);
 
   useEffect(() => {
-    if (task && code) localStorage.setItem(`ligia_code_${task.slug}`, code);
-  }, [code, task]);
+    if (task && code) localStorage.setItem(`ligia_code_${profile.id}_${task.slug}`, code);
+  }, [code, task, profile.id]);
 
   async function handleRun() {
     if (!task) return;
@@ -64,7 +66,7 @@ export default function PracticeDetail() {
   function handleReset() {
     if (!task) return;
     setCode(task.initial_code || task.starter_code || "");
-    localStorage.removeItem(`ligia_code_${task.slug}`);
+    localStorage.removeItem(`ligia_code_${profile.id}_${task.slug}`);
     showToast("Código restaurado");
   }
 

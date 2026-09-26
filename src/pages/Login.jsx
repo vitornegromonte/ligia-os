@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Login() {
-  const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +18,6 @@ export default function Login() {
     setSubmitting(true);
     try {
       await signIn(email, password);
-      navigate("/inicio");
     } catch (err) {
       setError(err.message === "Invalid login credentials"
         ? "Email ou senha inválidos."
@@ -177,7 +176,7 @@ export default function Login() {
           <span style={{ color: "var(--muted)", fontSize: 12 }}>
             Não tem conta?{" "}
           </span>
-          <Link to="/register" style={{
+          <Link to="/register" state={location.state} style={{
             color: "var(--accent)", fontSize: 12, fontWeight: 600,
             textDecoration: "none"
           }}>

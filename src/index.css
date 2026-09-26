@@ -251,12 +251,14 @@ select {
 }
 
 @media (max-width: 900px) {
-  .app-shell { display: block; }
+  .app-shell { display: block !important; }
 
   .sidebar {
     transform: translateX(-100%) !important;
     transition: transform .25s ease;
   }
+
+  .sidebar[data-open="true"] { transform: translateX(0) !important; }
 
   .main { grid-column: auto; }
 
