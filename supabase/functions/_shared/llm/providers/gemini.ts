@@ -7,6 +7,25 @@ const ENDPOINT = (model: string) =>
 const ENDPOINT_STREAM = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 
+// O Gemini pode devolver 503 quando está temporariamente sem capacidade.
+// Repetimos apenas erros transitórios antes de mostrar falha ao aluno.
+const RETRYABLE_STATUS = new Set([408, 500, 502, 503, 504]);
+const MAX_RETRIES = 3;
+
+async function fetchGemini(url: string, body: string): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-goog-api-key": GEMINI_API_KEY },
+      body,
+    });
+    if (!RETRYABLE_STATUS.has(res.status) || attempt === MAX_RETRIES) return res;
+    await res.body?.cancel();
+    const delay = 1000 * 2 ** attempt * (0.75 + Math.random() * 0.5);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+}
+
 /** Mapeia mensagens (system/user) → corpo da API Gemini. Puro/testável. */
 export function toGeminiBody(messages: LLMMessage[], opts?: LLMOptions) {
   const system = messages
@@ -41,22 +60,14 @@ export function fromGeminiResponse(data: unknown): string {
 export const geminiProvider: LLMProvider = {
   name: "gemini",
   async complete(messages, opts) {
-    const res = await fetch(ENDPOINT(GEMINI_MODEL), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-goog-api-key": GEMINI_API_KEY },
-      body: JSON.stringify(toGeminiBody(messages, opts)),
-    });
+    const res = await fetchGemini(ENDPOINT(GEMINI_MODEL), JSON.stringify(toGeminiBody(messages, opts)));
     if (!res.ok) {
       throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
     }
     return fromGeminiResponse(await res.json());
   },
   async *stream(messages, opts) {
-    const res = await fetch(ENDPOINT_STREAM(GEMINI_MODEL), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-goog-api-key": GEMINI_API_KEY },
-      body: JSON.stringify(toGeminiBody(messages, opts)),
-    });
+    const res = await fetchGemini(ENDPOINT_STREAM(GEMINI_MODEL), JSON.stringify(toGeminiBody(messages, opts)));
     if (!res.ok || !res.body) throw new Error(`Gemini ${res.status}`);
     const { sseDataText } = await import("../stream.ts");
     const reader = res.body.getReader();
