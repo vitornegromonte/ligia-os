@@ -1,0 +1,101 @@
+-- Disposable local cluster only. Exercises the final roles against real RLS and RPCs.
+insert into auth.users(id,email) values
+ ('10000000-0000-0000-0000-000000000001','external@test'),
+ ('10000000-0000-0000-0000-000000000002','director@test'),
+ ('10000000-0000-0000-0000-000000000003','coordinator@test'),
+ ('10000000-0000-0000-0000-000000000004','member@test'),
+ ('10000000-0000-0000-0000-000000000005','rejected@test');
+update public.profiles set role='diretor', status_membro='approved' where email='director@test';
+update public.profiles set role='coordenador', status_membro='approved' where email='coordinator@test';
+update public.profiles set role='membro', status_membro='approved' where email='member@test';
+do $$ begin
+ if (select count(*) from public.profiles where role='externo' and status_membro='none') <> 2 then
+   raise exception 'Signup must create external profiles';
+ end if;
+ if has_column_privilege('authenticated','public.challenges','tests','SELECT') then
+   raise exception 'Private challenge tests are readable';
+ end if;
+ if has_column_privilege('authenticated','public.profiles','role','UPDATE') or
+    has_column_privilege('authenticated','public.profiles','status_membro','UPDATE') then
+   raise exception 'Clients can directly edit authorization fields';
+ end if;
+ if not has_column_privilege('authenticated','public.challenges','title','SELECT') then
+   raise exception 'Public challenge fields are unavailable';
+ end if;
+end $$;
+
+set role authenticated;
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000001';
+do $$ begin
+ if public.is_member_or_admin() or public.is_admin() then raise exception 'External gained internal role'; end if;
+ if exists(select 1 from public.projects) then raise exception 'External can read internal projects'; end if;
+ if (select count(*) from public.profiles) <> 1 then raise exception 'External can read other profiles'; end if;
+ begin
+   perform tests from public.challenges limit 1;
+   raise exception 'Challenge tests were exposed';
+ exception when insufficient_privilege then null;
+ end;
+ begin
+   update public.profiles set role='diretor' where id=auth.uid();
+   raise exception 'Direct role update succeeded';
+ exception when insufficient_privilege then null;
+ end;
+ begin
+   insert into public.membership_requests(profile_id,details) values(auth.uid(),'{}'::jsonb);
+   raise exception 'Direct request insert succeeded';
+ exception when insufficient_privilege then null;
+ end;
+ begin
+   perform public.review_membership_request(gen_random_uuid(), true);
+   raise exception 'External review succeeded';
+ exception when insufficient_privilege then null;
+ end;
+end $$;
+select public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","motivation":"I want to contribute to applied research."}'::jsonb);
+do $$ begin
+ if (select status_membro from public.profiles where id=auth.uid()) <> 'pending' then raise exception 'Not pending'; end if;
+ if (select count(*) from public.membership_requests) <> 1 then raise exception 'Applicant request visibility mismatch'; end if;
+ if public.is_member_or_admin() then raise exception 'Pending gave internal access'; end if;
+ begin
+   perform public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","motivation":"I want to contribute to applied research."}'::jsonb);
+   raise exception 'Duplicate request accepted';
+ exception when insufficient_privilege then null;
+ end;
+end $$;
+
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000004';
+do $$ begin
+ if not public.is_member_or_admin() or public.is_admin() then raise exception 'Member capability mismatch'; end if;
+ if exists(select 1 from public.membership_requests) then raise exception 'Member can read requests'; end if;
+ begin
+   perform public.review_membership_request((select id from public.membership_requests where status='pending' limit 1), true);
+   raise exception 'Member review succeeded';
+ exception when insufficient_privilege then null;
+ end;
+end $$;
+
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000002';
+do $$ begin
+ if not public.is_admin() or not public.is_learning_staff() then raise exception 'Director not admin'; end if;
+ if (select count(*) from public.membership_requests where status='pending') <> 1 then raise exception 'Director cannot review queue'; end if;
+end $$;
+select public.review_membership_request((select id from public.membership_requests where status='pending' limit 1), true);
+do $$ begin
+ if (select role='membro' and status_membro='approved' from public.profiles where email='external@test') is not true then
+   raise exception 'Approval was not atomic';
+ end if;
+end $$;
+
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000005';
+select public.submit_membership_request('{"name":"Rejected Student","team":"Computer Vision","discipline":"Design","motivation":"I want to join the learning community."}'::jsonb);
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000003';
+do $$ begin
+ if not public.is_admin() or not public.is_learning_staff() then raise exception 'Coordinator not admin'; end if;
+end $$;
+select public.review_membership_request((select id from public.membership_requests where status='pending' limit 1), false);
+do $$ begin
+ if (select role='externo' and status_membro='rejected' from public.profiles where email='rejected@test') is not true then
+   raise exception 'Rejection changed role';
+ end if;
+end $$;
+reset role;

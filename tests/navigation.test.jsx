@@ -12,17 +12,17 @@ function setup(role) {
   return render(<MemoryRouter><Sidebar open onClose={()=>{}} /></MemoryRouter>);
 }
 it("visitor navigation does not expose internal destinations",()=>{
-  setup("visitante");
+  setup("externo");
   expect(screen.getByRole("link",{name:"Perfil"})).toHaveAttribute("href","/perfil");
   expect(screen.queryByRole("link",{name:"Projetos"})).not.toBeInTheDocument();
   expect(screen.getByRole("link",{name:/Torch/})).toHaveAttribute("href","/aprender/codar");
   expect(screen.getByRole("link",{name:"Trilha"})).toHaveAttribute("href","/aprender");
   expect(screen.queryByRole("link",{name:"Membros"})).not.toBeInTheDocument();
 });
-it.each(["membro","admin"])("shows appropriate internal navigation to %s",role=>{
+it.each(["membro","diretor","coordenador"])("shows appropriate internal navigation to %s",role=>{
   setup(role);
   expect(screen.getByRole("link",{name:"Projetos"})).toBeInTheDocument();
-  expect(screen.getByRole("link",{name:role === "admin" ? "Gestão de membros" : "Membros"})).toBeInTheDocument();
+  expect(screen.getByRole("link",{name:role === "membro" ? "Membros" : "Gestão de membros"})).toBeInTheDocument();
 });
 it("reports logout failure instead of silently pretending it succeeded",async()=>{
   setup("membro"); auth.signOut.mockRejectedValue(new Error("offline"));

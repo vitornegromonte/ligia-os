@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase.js";
 import { isConfigured } from "./supabase.js";
 import mockProjects from "../data/projects.js";
+import { isMember } from "../auth/access.js";
 
 function mapProject(p, members = [], milestones = []) {
   return {
@@ -38,7 +39,7 @@ export async function fetchProjects(profileId = null, role = null) {
 
   let query = supabase.from("projects").select("*");
 
-  if (role === "membro" && profileId) {
+  if (isMember({ role }) && profileId) {
     const ids = await fetchMemberProjectIds(profileId);
     if (ids.length === 0) return [];
     query = query.in("id", ids);
@@ -59,7 +60,7 @@ export async function fetchProjectsWithMilestones(profileId = null, role = null)
 
   let projectQuery = supabase.from("projects").select("*");
 
-  if (role === "membro" && profileId) {
+  if (isMember({ role }) && profileId) {
     const ids = await fetchMemberProjectIds(profileId);
     if (ids.length === 0) return [];
     projectQuery = projectQuery.in("id", ids);

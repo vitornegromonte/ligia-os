@@ -30,6 +30,9 @@ export async function usuarioDaRequisicao(req: Request): Promise<string | null> 
   });
   const { data, error } = await sb.auth.getUser();
   if (error || !data.user) return null;
+  const { data: profile, error: profileError } = await sb.from("profiles").select("role")
+    .eq("id", data.user.id).maybeSingle();
+  if (profileError || !["externo", "membro", "diretor", "coordenador"].includes(profile?.role ?? "")) return null;
   return data.user.id;
 }
 

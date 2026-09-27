@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import Layout from "./components/Layout.jsx";
 import { AuthenticatedRoute, RoleRoute, GuestRoute } from "./components/ProtectedRoute.jsx";
-import { INTERNAL_ROLES } from "./auth/access.js";
+import { ADMIN_ROLES, INTERNAL_ROLES } from "./auth/access.js";
 
 const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
@@ -21,6 +21,8 @@ const MyDay = lazy(() => import("./pages/MyDay.jsx"));
 const Agenda = lazy(() => import("./pages/Agenda.jsx"));
 const Notas = lazy(() => import("./pages/Notas.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
+const MembershipRequest = lazy(() => import("./pages/MembershipRequest.jsx"));
+const MembershipAdmin = lazy(() => import("./pages/MembershipAdmin.jsx"));
 
 const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
 const Trilha = lazy(() => import("./aprender/Trilha.jsx"));
@@ -59,17 +61,18 @@ export default function App() {
             </AuthenticatedRoute>
           }>
             <Route path="/perfil" element={<Profile />} />
+            <Route path="/solicitar-entrada" element={<MembershipRequest />} />
+            <Route path="/admin/solicitacoes" element={<RoleRoute allowedRoles={ADMIN_ROLES}><MembershipAdmin /></RoleRoute>} />
             {/* Endereços antigos: os links já compartilhados continuam vivos. */}
             <Route path="/pratica" element={<Navigate to="/aprender/codar" replace />} />
             <Route path="/pratica/:slug" element={<RedirecionaPratica />} />
-            {/* Área de aprendizado: acesso geral. Qualquer papel entra —
-                visitante, membro ou admin —, porque estudar não é privilégio. */}
+            {/* Área de aprendizado: acesso aos quatro cargos autenticados. */}
             <Route path="/aprender" element={<Trilha />} />
             <Route path="/aprender/nivelamento" element={<Nivelamento />} />
             {/* Ferramenta de staff: lê as rodadas de todos os alunos. */}
             <Route
               path="/aprender/itens"
-              element={<RoleRoute allowedRoles={["admin"]}><AnaliseItens /></RoleRoute>}
+              element={<RoleRoute allowedRoles={ADMIN_ROLES}><AnaliseItens /></RoleRoute>}
             />
             <Route path="/aprender/c/:conceptId" element={<Licao />} />
             <Route path="/aprender/c/:conceptId/praticar" element={<Praticar />} />

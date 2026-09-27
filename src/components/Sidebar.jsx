@@ -5,12 +5,14 @@ import {
   Sun, CalendarDays, StickyNote, Globe, Code2, Waypoints, ClipboardList
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { INTERNAL_ROLES, ROLES, homeFor } from "../auth/access.js";
+import { ADMIN_ROLES, EXTERNAL_ROLES, INTERNAL_ROLES, ROLES, homeFor, isAdmin } from "../auth/access.js";
 import { showToast } from "../utils/toast.js";
 import ProfileEdit from "./ProfileEdit.jsx";
 
 const navGroups = [
   { label: "Minha conta", roles: ROLES, items: [{ to: "/perfil", icon: Settings, label: "Perfil" }] },
+  { label: "Entrada", roles: EXTERNAL_ROLES, items: [{ to: "/solicitar-entrada", icon: Users, label: "Solicitar entrada" }] },
+  { label: "Administração", roles: ADMIN_ROLES, items: [{ to: "/admin/solicitacoes", icon: ClipboardList, label: "Solicitações" }] },
   {
     label: "Dia a dia",
     roles: INTERNAL_ROLES,
@@ -53,7 +55,7 @@ const navGroups = [
       },
       { to: "/aprender/codar", icon: Code2, label: "Prática Torch" },
       // O grupo é aberto a todos; só este item é de staff.
-      { to: "/aprender/itens", icon: ClipboardList, label: "Análise do nivelamento", roles: ["admin"] },
+      { to: "/aprender/itens", icon: ClipboardList, label: "Análise do nivelamento", roles: ADMIN_ROLES },
     ]
   },
   {
@@ -95,7 +97,7 @@ export default function Sidebar({ open, onClose }) {
                     return `nav-item${ativo ? " active" : ""}`;
                   }}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
-                  {item.to === "/membros" && profile.role === "admin" ? "Gestão de membros" : item.label}
+                  {item.to === "/membros" && isAdmin(profile) ? "Gestão de membros" : item.label}
                 </NavLink>
               ))}
             </nav>

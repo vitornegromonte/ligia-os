@@ -1,10 +1,16 @@
-export const ROLES = Object.freeze(["visitante", "membro", "admin"]);
-export const INTERNAL_ROLES = Object.freeze(["membro", "admin"]);
-export const ADMIN_ROLES = Object.freeze(["admin"]);
+export const ROLES = Object.freeze(["externo", "membro", "diretor", "coordenador"]);
+export const LEARNING_ROLES = ROLES;
+export const EXTERNAL_ROLES = Object.freeze(["externo"]);
+export const INTERNAL_ROLES = Object.freeze(["membro", "diretor", "coordenador"]);
+export const ADMIN_ROLES = Object.freeze(["diretor", "coordenador"]);
 export const isKnownRole = role => ROLES.includes(role);
+export const canAccessLearning = profile => LEARNING_ROLES.includes(profile?.role);
 export const canAccessInternalArea = profile => INTERNAL_ROLES.includes(profile?.role);
-export const canManageMembers = profile => profile?.role === "admin";
-export const homeFor = profile => canAccessInternalArea(profile) ? "/inicio" : "/perfil";
+export const isAdmin = profile => ADMIN_ROLES.includes(profile?.role);
+export const isMember = profile => profile?.role === "membro";
+export const isExternal = profile => profile?.role === "externo";
+export const canManageMembers = isAdmin;
+export const homeFor = profile => canAccessInternalArea(profile) ? "/inicio" : "/aprender";
 
 // The destination is still checked by its guard. Reject external URLs and auth loops.
 export function requestedDestination(from, profile) {

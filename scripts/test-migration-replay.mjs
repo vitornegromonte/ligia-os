@@ -54,9 +54,22 @@ try {
   const migrations = readdirSync(path.join(root, "supabase/migrations"))
     .filter((file) => file.endsWith(".sql")).sort();
   for (const file of migrations) {
+    if (file === "202609270001_four_roles_membership.sql") {
+      run("psql", conn, `
+        insert into auth.users(id,email) values ('10000000-0000-0000-0000-000000000099','legacy-admin@test');
+        update public.profiles set role='admin', category='diretor', director_role='Pesquisa'
+          where email='legacy-admin@test';
+      `);
+      let blocked = false;
+      try { run("psql", [...conn, "-f", path.join(root, "supabase/migrations", file)]); }
+      catch (error) { blocked = error.message.includes("Unclassified legacy administrators"); }
+      if (!blocked) throw new Error("Ambiguous legacy administrator was not blocked");
+      run("psql", conn, "delete from auth.users where email='legacy-admin@test';");
+    }
     run("psql", [...conn, "-f", path.join(root, "supabase/migrations", file)]);
   }
   run("psql", [...conn, "-f", path.join(root, "supabase/seed/challenges.sql")]);
+  run("psql", [...conn, "-f", path.join(root, "supabase/tests/four-roles.sql")]);
   const result = JSON.parse(run("psql", [...conn, "-q", "-A", "-t"], `
     select json_build_object(
       'tables', (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
@@ -67,7 +80,7 @@ try {
       'clientCanInsertSubmission', has_table_privilege('authenticated','public.submissions','INSERT')
     );
   `).trim());
-  if (result.tables !== 24 || result.withoutRls !== 0 || result.challenges !== 41 ||
+  if (result.tables !== 25 || result.withoutRls !== 0 || result.challenges !== 41 ||
       result.clientCanInsertSubmission) {
     throw new Error(`Unexpected replay result: ${JSON.stringify(result)}`);
   }
@@ -85,7 +98,7 @@ try {
       throw new Error("Replayed public/private schema differs from supplied schema-only snapshot");
     }
   }
-  console.log(`PASS ${migrations.length} migrations in CLI order, 24 RLS tables, 41 challenges, server-only submissions${comparePath ? ", remote schema equivalent" : ""}.`);
+  console.log(`PASS ${migrations.length} migrations in CLI order, 25 RLS tables, four-role flow, 41 challenges, server-only submissions${comparePath ? ", remote schema equivalent" : ""}.`);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
