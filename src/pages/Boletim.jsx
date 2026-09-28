@@ -24,7 +24,7 @@ const c = {
     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
     height: 44, padding: "4px 4px 4px 20px", border: 0, borderRadius: 999,
     color: "#fff", background: "var(--accent)", cursor: "pointer",
-    fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
+    fontSize: 16, fontWeight: 600, fontFamily: "var(--font-body)",
     boxShadow: "0 4px 14px rgba(255,75,31,0.22)", textDecoration: "none",
     transition: `transform ${EASE}, background ${EASE}, box-shadow ${EASE}, filter ${EASE}`
   },
@@ -126,7 +126,8 @@ export default function Boletim() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               aria-label="Seu melhor e-mail"
-              style={{ flex: 1, minWidth: 200, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, outline: "none", background: "var(--surface)", color: "var(--text)", fontSize: 14 }}
+              className="boletim-email"
+              style={{ flex: 1, minWidth: 200, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, background: "var(--surface)", color: "var(--text)", fontSize: 14 }}
             />
             <button type="submit" className="landing-btn-primary btn-island group" style={c.primaryBtn}>
               Assinar
@@ -234,6 +235,7 @@ export default function Boletim() {
 
       <style>{`
         .boletim-text-row { transition: border-color ${EASE}, background ${EASE}, filter ${EASE}, transform ${EASE}; }
+        .boletim-email:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
         @media (hover: hover) and (pointer: fine) {
           .boletim-text-row:not(.has-image):hover { border-color: var(--accent-border) !important; background: var(--surface-2) !important; transform: translateX(2px); }
           .boletim-text-row.has-image:hover { border-color: var(--accent-border) !important; filter: brightness(1.12); transform: translateX(2px); }

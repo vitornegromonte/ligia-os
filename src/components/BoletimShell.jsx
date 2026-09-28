@@ -19,7 +19,7 @@ const c = {
     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
     height: 44, padding: "4px 4px 4px 20px", border: 0, borderRadius: 999,
     color: "#fff", background: "var(--accent)", cursor: "pointer",
-    fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
+    fontSize: 16, fontWeight: 600, fontFamily: "var(--font-body)",
     boxShadow: "0 4px 14px rgba(255,75,31,0.22)", textDecoration: "none",
     transition: `transform ${EASE}, background ${EASE}, box-shadow ${EASE}, filter ${EASE}`
   },
@@ -64,7 +64,7 @@ export default function BoletimShell({ active, children }) {
             </nav>
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <Link to={session ? homeFor(profile) : "/login"} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+              <Link to={session ? homeFor(profile) : "/login"} className="landing-btn-primary btn-island group" style={c.primaryBtn}>
                 {session ? "Abrir Ligia OS" : "Login"}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />

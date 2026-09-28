@@ -664,7 +664,7 @@ export default function Landing() {
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
       height: 44, padding: "4px 4px 4px 20px", border: 0, borderRadius: 999,
       color: "#fff", background: "var(--accent)", cursor: "pointer",
-      fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
+      fontSize: 16, fontWeight: 600, fontFamily: "var(--font-body)",
       boxShadow: "0 4px 14px rgba(255,75,31,0.22)",
       transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), box-shadow 200ms cubic-bezier(0.32,0.72,0,1), filter 200ms cubic-bezier(0.32,0.72,0,1)"
     },
@@ -725,7 +725,7 @@ export default function Landing() {
             </nav>
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={c.primaryBtn}>
                 {session ? "Abrir Ligia OS" : "Login"}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
@@ -1237,12 +1237,13 @@ export default function Landing() {
                 <div className="boletim-row" style={{ display: "flex", gap: 8 }}>
                   <input
                     id="boletim-email"
+                    className="boletim-email"
                     type="email"
                     required
                     placeholder="voce@exemplo.com"
                     value={boletimEmail}
                     onChange={e => setBoletimEmail(e.target.value)}
-                    style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, outline: "none", background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
+                    style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
                   />
                   <button type="submit" className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, whiteSpace: "nowrap", padding: "6px 6px 6px 22px" }}>
                     Assinar
@@ -1427,6 +1428,7 @@ export default function Landing() {
         .landing-nav-link:hover::after, .landing-nav-link:focus-visible::after { transform: scaleX(1); }
         .landing-nav-link:hover { color: var(--text) !important; }
         .landing-card { position: relative; transform-origin: var(--transform-origin, center); transition: transform 200ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 200ms var(--ease-out); }
+        .boletim-email:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
         .landing-card:active { transform: scale(0.97); }
         @media (hover: hover) and (pointer: fine) {
           #pilares .landing-card:hover { border-color: rgba(36,25,20,0.32) !important; box-shadow: inset 0 1px 1px rgba(255,255,255,0.5) !important; }
