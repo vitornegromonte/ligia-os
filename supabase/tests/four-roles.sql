@@ -10,6 +10,8 @@ update public.profiles set role='diretor' where email='director@test';
 update public.profiles set role='coordenador', category='professor' where email='coordinator@test';
 update public.profiles set role='membro', status_membro='approved' where email='member@test';
 update public.profiles set category='professor' where email='professor@test';
+update public.profiles set bio='Existing biography', github='https://github.com/existing'
+  where email='external@test';
 do $$ begin
  if (select count(*) from public.profiles where role='externo' and status_membro='none') <> 3 then
    raise exception 'Signup must create external profiles';
@@ -66,6 +68,9 @@ do $$ begin
  if (select status_membro from public.profiles where id=auth.uid()) <> 'pending' then raise exception 'Not pending'; end if;
  if (select count(*) from public.membership_requests) <> 1 then raise exception 'Applicant request visibility mismatch'; end if;
  if (select details ? 'motivation' from public.membership_requests limit 1) then raise exception 'New access requests must not persist motivation'; end if;
+ if (select details ? 'bio' or details ? 'github' from public.membership_requests limit 1) then
+   raise exception 'Omitted optional fields must stay omitted';
+ end if;
  if public.is_member_or_admin() then raise exception 'Pending gave internal access'; end if;
  begin
    perform public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering"}'::jsonb);
@@ -100,6 +105,10 @@ select public.change_profile_role('10000000-0000-0000-0000-000000000006','coorde
 do $$ begin
  if (select role='membro' and status_membro='approved' from public.profiles where email='external@test') is not true then
    raise exception 'Approval was not atomic';
+ end if;
+ if (select bio='Existing biography' and github='https://github.com/existing' and affiliation='CIn-UFPE'
+     from public.profiles where email='external@test') is not true then
+   raise exception 'Approval erased an omitted optional profile field';
  end if;
  if (select role='coordenador' and status_membro='none' and category='professor'
      from public.profiles where email='professor@test') is not true then
