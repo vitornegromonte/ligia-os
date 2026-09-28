@@ -8,7 +8,7 @@ import { Alert } from "../ui/Alert.tsx";
 
 export default function Register() {
   const location = useLocation();
-  const { signUp } = useAuth();
+  const { signUp, signOut } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +28,10 @@ export default function Register() {
     inFlight.current = true;
     setSubmitting(true);
     try {
-      await signUp(email.trim(), password, { name: name.trim() });
+      const result = await signUp(email.trim(), password, { name: name.trim() });
+      // Confirmation is required. Never leave a signup session active if remote
+      // configuration changes unexpectedly or Auth returns one for another reason.
+      if (result?.session) await signOut();
       setSuccess(true);
     } catch (failure) {
       setError(authMessage(failure, "signup"));
@@ -46,7 +49,7 @@ export default function Register() {
         <p style={{ color: "var(--muted)", fontSize: 12, margin: "6px 0 0" }}>Comece a aprender na Ligia OS</p>
       </div>
       {success ? <>
-        <Alert tone="success" className="lg-mb-16">Conta criada. Se a confirmação por email estiver ativada, verifique sua caixa de entrada. Depois, entre na plataforma.</Alert>
+        <Alert tone="success" className="lg-mb-16">Conta criada. Enviamos um email de confirmação para <strong>{email}</strong>. Confirme seu endereço para ativar a conta e depois entre na plataforma.</Alert>
         <Link to="/login" state={location.state} style={{ color: "var(--accent)", fontFamily: "var(--font-body)", fontWeight: 600 }}>Ir para login</Link>
       </> : <form onSubmit={handleSubmit}>
         {error && <Alert tone="error" className="lg-mb-16">{error}</Alert>}

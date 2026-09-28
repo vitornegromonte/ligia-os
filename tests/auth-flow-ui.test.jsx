@@ -45,6 +45,8 @@ describe("registration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
     await waitFor(() => expect(auth.signUp).toHaveBeenCalledWith("ada@example.test", "secret123", { name: "Ada Lovelace" }));
     expect(screen.getByText(/Conta criada/)).toBeInTheDocument();
+    expect(screen.getByText(/Enviamos um email de confirmação/)).toBeInTheDocument();
+    expect(screen.queryByText(/se a confirmação por email estiver ativada/i)).toBeNull();
   });
   it("rejects different passwords before calling Auth", () => {
     page(); fillRegister({ confirmation: "different" });
@@ -79,6 +81,12 @@ describe("registration", () => {
     expect(await screen.findByText(/Não foi possível concluir o cadastro/)).toBeInTheDocument();
     expect(screen.queryByText(/already registered/)).toBeNull();
   });
+  it("does not keep an unexpected signup session active", async () => {
+    auth.signUp.mockResolvedValue({ session: { user: { id: "new-user" } } });
+    page(); fillRegister(); fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+    await waitFor(() => expect(auth.signOut).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText(/Enviamos um email de confirmação/)).toBeInTheDocument();
+  });
 });
 
 describe("login and recovery", () => {
@@ -89,6 +97,14 @@ describe("login and recovery", () => {
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "wrong" } });
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
     expect(await screen.findByText("Email ou senha inválidos.")).toBeInTheDocument();
+  });
+  it("explains that email confirmation is required before login", async () => {
+    auth.signIn.mockRejectedValue({ code: "email_not_confirmed", message: "Email not confirmed" });
+    page("/login");
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "ada@example.test" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "secret123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
+    expect(await screen.findByText("Confirme seu email antes de entrar.")).toBeInTheDocument();
   });
   it("does not reveal account existence in recovery errors", async () => {
     auth.resetPassword.mockRejectedValue({ message: "User not found" });
@@ -137,11 +153,11 @@ describe("external profile entry", () => {
   }
   it("shows the membership action for a new or rejected external", () => {
     renderProfile("rejected");
-    expect(screen.getByRole("link", { name: "Solicitar entrada como membro" })).toHaveAttribute("href", "/solicitar-entrada");
+    expect(screen.getByRole("link", { name: /solicite acesso interno/i })).toHaveAttribute("href", "/solicitar-entrada");
   });
   it("shows pending status without inviting another application", () => {
     renderProfile("pending");
-    expect(screen.getByText("Solicitação em análise.")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Solicitar entrada como membro" })).toBeNull();
+    expect(screen.getByText("Aguardando validação do acesso interno.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /solicite acesso interno/i })).toBeNull();
   });
 });

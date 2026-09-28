@@ -61,13 +61,14 @@ do $$ begin
  exception when insufficient_privilege then null;
  end;
 end $$;
-select public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","motivation":"I want to contribute to applied research."}'::jsonb);
+select public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","affiliation":"CIn-UFPE"}'::jsonb);
 do $$ begin
  if (select status_membro from public.profiles where id=auth.uid()) <> 'pending' then raise exception 'Not pending'; end if;
  if (select count(*) from public.membership_requests) <> 1 then raise exception 'Applicant request visibility mismatch'; end if;
+ if (select details ? 'motivation' from public.membership_requests limit 1) then raise exception 'New access requests must not persist motivation'; end if;
  if public.is_member_or_admin() then raise exception 'Pending gave internal access'; end if;
  begin
-   perform public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","motivation":"I want to contribute to applied research."}'::jsonb);
+   perform public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering"}'::jsonb);
    raise exception 'Duplicate request accepted';
  exception when insufficient_privilege then null;
  end;
@@ -116,7 +117,7 @@ do $$ begin
 end $$;
 
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000005';
-select public.submit_membership_request('{"name":"Rejected Student","team":"Computer Vision","discipline":"Design","motivation":"I want to join the learning community."}'::jsonb);
+select public.submit_membership_request('{"name":"Rejected Student","team":"Computer Vision","discipline":"Design"}'::jsonb);
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000003';
 do $$ begin
  if not public.is_admin() or not public.is_learning_staff() then raise exception 'Coordinator not admin'; end if;

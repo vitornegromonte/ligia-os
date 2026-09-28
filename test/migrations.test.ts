@@ -93,4 +93,17 @@ describe("migrações — invariantes de segurança", () => {
     // Nenhuma policy em rate_limits = nenhum acesso direto.
     expect(rl).not.toMatch(/create policy[^;]*rate_limits/i);
   });
+
+  it("membership requests keep the guarded RPC and no longer require motivation", () => {
+    const access = lerLimpo("202609280001_membership_access_requests.sql");
+    expect(access).toMatch(/create or replace function public\.submit_membership_request\(member_details jsonb\)[\s\S]*security definer set search_path = ''/i);
+    expect(access).toMatch(/actor\.role\s*<>\s*'externo'/i);
+    expect(access).toMatch(/actor\.status_membro\s*=\s*'pending'/i);
+    expect(access).toMatch(/member_details->>'name'/i);
+    expect(access).toMatch(/member_details->>'team'/i);
+    expect(access).toMatch(/member_details->>'discipline'/i);
+    expect(access).not.toMatch(/member_details->>'motivation'/i);
+    expect(access).not.toMatch(/alter\s+table|drop\s+table|delete\s+from/i);
+    expect(access).toMatch(/grant execute on function public\.submit_membership_request\(jsonb\) to authenticated/i);
+  });
 });
