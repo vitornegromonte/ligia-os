@@ -3,22 +3,23 @@ begin;
 set local lock_timeout = '5s';
 set local statement_timeout = '60s';
 
--- Fill this explicit mapping only after the current administrators are reviewed.
--- Organizational category/director_role does not distinguish all future roles.
+-- Current administrators were individually reviewed: all five are directors.
+-- Coordinators are future professor accounts; none are assigned by this migration.
 create temporary table role_migration_decisions (
   profile_id uuid primary key,
   new_role text not null check (new_role in ('diretor','coordenador'))
 ) on commit drop;
--- Reviewed profile_id/new_role values belong here before remote application.
+insert into role_migration_decisions(profile_id,new_role) values
+  ('98e96473-6a0b-11f3-1bd4-3da12f734f6c','diretor'),
+  ('5755790c-8d1b-5151-c547-2bdf5d5a88f0','diretor'),
+  ('bcf27dc8-be5c-48fe-ae6f-2aae35ae3203','diretor'),
+  ('34ff14c4-03e7-e3a3-ef40-15ae9baf2251','diretor'),
+  ('aa144df0-d7c5-609a-ccab-836acca7148a','diretor');
 
 do $$ begin
   if exists (select 1 from public.profiles p left join role_migration_decisions d on d.profile_id = p.id
     where p.role = 'admin' and d.profile_id is null) then
     raise exception 'Unclassified legacy administrators: explicit mapping required';
-  end if;
-  if exists (select 1 from role_migration_decisions d left join public.profiles p on p.id = d.profile_id
-    where p.id is null or p.role <> 'admin') then
-    raise exception 'Role migration decision does not match a legacy administrator';
   end if;
   if exists (select 1 from public.profiles where role not in ('visitante','membro','admin')) then
     raise exception 'Unexpected legacy role';

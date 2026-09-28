@@ -65,9 +65,17 @@ try {
       catch (error) { blocked = error.message.includes("Unclassified legacy administrators"); }
       if (!blocked) throw new Error("Ambiguous legacy administrator was not blocked");
       run("psql", conn, "delete from auth.users where email='legacy-admin@test';");
+      run("psql", conn, `
+        insert into auth.users(id,email) values ('98e96473-6a0b-11f3-1bd4-3da12f734f6c','mapped-admin@test');
+        update public.profiles set role='admin', category='diretor'
+          where email='mapped-admin@test';
+      `);
     }
     run("psql", [...conn, "-f", path.join(root, "supabase/migrations", file)]);
   }
+  const mappedAdmin = run("psql", [...conn, "-q", "-A", "-t"],
+    "select role || ':' || status_membro from public.profiles where email='mapped-admin@test';").trim();
+  if (mappedAdmin !== "diretor:approved") throw new Error("Reviewed legacy administrator was not mapped to director");
   run("psql", [...conn, "-f", path.join(root, "supabase/seed/challenges.sql")]);
   run("psql", [...conn, "-f", path.join(root, "supabase/tests/four-roles.sql")]);
   const result = JSON.parse(run("psql", [...conn, "-q", "-A", "-t"], `
