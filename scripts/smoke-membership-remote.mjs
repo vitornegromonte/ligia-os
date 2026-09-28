@@ -18,6 +18,16 @@ const [applicant, rejected, director, coordinator, member] = ids;
 const stamp = randomUUID().slice(0, 8);
 const email = (n) => `smoke-${stamp}-${n}@example.invalid`;
 const sql = `
+do $$ begin
+ if to_regprocedure('public.submit_membership_request(jsonb)') is null
+   or to_regprocedure('public.review_membership_request(uuid,boolean)') is null
+   or to_regprocedure('public.change_profile_role(uuid,text)') is null then
+   raise exception 'Expected RPC signature missing'; end if;
+ if position('motivation' in pg_get_functiondef('public.submit_membership_request(jsonb)'::regprocedure)) > 0 then
+   raise exception 'Remote submit RPC still requires motivation'; end if;
+ if not (select relrowsecurity from pg_class where oid='public.role_change_audit'::regclass) then
+   raise exception 'Role audit RLS is disabled'; end if;
+end $$;
 begin;
 set local lock_timeout = '5s';
 set local statement_timeout = '60s';
@@ -38,6 +48,9 @@ do $$ begin
  begin perform public.review_membership_request(gen_random_uuid(),true);
    raise exception 'External reviewed request';
  exception when insufficient_privilege then null; end;
+ begin perform public.change_profile_role('${member}','diretor');
+   raise exception 'External changed a role';
+ exception when insufficient_privilege then null; end;
 end $$;
 select public.submit_membership_request('{"name":"Smoke Applicant","team":"Ligia","discipline":"Research","affiliation":"UFPE"}'::jsonb);
 do $$ begin
@@ -56,6 +69,9 @@ do $$ begin
  begin perform public.review_membership_request((select id from public.membership_requests where profile_id='${applicant}'),true);
    raise exception 'Member reviewed request';
  exception when insufficient_privilege then null; end;
+ begin perform public.change_profile_role('${applicant}','coordenador');
+   raise exception 'Member changed a role';
+ exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','${director}',true);
 select public.review_membership_request((select id from public.membership_requests where profile_id='${applicant}'),true);
@@ -67,6 +83,33 @@ do $$ begin
  if (select reviewed_by='${director}'::uuid and reviewed_at is not null and status='approved'
    from public.membership_requests where profile_id='${applicant}') is not true then
    raise exception 'Approval review metadata missing'; end if;
+ if (select old_role='externo' and new_role='membro' and changed_by='${director}'::uuid and changed_at is not null
+   from public.role_change_audit where target_profile_id='${applicant}' and changed_by='${director}' limit 1) is not true then
+   raise exception 'Membership role audit missing'; end if;
+end $$;
+select public.change_profile_role('${applicant}','diretor');
+do $$ begin
+ if (select role='diretor' and status_membro='approved' from public.profiles where id='${applicant}') is not true then
+   raise exception 'Member promotion failed'; end if;
+ if (select old_role='membro' and new_role='diretor' and changed_by='${director}'::uuid and changed_at is not null
+   from public.role_change_audit where target_profile_id='${applicant}' and new_role='diretor' limit 1) is not true then
+   raise exception 'Director promotion audit missing'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','${coordinator}',true);
+select public.change_profile_role('${member}','coordenador');
+do $$ begin
+ if (select role='coordenador' and status_membro='approved' from public.profiles where id='${member}') is not true then
+   raise exception 'Coordinator promotion failed'; end if;
+ if (select old_role='membro' and new_role='coordenador' and changed_by='${coordinator}'::uuid
+   from public.role_change_audit where target_profile_id='${member}' and new_role='coordenador' limit 1) is not true then
+   raise exception 'Coordinator promotion audit missing'; end if;
+end $$;
+do $$ begin
+ begin perform public.change_profile_role('${rejected}','diretor');
+   raise exception 'Coordinator promoted External directly';
+ exception when insufficient_privilege then null; end;
+ if exists(select 1 from public.role_change_audit where target_profile_id='${rejected}' and changed_by='${coordinator}') then
+   raise exception 'Rejected direct promotion left an audit row'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','${rejected}',true);
 select public.submit_membership_request('{"name":"Smoke Rejected","team":"Ligia","discipline":"Design"}'::jsonb);
@@ -89,6 +132,11 @@ do $$ begin
 end $$;
 reset role;
 rollback;
+do $$ begin
+ if exists(select 1 from auth.users where id in ('${applicant}','${rejected}','${director}','${coordinator}','${member}'))
+   or exists(select 1 from public.role_change_audit where target_profile_id in ('${applicant}','${rejected}','${director}','${coordinator}','${member}')) then
+   raise exception 'Disposable remote data survived rollback'; end if;
+end $$;
 select 'PASS remote membership RPC/RLS smoke (all fixtures rolled back)';
 `;
 const env = { ...process.env, PGHOST: url.hostname, PGPORT: url.port || "5432",
