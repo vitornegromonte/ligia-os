@@ -10,6 +10,8 @@ const Register = lazy(() => import("./pages/Register.jsx"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword.jsx"));
 const Landing = lazy(() => import("./pages/Landing.jsx"));
 const ProcessoSeletivo = lazy(() => import("./pages/ProcessoSeletivo.jsx"));
+const Boletim = lazy(() => import("./pages/Boletim.jsx"));
+const BoletimTexto = lazy(() => import("./pages/BoletimTexto.jsx"));
 const Home = lazy(() => import("./pages/Home.jsx"));
 const TalentBank = lazy(() => import("./pages/TalentBank.jsx"));
 const Documentation = lazy(() => import("./pages/Documentation.jsx"));
@@ -52,6 +54,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/processo-seletivo" element={<ProcessoSeletivo />} />
+          <Route path="/boletim" element={<Boletim />} />
+          <Route path="/boletim/:edicao/:slug" element={<BoletimTexto />} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
           <Route path="/reset-password" element={<ResetPassword />} />

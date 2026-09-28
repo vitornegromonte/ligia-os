@@ -77,7 +77,7 @@ const navLinks = [
   { id: "iniciativas", label: "Iniciativas" },
   { id: "eventos", label: "Eventos" },
   { id: "membros", label: "Membros" },
-  { id: "newsletter", label: "Newsletter" },
+  { id: "boletim", label: "Boletim" },
   { id: "contato", label: "Contato" },
 ];
 
@@ -312,6 +312,7 @@ export default function Landing() {
   const navSentinelRef = useRef(null);
   const heroBgRef = useRef(null);
   const heroSectionRef = useRef(null);
+  const pendingSectionRef = useRef(null);
   const [stats, setStats] = useState([
     { value: "—", label: "Membros", color: "#6da87c" },
     { value: "—", label: "Projetos", color: "#6b8eb3" },
@@ -329,7 +330,8 @@ export default function Landing() {
   const [generalInitiatives, setGeneralInitiatives] = useState(fallbackInitiatives);
   const [statsLoading, setStatsLoading] = useState(true);
   const [landingLoading, setLandingLoading] = useState(true);
-  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [landingRefreshing, setLandingRefreshing] = useState(false);
+  const [boletimEmail, setBoletimEmail] = useState("");
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function smoothScrollTo(el, targetLeft, duration = 560) {
@@ -413,10 +415,29 @@ export default function Landing() {
     loadStats();
   }, []);
 
-  // Garante o topo após o conteúdo assíncrono hidratar (imagens alteram a altura)
+  // Garante a posição correta após o conteúdo assíncrono hidratar: eventos e
+  // membros trocam um skeleton de tamanho fixo por conteúdo real (às vezes
+  // bem mais alto — ex. dezenas de membros), o que empurra as seções
+  // seguintes (boletim, contato) para baixo. Se o clique em um link do menu
+  // aconteceu antes disso assentar, corrige o scroll para a seção certa;
+  // senão, mantém o comportamento antigo de garantir o topo.
   useEffect(() => {
-    if (!landingLoading && !window.location.hash) window.scrollTo({ top: 0, behavior: "instant" });
-  }, [landingLoading]);
+    if (landingLoading || landingRefreshing) return;
+    const pendingId = pendingSectionRef.current;
+    if (pendingId) {
+      pendingSectionRef.current = null;
+      // Espera dois frames para o React aplicar os dados e o browser recalcular
+      // as alturas (inclusive content-visibility) antes de resolver o destino.
+      const firstFrame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById(pendingId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      return () => cancelAnimationFrame(firstFrame);
+    } else if (!window.location.hash) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [landingLoading, landingRefreshing]);
 
   // Removido redirecionamento automático: usuário logado pode visitar a landing.
   // O botão "Abrir Ligia OS" / "Login" já direciona corretamente via goToOS().
@@ -500,6 +521,8 @@ export default function Landing() {
   }
 
   async function loadStats() {
+    // Também cobre a janela entre hidratar o cache e iniciar o fetch em idle.
+    setLandingRefreshing(true);
     // Hidrata instantâneo do cache (perceived 0ms na 2ª visita)
     const cached = readLandingCache();
     if (cached) {
@@ -581,6 +604,7 @@ export default function Landing() {
       } finally {
         setStatsLoading(false);
         setLandingLoading(false);
+        setLandingRefreshing(false);
       }
     };
 
@@ -601,6 +625,10 @@ export default function Landing() {
 
   function scrollTo(id) {
     setMenuOpen(false);
+    // Se eventos/membros ainda não carregaram, a altura da página vai mudar
+    // assim que os dados chegarem — guarda o alvo para corrigir depois (ver
+    // efeito de landingLoading acima).
+    pendingSectionRef.current = landingLoading || landingRefreshing ? id : null;
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -636,7 +664,7 @@ export default function Landing() {
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
       height: 44, padding: "4px 4px 4px 20px", border: 0, borderRadius: 999,
       color: "#fff", background: "var(--accent)", cursor: "pointer",
-      fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-body)",
+      fontSize: 16, fontWeight: 600, fontFamily: "var(--font-body)",
       boxShadow: "0 4px 14px rgba(255,75,31,0.22)",
       transition: "transform 200ms cubic-bezier(0.32,0.72,0,1), background 200ms cubic-bezier(0.32,0.72,0,1), box-shadow 200ms cubic-bezier(0.32,0.72,0,1), filter 200ms cubic-bezier(0.32,0.72,0,1)"
     },
@@ -697,7 +725,7 @@ export default function Landing() {
             </nav>
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, fontSize: 13 }}>
+              <button onClick={goToOS} className="landing-btn-primary btn-island group" style={c.primaryBtn}>
                 {session ? "Abrir Ligia OS" : "Login"}
                 <span className="btn-dot" style={c.primaryDot}>
                   <ArrowRight size={15} strokeWidth={1.5} aria-hidden="true" />
@@ -1165,8 +1193,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* NEWSLETTER — Substack, double-bezel */}
-      <section id="newsletter" data-reveal style={{ padding: L.sectionPad, background: "var(--surface)", scrollMarginTop: "80px" }}>
+      {/* BOLETIM — Substack, double-bezel */}
+      <section id="boletim" data-reveal style={{ padding: L.sectionPad, background: "var(--surface)", scrollMarginTop: "80px" }}>
         <div style={{ maxWidth: L.maxW, margin: "0 auto" }}>
           <div style={c.bezelShell}>
           <div style={{
@@ -1177,13 +1205,13 @@ export default function Landing() {
             border: "1px solid rgba(255,255,255,0.08)",
             background: `var(--surface-2)`,
             boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)"
-          }} className="landing-newsletter">
+          }} className="landing-boletim">
             <div>
               <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 3.6vw, 40px)", fontWeight: 500, letterSpacing: "-.03em", lineHeight: 1.1 }}>
                 Bastidores de IA,<br />sem o ruído.
               </h2>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, lineHeight: 1.85, maxWidth: 520 }}>
-                No Substack da Ligia compartilhamos artigos e reflexões sobre inteligência artificial, direto no seu e-mail. Gratuita, feita pela comunidade.
+                O <strong>Boletim Ligia</strong> traz artigos e reflexões sobre inteligência artificial, direto no seu e-mail via Substack. Gratuito, feito pela comunidade — e as edições anteriores ficam sempre abertas para leitura aqui.
               </p>
               <div style={{ display: "flex", gap: 8, marginTop: 18, flexWrap: "wrap", alignItems: "center", color: "var(--muted-2)", fontSize: 12 }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Mail size={13} strokeWidth={1.5} style={{ color: "var(--accent)" }} /> Sem spam</span>
@@ -1198,23 +1226,24 @@ export default function Landing() {
               <form
                 onSubmit={e => {
                   e.preventDefault();
-                  const email = newsletterEmail.trim();
+                  const email = boletimEmail.trim();
                   const base = "https://boletimligia.substack.com/subscribe";
                   const url = email ? `${base}?email=${encodeURIComponent(email)}` : base;
                   window.open(url, "_blank", "noopener,noreferrer");
                 }}
                 style={{ display: "grid", gap: 10, padding: 18, borderRadius: "var(--radius)", border: "1px solid rgba(255,255,255,0.08)", background: "var(--surface)", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.04)" }}
               >
-                <label htmlFor="newsletter-email" style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: ".04em", textTransform: "uppercase" }}>Seu melhor e-mail</label>
-                <div className="newsletter-row" style={{ display: "flex", gap: 8 }}>
+                <label htmlFor="boletim-email" style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: ".04em", textTransform: "uppercase" }}>Seu melhor e-mail</label>
+                <div className="boletim-row" style={{ display: "flex", gap: 8 }}>
                   <input
-                    id="newsletter-email"
+                    id="boletim-email"
+                    className="boletim-email"
                     type="email"
                     required
                     placeholder="voce@exemplo.com"
-                    value={newsletterEmail}
-                    onChange={e => setNewsletterEmail(e.target.value)}
-                    style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, outline: "none", background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
+                    value={boletimEmail}
+                    onChange={e => setBoletimEmail(e.target.value)}
+                    style={{ flex: 1, minWidth: 0, height: 44, padding: "0 16px", border: "1px solid var(--line)", borderRadius: 999, background: "var(--bg)", color: "var(--text)", fontSize: 14 }}
                   />
                   <button type="submit" className="landing-btn-primary btn-island group" style={{ ...c.primaryBtn, whiteSpace: "nowrap", padding: "6px 6px 6px 22px" }}>
                     Assinar
@@ -1235,6 +1264,14 @@ export default function Landing() {
                   <ExternalLink size={14} strokeWidth={1.5} aria-hidden="true" />
                 </span>
               </a>
+
+              <Link to="/boletim" className="landing-btn-secondary btn-island group"
+                style={{ ...c.secondaryBtn, textDecoration: "none", whiteSpace: "nowrap" }}>
+                Ler edições anteriores
+                <span className="btn-dot" style={c.secondaryDot}>
+                  <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" />
+                </span>
+              </Link>
             </div>
           </div>
           </div>
@@ -1385,12 +1422,13 @@ export default function Landing() {
         #pilares, #eventos { position: relative; }
         #pilares::before, #eventos::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 10%, rgba(255,75,31,0.05), transparent 38%), radial-gradient(circle at 10% 90%, rgba(255,144,104,0.03), transparent 36%); pointer-events: none; }
         /* Conteúdo abaixo da dobra não bloqueia o primeiro paint */
-        #pilares, #iniciativas, #eventos, #membros, #newsletter, #participe { content-visibility: auto; contain-intrinsic-size: 900px 800px; }
+        #pilares, #iniciativas, #eventos, #membros, #boletim, #participe { content-visibility: auto; contain-intrinsic-size: 900px 800px; }
         .landing-nav-link { transform-origin: var(--transform-origin, center); }
         .landing-nav-link::after { content: ""; position: absolute; left: 2px; right: 2px; bottom: -2px; height: 2px; background: var(--accent); border-radius: 999px; transform: scaleX(0); transform-origin: left; transition: transform 200ms var(--ease-out); }
         .landing-nav-link:hover::after, .landing-nav-link:focus-visible::after { transform: scaleX(1); }
         .landing-nav-link:hover { color: var(--text) !important; }
         .landing-card { position: relative; transform-origin: var(--transform-origin, center); transition: transform 200ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 200ms var(--ease-out); }
+        .boletim-email:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
         .landing-card:active { transform: scale(0.97); }
         @media (hover: hover) and (pointer: fine) {
           #pilares .landing-card:hover { border-color: rgba(36,25,20,0.32) !important; box-shadow: inset 0 1px 1px rgba(255,255,255,0.5) !important; }
@@ -1501,11 +1539,11 @@ export default function Landing() {
           .landing-island { border-radius: 24px !important; }
         }
         @media (max-width: 880px) {
-          .landing-newsletter { grid-template-columns: 1fr !important; }
+          .landing-boletim { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 560px) {
-          .newsletter-row { flex-direction: column !important; }
-          .newsletter-row .landing-btn-primary { width: 100%; justify-content: center; }
+          .boletim-row { flex-direction: column !important; }
+          .boletim-row .landing-btn-primary { width: 100%; justify-content: center; }
         }
         @media (max-width: 820px) {
           .events-snap > * { flex: 0 0 100% !important; }
