@@ -114,6 +114,15 @@ describe("AuthProvider", () => {
     await act(async () => pending.resolve({ data: row() }));
     expect(result.current.profile).toBeNull(); expect(result.current.status).toBe("unauthenticated");
   });
+  it("refreshes the current role when an existing session regains focus", async () => {
+    let databaseRole = "externo";
+    client.from.mockImplementation(() => query(Promise.resolve({ data: row("a", databaseRole) })));
+    const { result } = renderHook(useAuth, { wrapper });
+    await waitFor(() => expect(result.current.profile?.role).toBe("externo"));
+    databaseRole = "membro";
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(result.current.profile?.role).toBe("membro"));
+  });
   it("does not let a delayed logout completion clear a newer session", async () => {
     const pending = deferred(); client.auth.signOut.mockReturnValue(pending.promise);
     const { result } = renderHook(useAuth, { wrapper });

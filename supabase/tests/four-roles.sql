@@ -4,13 +4,18 @@ insert into auth.users(id,email) values
  ('10000000-0000-0000-0000-000000000002','director@test'),
  ('10000000-0000-0000-0000-000000000003','coordinator@test'),
  ('10000000-0000-0000-0000-000000000004','member@test'),
- ('10000000-0000-0000-0000-000000000005','rejected@test');
-update public.profiles set role='diretor', status_membro='approved' where email='director@test';
-update public.profiles set role='coordenador', status_membro='approved' where email='coordinator@test';
+ ('10000000-0000-0000-0000-000000000005','rejected@test'),
+ ('10000000-0000-0000-0000-000000000006','professor@test');
+update public.profiles set role='diretor' where email='director@test';
+update public.profiles set role='coordenador', category='professor' where email='coordinator@test';
 update public.profiles set role='membro', status_membro='approved' where email='member@test';
+update public.profiles set category='professor' where email='professor@test';
 do $$ begin
- if (select count(*) from public.profiles where role='externo' and status_membro='none') <> 2 then
+ if (select count(*) from public.profiles where role='externo' and status_membro='none') <> 3 then
    raise exception 'Signup must create external profiles';
+ end if;
+ if (select status_membro from public.profiles where email='coordinator@test') <> 'none' then
+   raise exception 'Professor coordinator was given a fictitious membership approval';
  end if;
  if has_column_privilege('authenticated','public.challenges','tests','SELECT') then
    raise exception 'Private challenge tests are readable';
@@ -50,6 +55,11 @@ do $$ begin
    raise exception 'External review succeeded';
  exception when insufficient_privilege then null;
  end;
+ begin
+   perform public.change_profile_role(auth.uid(),'coordenador');
+   raise exception 'External role change succeeded';
+ exception when insufficient_privilege then null;
+ end;
 end $$;
 select public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","motivation":"I want to contribute to applied research."}'::jsonb);
 do $$ begin
@@ -72,6 +82,11 @@ do $$ begin
    raise exception 'Member review succeeded';
  exception when insufficient_privilege then null;
  end;
+ begin
+   perform public.change_profile_role(auth.uid(),'diretor');
+   raise exception 'Member role change succeeded';
+ exception when insufficient_privilege then null;
+ end;
 end $$;
 
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000002';
@@ -80,10 +95,24 @@ do $$ begin
  if (select count(*) from public.membership_requests where status='pending') <> 1 then raise exception 'Director cannot review queue'; end if;
 end $$;
 select public.review_membership_request((select id from public.membership_requests where status='pending' limit 1), true);
+select public.change_profile_role('10000000-0000-0000-0000-000000000006','coordenador');
 do $$ begin
  if (select role='membro' and status_membro='approved' from public.profiles where email='external@test') is not true then
    raise exception 'Approval was not atomic';
  end if;
+ if (select role='coordenador' and status_membro='none' and category='professor'
+     from public.profiles where email='professor@test') is not true then
+   raise exception 'Professor coordinator assignment changed membership status or category';
+ end if;
+ begin
+   perform public.change_profile_role(auth.uid(),'externo');
+   raise exception 'Administrator changed own role';
+ exception when insufficient_privilege then null;
+ end;
+end $$;
+set request.jwt.claim.sub='10000000-0000-0000-0000-000000000001';
+do $$ begin
+ if not public.is_member_or_admin() then raise exception 'Approved user cannot access internal area with existing session'; end if;
 end $$;
 
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000005';

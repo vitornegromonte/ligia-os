@@ -31,12 +31,13 @@ alter table public.profiles drop constraint if exists ligia_profiles_role_check;
 alter table public.profiles add column status_membro text not null default 'none';
 update public.profiles set role = 'externo' where role = 'visitante';
 update public.profiles p set role = d.new_role from role_migration_decisions d where p.id = d.profile_id and p.role = 'admin';
-update public.profiles set status_membro = 'approved' where role in ('membro','diretor','coordenador');
+update public.profiles set status_membro = 'approved' where role = 'membro';
 alter table public.profiles alter column role set default 'externo';
 alter table public.profiles add constraint profiles_role_check check (role in ('externo','membro','diretor','coordenador'));
 alter table public.profiles add constraint profiles_status_membro_check check (
   (role = 'externo' and status_membro in ('none','pending','rejected')) or
-  (role in ('membro','diretor','coordenador') and status_membro = 'approved'));
+  (role = 'membro' and status_membro = 'approved') or
+  (role in ('diretor','coordenador') and status_membro in ('none','approved')));
 
 create table public.membership_requests (
   id uuid primary key default gen_random_uuid(),
@@ -170,7 +171,9 @@ begin
     raise exception 'Review the pending membership request first' using errcode='23514';
   end if;
   update public.profiles set role = new_role,
-    status_membro = case when new_role = 'externo' then 'none' else 'approved' end
+    status_membro = case when new_role = 'externo' then 'none'
+      when new_role = 'membro' then 'approved'
+      when status_membro = 'approved' then 'approved' else 'none' end
     where id = target_id returning * into updated;
   if not found then raise exception 'Profile not found' using errcode='P0002'; end if;
   return updated;

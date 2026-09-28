@@ -75,7 +75,7 @@ try {
   }
   const mappedAdmin = run("psql", [...conn, "-q", "-A", "-t"],
     "select role || ':' || status_membro from public.profiles where email='mapped-admin@test';").trim();
-  if (mappedAdmin !== "diretor:approved") throw new Error("Reviewed legacy administrator was not mapped to director");
+  if (mappedAdmin !== "diretor:none") throw new Error("Reviewed legacy administrator was not mapped to director");
   run("psql", [...conn, "-f", path.join(root, "supabase/seed/challenges.sql")]);
   run("psql", [...conn, "-f", path.join(root, "supabase/tests/four-roles.sql")]);
   const result = JSON.parse(run("psql", [...conn, "-q", "-A", "-t"], `
