@@ -97,7 +97,7 @@ export default function Sidebar({ open, onClose }) {
                     return `nav-item${ativo ? " active" : ""}`;
                   }}>
                   <item.icon size={17} strokeWidth={1.7} aria-hidden="true" />
-                  {item.to === "/membros" && isAdmin(profile) ? "Gestão de membros" : item.label}
+                  {item.to === "/membros" && isAdmin(profile) ? "Gestão de membros" : item.to === "/solicitar-entrada" && profile?.status_membro === "pending" ? "Solicitação em análise" : item.label}
                 </NavLink>
               ))}
             </nav>

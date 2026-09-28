@@ -1,18 +1,24 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { KeyRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { authMessage } from "../auth/messages.js";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const { recovery, updatePassword } = useAuth();
+  const location = useLocation();
+  const { recovery, status, updatePassword, signOut } = useAuth();
+  const linkParams = new URLSearchParams(location.search || location.hash.replace(/^#/, ""));
+  const invalidLink = linkParams.has("error") || linkParams.has("error_code");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (inFlight.current) return;
     setError("");
     if (password.length < 6) {
       setError("A senha deve ter pelo menos 6 caracteres.");
@@ -22,15 +28,21 @@ export default function ResetPassword() {
       setError("As senhas não coincidem.");
       return;
     }
+    inFlight.current = true;
     setSubmitting(true);
     try {
       await updatePassword(password);
-      navigate("/login");
+      try {
+        await signOut();
+      } catch {
+        setError("Senha atualizada, mas não foi possível encerrar a sessão. Tente sair e entrar novamente.");
+        return;
+      }
+      navigate("/login", { replace: true, state: { passwordUpdated: true } });
     } catch (err) {
-      setError(err.message === "New password should be different from the old password."
-        ? "A nova senha deve ser diferente da atual."
-        : err.message);
+      setError(authMessage(err, "password-update"));
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }
@@ -64,13 +76,13 @@ export default function ResetPassword() {
           </p>
         </div>
 
-        {!recovery ? (
+        {status === "session_loading" ? <p role="status" style={{ color: "var(--muted)", fontSize: 12 }}>Verificando link de recuperação…</p> : !recovery || invalidLink ? (
           <div style={{
             padding: "12px 14px", borderRadius: "var(--radius-sm)",
             background: "var(--surface-2)", color: "var(--muted)", fontSize: 12,
             lineHeight: 1.6
           }}>
-            Você precisa acessar o link enviado por email para redefinir sua senha.
+            {invalidLink ? "O link de recuperação é inválido ou expirou. Solicite outro link em Entrar." : "Acesse o link enviado por email para redefinir sua senha. Se ele expirou, solicite outro em Entrar."}
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -83,11 +95,11 @@ export default function ResetPassword() {
             )}
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{
+              <label htmlFor="reset-password" style={{
                 display: "block", marginBottom: 6, color: "var(--muted)",
                 fontSize: 12, fontWeight: 600
               }}>Nova senha</label>
-              <input type="password" required autoFocus
+              <input id="reset-password" type="password" autoComplete="new-password" required minLength={6} autoFocus
                 value={password} onChange={e => setPassword(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",
@@ -98,11 +110,11 @@ export default function ResetPassword() {
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label style={{
+              <label htmlFor="reset-password-confirm" style={{
                 display: "block", marginBottom: 6, color: "var(--muted)",
                 fontSize: 12, fontWeight: 600
               }}>Confirmar nova senha</label>
-              <input type="password" required
+              <input id="reset-password-confirm" type="password" autoComplete="new-password" required minLength={6}
                 value={confirm} onChange={e => setConfirm(e.target.value)}
                 style={{
                   width: "100%", height: 42, padding: "0 14px",

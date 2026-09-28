@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
-
-const teams = ["NLP", "ML", "CV", "Comunicação"];
+import { authMessage } from "../auth/messages.js";
+import { Field, Input } from "../ui/Field.tsx";
+import { Button } from "../ui/Button.tsx";
+import { Alert } from "../ui/Alert.tsx";
 
 export default function Register() {
   const location = useLocation();
@@ -10,269 +12,55 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [team, setTeam] = useState("");
-  const [affiliation, setAffiliation] = useState("");
-  const [avatar_url, setAvatarUrl] = useState("");
-  const [lattes, setLattes] = useState("");
-  const [github, setGithub] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-  const [kaggle, setKaggle] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (inFlight.current) return;
     setError("");
+    if (!name.trim()) { setError("Informe seu nome completo."); return; }
+    if (!password || !confirmPassword) { setError("Informe e confirme sua senha."); return; }
+    if (password !== confirmPassword) { setError("As senhas não coincidem."); return; }
+    inFlight.current = true;
     setSubmitting(true);
     try {
-      await signUp(email, password, { name, team, affiliation, avatar_url, lattes, github, linkedin, kaggle });
+      await signUp(email.trim(), password, { name: name.trim() });
       setSuccess(true);
-    } catch (err) {
-      setError(err.message);
+    } catch (failure) {
+      setError(authMessage(failure, "signup"));
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }
 
-  if (success) {
-    return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        minHeight: "100vh",
-        background: "radial-gradient(circle at 50% 30%, rgba(255,75,31,.06), transparent 50%), var(--bg)"
-      }}>
-        <div style={{
-          width: "min(400px, 92vw)", padding: 48, textAlign: "center",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--line-soft)", background: "var(--surface)"
-        }}>
-          <div style={{
-            width: 56, height: 56, display: "grid", placeItems: "center",
-            margin: "0 auto 20", borderRadius: "50%",
-            background: "var(--accent-soft)", color: "var(--accent)",
-            fontSize: 28
-          }}>✓</div>
-          <h1 style={{
-            margin: "0 0 10px", fontFamily: "var(--font-heading)", fontSize: 20,
-            fontWeight: 550, letterSpacing: "-.02em"
-          }}>Conta criada</h1>
-          <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.6, margin: "0 0 24px" }}>
-            Verifique seu email <strong>{email}</strong> para confirmar o cadastro.
-            Depois é só fazer login.
-          </p>
-          <Link to="/login" state={location.state}
-            style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              height: 42, padding: "0 28px", borderRadius: "var(--radius-sm)",
-              color: "#fff", background: "var(--accent)",
-              textDecoration: "none", fontSize: 14, fontWeight: 600,
-              fontFamily: "var(--font-body)"
-            }}>
-            Ir para login
-          </Link>
-        </div>
+  return <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px 20px", background: "radial-gradient(circle at 50% 30%, rgba(255,75,31,.06), transparent 50%), var(--bg)" }}>
+    <section style={{ width: "min(440px, 100%)", padding: 36, borderRadius: "var(--radius-lg)", border: "1px solid var(--line-soft)", background: "var(--surface)" }}>
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <img src="/media/logo.svg" alt="Ligia" width="36" height="36" style={{ height: 36, width: "auto", marginBottom: 16 }} />
+        <h1 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 550 }}><span className="gradient-text">Criar conta</span></h1>
+        <p style={{ color: "var(--muted)", fontSize: 12, margin: "6px 0 0" }}>Comece a aprender na Ligia OS</p>
       </div>
-    );
-  }
-
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "center",
-      minHeight: "100vh", padding: "40px 20px",
-      background: "radial-gradient(circle at 50% 30%, rgba(255,75,31,.06), transparent 50%), var(--bg)"
-    }}>
-      <div style={{
-        width: "min(500px, 100%)", padding: 36,
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--line-soft)",
-        background: "var(--surface)"
-      }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src="/media/logo.svg" alt="Ligia" width="36" height="36"
-            style={{ height: 36, width: "auto", marginBottom: 16 }} />
-          <h1 style={{
-            margin: 0, fontFamily: "var(--font-heading)", fontSize: 22,
-            fontWeight: 550, letterSpacing: "-.02em"
-          }}><span className="gradient-text">Criar conta</span></h1>
-          <p style={{ color: "var(--muted)", fontSize: 12, margin: "6px 0 0" }}>
-            Cadastre-se na plataforma Ligia OS
-          </p>
+      {success ? <>
+        <Alert tone="success" className="lg-mb-16">Conta criada. Se a confirmação por email estiver ativada, verifique sua caixa de entrada. Depois, entre na plataforma.</Alert>
+        <Link to="/login" state={location.state} style={{ color: "var(--accent)", fontFamily: "var(--font-body)", fontWeight: 600 }}>Ir para login</Link>
+      </> : <form onSubmit={handleSubmit}>
+        {error && <Alert tone="error" className="lg-mb-16">{error}</Alert>}
+        <div style={{ display: "grid", gap: 16, marginBottom: 24 }}>
+          <Field label="Nome completo">{p => <Input type="text" name="name" autoComplete="name" required autoFocus value={name} onChange={e => setName(e.target.value)} {...p} />}</Field>
+          <Field label="Email">{p => <Input type="email" name="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} {...p} />}</Field>
+          <Field label="Senha">{p => <Input type="password" name="password" autoComplete="new-password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} {...p} />}</Field>
+          <Field label="Confirmar senha">{p => <Input type="password" name="confirmPassword" autoComplete="new-password" required minLength={6} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} {...p} />}</Field>
         </div>
-
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div style={{
-              padding: "10px 14px", marginBottom: 16, borderRadius: "var(--radius-sm)",
-              background: "rgba(199,107,96,.12)", border: "1px solid rgba(199,107,96,.25)",
-              color: "#c76b60", fontSize: 12
-            }}>{error}</div>
-          )}
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-name" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Nome completo</label>
-            <input id="register-name" name="name" autoComplete="name" type="text" required autoFocus
-              value={name} onChange={e => setName(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-email" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Email</label>
-            <input id="register-email" name="email" autoComplete="email" spellCheck={false} type="email" required
-              value={email} onChange={e => setEmail(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-password" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Senha</label>
-            <input id="register-password" name="password" autoComplete="new-password" type="password" required minLength={6}
-              value={password} onChange={e => setPassword(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-team" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Equipe</label>
-            <select id="register-team" name="team" autoComplete="off" value={team} onChange={e => setTeam(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }}>
-              <option value="">Selecione uma equipe</option>
-              {teams.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-affiliation" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Vínculo institucional</label>
-            <input id="register-affiliation" name="affiliation" autoComplete="organization" type="text" placeholder="CIn-UFPE"
-              value={affiliation} onChange={e => setAffiliation(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="register-avatar" style={{
-              display: "block", marginBottom: 6, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Foto de perfil (URL, opcional)</label>
-            <input id="register-avatar" name="avatar_url" autoComplete="photo" spellCheck={false} type="url" placeholder="https://exemplo.com/foto.jpg…"
-              value={avatar_url} onChange={e => setAvatarUrl(e.target.value)}
-              style={{
-                width: "100%", height: 42, padding: "0 14px",
-                border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                outline: "none", color: "var(--text)", background: "var(--bg)",
-                transition: "border var(--transition)"
-              }} />
-            {avatar_url.trim() && (
-              <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
-                <img src={avatar_url} alt="Prévia" onError={e => e.currentTarget.style.display = "none"}
-                  style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--line-soft)" }} />
-                <span style={{ color: "var(--muted-2)", fontSize: 11 }}>Prévia</span>
-              </div>
-            )}
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <label style={{
-              display: "block", marginBottom: 8, color: "var(--muted)",
-              fontSize: 12, fontWeight: 600
-            }}>Redes acadêmicas (opcional)</label>
-            <div style={{ display: "grid", gap: 10 }}>
-              <input id="register-lattes" name="lattes" autoComplete="url" spellCheck={false} type="url" placeholder="Lattes — http://lattes.cnpq.br/…"
-                value={lattes} onChange={e => setLattes(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
-              <input id="register-github" name="github" autoComplete="url" spellCheck={false} type="url" placeholder="GitHub — https://github.com/usuario…"
-                value={github} onChange={e => setGithub(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
-              <input id="register-linkedin" name="linkedin" autoComplete="url" spellCheck={false} type="url" placeholder="LinkedIn — https://linkedin.com/in/usuario…"
-                value={linkedin} onChange={e => setLinkedin(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
-              <input id="register-kaggle" name="kaggle" autoComplete="url" spellCheck={false} type="url" placeholder="Kaggle — https://kaggle.com/usuario…"
-                value={kaggle} onChange={e => setKaggle(e.target.value)}
-                style={{
-                  width: "100%", height: 42, padding: "0 14px",
-                  border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
-                  outline: "none", color: "var(--text)", background: "var(--bg)",
-                  transition: "border var(--transition)"
-                }} />
-            </div>
-          </div>
-
-          <button type="submit" disabled={submitting}
-            style={{
-              width: "100%", height: 42, border: 0, borderRadius: "var(--radius-sm)",
-              color: "#fff", background: submitting ? "var(--muted-2)" : "var(--accent)",
-              cursor: submitting ? "not-allowed" : "pointer",
-              fontSize: 14, fontWeight: 600, fontFamily: "var(--font-body)",
-              transition: "background var(--transition)"
-            }}>
-            {submitting ? "Criando conta..." : "Criar conta"}
-          </button>
-        </form>
-
-        <div style={{ textAlign: "center", marginTop: 20 }}>
-          <span style={{ color: "var(--muted)", fontSize: 12 }}>
-            Já tem conta?{" "}
-          </span>
-          <Link to="/login" state={location.state} style={{
-            color: "var(--accent)", fontSize: 12, fontWeight: 600,
-            textDecoration: "none"
-          }}>
-            Entrar
-          </Link>
-        </div>
+        <Button type="submit" loading={submitting} disabled={submitting} style={{ width: "100%" }}>{submitting ? "Criando conta…" : "Criar conta"}</Button>
+      </form>}
+      <div style={{ textAlign: "center", marginTop: 20, color: "var(--muted)", fontSize: 12 }}>
+        Já tem conta? <Link to="/login" state={location.state} style={{ color: "var(--accent)", fontWeight: 600 }}>Entrar</Link>
       </div>
-    </div>
-  );
+    </section>
+  </main>;
 }
