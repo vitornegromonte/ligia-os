@@ -29,11 +29,14 @@ it("submits identity and organizational details without motivation, then shows p
   api.submitMembershipRequest.mockResolvedValue({ id: "request", status: "pending", requested_at: "2026-09-27", details: { name: "Student Name" } });
   render(<MemoryRouter><MembershipRequest /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText("Nome completo"), { target: { value: "Student Name" } });
-  fireEvent.change(screen.getByLabelText("Equipe"), { target: { value: "Machine Learning" } });
-  fireEvent.change(screen.getByLabelText("Área de atuação"), { target: { value: "Engineering" } });
+  fireEvent.change(screen.getByLabelText("Equipe"), { target: { value: "ML" } });
+  fireEvent.click(screen.getByRole("button", { name: "ML" }));
+  fireEvent.click(screen.getByRole("button", { name: "NLP" }));
+  expect(screen.queryByLabelText("Sobre você")).toBeNull();
   fireEvent.click(screen.getByLabelText(/Confirmo que já sou membro efetivo/));
   fireEvent.click(screen.getByRole("button", { name: "Solicitar acesso interno" }));
-  await waitFor(() => expect(api.submitMembershipRequest).toHaveBeenCalledWith(expect.objectContaining({ team: "Machine Learning", discipline: "Engineering" })));
+  await waitFor(() => expect(api.submitMembershipRequest).toHaveBeenCalledWith(expect.objectContaining({ team: "ML", discipline: "ML, NLP" })));
+  expect(api.submitMembershipRequest.mock.calls[0][0]).not.toHaveProperty("bio");
   expect(api.submitMembershipRequest.mock.calls[0][0]).not.toHaveProperty("motivation");
   expect(await screen.findByText(/Aguardando validação do acesso/)).toBeInTheDocument();
   expect(auth.refreshProfile).toHaveBeenCalled();
