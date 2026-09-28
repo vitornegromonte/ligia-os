@@ -24,7 +24,7 @@ export async function fetchChallenges() {
   if (!isConfigured()) return fallbackTasks.map(t => ({ ...t, visibility: "internal" }));
   const { data, error } = await supabase
     .from("challenges")
-    .select("*")
+    .select("id,slug,title,difficulty,tags,visibility,description,hint,starter_code,function_name,tests_count,order_index,created_by,created_at")
     .order("order_index", { ascending: true })
     .order("title", { ascending: true });
   if (error || !data || data.length === 0) {
@@ -36,7 +36,7 @@ export async function fetchChallenges() {
 
 export async function fetchChallenge(slug) {
   if (!isConfigured()) return fallbackTasks.find(t => t.slug === slug || t.id === slug) || null;
-  const { data, error } = await supabase.from("challenges").select("*").eq("slug", slug).single();
+  const { data, error } = await supabase.from("challenges").select("id,slug,title,difficulty,tags,visibility,description,hint,starter_code,function_name,tests_count,order_index,created_by,created_at").eq("slug", slug).single();
   if (!error && data) return mapChallenge(data);
   // fallback to json
   return fallbackTasks.find(t => t.slug === slug || t.id === slug) || null;

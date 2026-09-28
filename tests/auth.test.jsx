@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StrictMode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext.jsx";
@@ -9,7 +9,7 @@ const { client, callbacks } = vi.hoisted(() => ({
 }));
 vi.mock("../src/lib/supabase.js", () => ({ supabase: client }));
 const session = id => ({ user: { id } });
-const row = (id = "a", role = "visitante") => ({ id, name: id, email: `${id}@example.test`, role });
+const row = (id = "a", role = "externo") => ({ id, name: id, email: `${id}@example.test`, role });
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 function query(result) { const builder = { select: vi.fn(() => builder), eq: vi.fn(() => builder), abortSignal: vi.fn(() => builder), maybeSingle: vi.fn(() => result) }; return builder; }
 function wrapper({ children }) { return <StrictMode><AuthProvider>{children}</AuthProvider></StrictMode>; }
@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe("AuthProvider", () => {
-  it.each(["visitante", "membro", "admin"])("authenticates %s only after resolving profile", async role => {
+  it.each(["externo", "membro", "diretor", "coordenador"])("authenticates %s only after resolving profile", async role => {
     client.auth.getSession.mockResolvedValue({ data: { session: null } });
     client.from.mockImplementation(() => query(Promise.resolve({ data: row("a", role) })));
     const { result } = renderHook(useAuth, { wrapper });
@@ -47,7 +47,7 @@ describe("AuthProvider", () => {
     await act(async () => profile.resolve({ data: row() }));
     expect(result.current.status).toBe("authenticated");
   });
-  it.each([[null, null, "profile_unavailable"], [null, { code: "42501" }, "rls"], [null, { message: "Failed to fetch" }, "network"], [null, { code: "42P01" }, "supabase"], [row("a", "diretor"), null, "invalid_profile"]])("blocks profile failure %s / %j without provisioning", async (data, error, kind) => {
+  it.each([[null, null, "profile_unavailable"], [null, { code: "42501" }, "rls"], [null, { message: "Failed to fetch" }, "network"], [null, { code: "42P01" }, "supabase"], [row("a", "admin"), null, "invalid_profile"]])("blocks profile failure %s / %j without provisioning", async (data, error, kind) => {
     const builder = query(Promise.resolve({ data, error }));
     client.from.mockReturnValue(builder);
     const { result } = renderHook(useAuth, { wrapper });
@@ -101,7 +101,7 @@ describe("AuthProvider", () => {
     emit("SIGNED_IN", session("b"));
     expect(result.current.profile).toBeNull();
     await waitFor(() => expect(result.current.profile?.id).toBe("b"));
-    await act(async () => oldProfile.resolve({ data: row("a", "admin") }));
+    await act(async () => oldProfile.resolve({ data: row("a", "diretor") }));
     expect(result.current.profile.id).toBe("b");
     emit("SIGNED_OUT", null);
     expect(result.current.profile).toBeNull();
@@ -113,6 +113,15 @@ describe("AuthProvider", () => {
     emit("SIGNED_OUT", null);
     await act(async () => pending.resolve({ data: row() }));
     expect(result.current.profile).toBeNull(); expect(result.current.status).toBe("unauthenticated");
+  });
+  it("refreshes the current role when an existing session regains focus", async () => {
+    let databaseRole = "externo";
+    client.from.mockImplementation(() => query(Promise.resolve({ data: row("a", databaseRole) })));
+    const { result } = renderHook(useAuth, { wrapper });
+    await waitFor(() => expect(result.current.profile?.role).toBe("externo"));
+    databaseRole = "membro";
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(result.current.profile?.role).toBe("membro"));
   });
   it("does not let a delayed logout completion clear a newer session", async () => {
     const pending = deferred(); client.auth.signOut.mockReturnValue(pending.promise);
@@ -129,7 +138,7 @@ describe("AuthProvider", () => {
   it("filters registration metadata, leaving role assignment to the database", async () => {
     client.auth.signUp.mockResolvedValue({ data: { session: null } });
     const { result } = renderHook(useAuth, { wrapper });
-    await act(async () => result.current.signUp("a@example.test", "password", { name: "A", role: "admin", category: "diretor" }));
+    await act(async () => result.current.signUp("a@example.test", "password", { name: "A", role: "diretor", category: "diretor" }));
     expect(client.auth.signUp).toHaveBeenCalledWith({ email: "a@example.test", password: "password", options: { data: { name: "A" } } });
   });
   it("handles recovery without changing role", async () => {
@@ -140,6 +149,6 @@ describe("AuthProvider", () => {
     expect(result.current.recovery).toBe(true);
     client.auth.updateUser.mockResolvedValue({ data: {} });
     await act(async () => result.current.updatePassword("newPassword"));
-    expect(result.current.recovery).toBe(false); expect(result.current.profile.role).toBe("visitante");
+    expect(result.current.recovery).toBe(false); expect(result.current.profile.role).toBe("externo");
   });
 });

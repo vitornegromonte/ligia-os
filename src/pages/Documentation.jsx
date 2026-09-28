@@ -11,6 +11,7 @@ import DocModal from "../components/DocModal.jsx";
 import CreateDocModal from "../components/CreateDocModal.jsx";
 import { fetchGuides, fetchResearchDocs, fetchProjectDocs, deleteGuide, deleteResearchDoc, deleteProjectDoc } from "../services/docs.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { isAdmin } from "../auth/access.js";
 
 const iconMap = {
   DoorOpen, CalendarPlus, Palette, Backpack, GitBranch, Server,
@@ -272,7 +273,7 @@ export default function Documentation() {
         </div>
       </header>
 
-      {profile?.role === "admin" && (
+      {isAdmin(profile) && (
         <button onClick={() => setCreateModalOpen(true)} title="Nova documentação"
           style={{
             position: "fixed", right: 32, bottom: 32, zIndex: 50,
@@ -360,7 +361,7 @@ export default function Documentation() {
         open={modalOpen}
         title={modalTitle}
         content={modalContent}
-        canEdit={profile?.role === "admin" || activeDoc?.type === "projetos"}
+        canEdit={isAdmin(profile) || activeDoc?.type === "projetos"}
         onClose={() => { setModalOpen(false); setActiveDoc(null); }}
         onEdit={handleEdit}
         onDelete={handleDelete}

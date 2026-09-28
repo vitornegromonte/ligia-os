@@ -8,6 +8,7 @@ export function mapProfile(p) {
     id: p.id,
     name: p.name || "Usuário",
     role: p.role ?? null,
+    status_membro: p.status_membro || "none",
     initials: p.initials || (p.name || "Usuário").split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
     email: p.email,
     team: p.team || "Geral",

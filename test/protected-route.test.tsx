@@ -42,7 +42,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("com sessão, mostra o conteúdo", async () => {
-    await montar({ session: {}, profile: { role: "visitante" }, loading: false });
+    await montar({ session: {}, profile: { role: "externo" }, loading: false });
     expect(screen.getByText("conteúdo protegido")).toBeInTheDocument();
   });
 

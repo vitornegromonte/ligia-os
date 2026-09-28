@@ -5,6 +5,7 @@ import { fetchProjectDocs } from "../services/docs.js";
 import { fetchProfiles } from "../services/profiles.js";
 import { fetchProjectsWithMilestones, assignProjectMember, removeProjectMember } from "../services/projects.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { canAccessInternalArea } from "../auth/access.js";
 import { showToast } from "../utils/toast.js";
 import { marked } from "marked";
 
@@ -95,7 +96,7 @@ export default function ProjectView() {
     }
   }
 
-  const canManageMembers = profile?.role === "admin" || profile?.role === "membro";
+  const canManageMembers = canAccessInternalArea(profile);
   const memberProfiles = profiles.filter(p => members.includes(p.id));
   const availableProfiles = profiles.filter(p => !members.includes(p.id) && p.id !== profile?.id);
 

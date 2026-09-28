@@ -75,6 +75,14 @@ export function AuthProvider({ children }) {
     setState(previous => previous.session ? { ...previous, profile: null, error: null, status: "profile_loading", revision } : previous);
   }, []);
 
+  const sessionUserId = state.session?.user?.id;
+  useEffect(() => {
+    if (!sessionUserId) return;
+    const onFocus = () => refreshProfile();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [sessionUserId, refreshProfile]);
+
   async function signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;

@@ -74,8 +74,8 @@ describe("Sidebar — item de staff", () => {
     );
   }
 
-  it("admin vê a análise do nivelamento; membro não", async () => {
-    const admin = await sidebarCom("admin");
+  it("diretor vê a análise do nivelamento; membro não", async () => {
+    const admin = await sidebarCom("diretor");
     expect(screen.getByRole("link", { name: /Análise do nivelamento/ })).toBeInTheDocument();
     admin.unmount();
     await sidebarCom("membro");

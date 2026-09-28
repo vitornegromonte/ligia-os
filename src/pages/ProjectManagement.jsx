@@ -5,6 +5,7 @@ import { showToast } from "../utils/toast.js";
 import { fetchProjectsWithMilestones } from "../services/projects.js";
 import { fetchProfiles } from "../services/profiles.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { canAccessInternalArea, isAdmin } from "../auth/access.js";
 import { useRealtime } from "../hooks/useRealtime.js";
 import CreateProjectModal from "../components/CreateProjectModal.jsx";
 import CreateMilestoneModal from "../components/CreateMilestoneModal.jsx";
@@ -136,7 +137,7 @@ export default function ProjectManagement() {
         </div>
       </header>
 
-      {profile?.role === "admin" && (
+      {isAdmin(profile) && (
         <button onClick={() => setCreateModalOpen(true)} title="Novo projeto"
           style={{
             position: "fixed", right: 32, bottom: 32, zIndex: 50,
@@ -313,7 +314,7 @@ export default function ProjectManagement() {
                         </div>
                       );
                     })}
-                    {(profile?.role === "admin" || profile?.role === "membro") && (
+                    {canAccessInternalArea(profile) && (
                       <button onClick={() => setMilestoneProject(project)}
                         style={{
                           display: "flex", alignItems: "center", gap: 5,
