@@ -13,7 +13,7 @@ export const canManageMembers = isAdmin;
 export const homeFor = profile => canAccessInternalArea(profile) ? "/inicio" : "/aprender";
 
 const INTERNAL_PATH = /^\/(?:inicio|dia|agenda|notas|membros|docs|certificados|dashboard|projetos)(?:\/|$)/i;
-const ADMIN_PATH = /^\/(?:admin\/solicitacoes|aprender\/itens)(?:\/|$)/i;
+const ADMIN_PATH = /^\/(?:admin\/(?:solicitacoes|usuarios)|aprender\/itens)(?:\/|$)/i;
 
 export function canAccessPath(profile, pathname) {
   const path = pathname.split(/[?#]/, 1)[0];

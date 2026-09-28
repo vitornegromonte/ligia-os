@@ -12,7 +12,10 @@ import ProfileEdit from "./ProfileEdit.jsx";
 const navGroups = [
   { label: "Minha conta", roles: ROLES, items: [{ to: "/perfil", icon: Settings, label: "Perfil" }] },
   { label: "Acesso interno", roles: EXTERNAL_ROLES, items: [{ to: "/solicitar-entrada", icon: Users, label: "Acesso de membro" }] },
-  { label: "Administração", roles: ADMIN_ROLES, items: [{ to: "/admin/solicitacoes", icon: ClipboardList, label: "Acesso de membros" }] },
+  { label: "Administração", roles: ADMIN_ROLES, items: [
+    { to: "/admin/solicitacoes", icon: ClipboardList, label: "Acesso de membros" },
+    { to: "/admin/usuarios", icon: Users, label: "Usuários e cargos" },
+  ] },
   {
     label: "Dia a dia",
     roles: INTERNAL_ROLES,

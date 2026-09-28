@@ -38,6 +38,10 @@ describe("access model", () => {
     ["membro", "/admin/solicitacoes", "/inicio"],
     ["diretor", "/admin/solicitacoes", "/admin/solicitacoes"],
     ["coordenador", "/aprender/itens", "/aprender/itens"],
+    ["externo", "/admin/usuarios", "/aprender"],
+    ["membro", "/admin/usuarios", "/inicio"],
+    ["diretor", "/admin/usuarios", "/admin/usuarios"],
+    ["coordenador", "/admin/usuarios", "/admin/usuarios"],
   ])("checks previous restricted route for %s at %s", (role, path, destination) => {
     expect(requestedDestination(path, { role })).toBe(destination);
   });
