@@ -12,11 +12,23 @@ export const isExternal = profile => profile?.role === "externo";
 export const canManageMembers = isAdmin;
 export const homeFor = profile => canAccessInternalArea(profile) ? "/inicio" : "/aprender";
 
-// The destination is still checked by its guard. Reject external URLs and auth loops.
+const INTERNAL_PATH = /^\/(?:inicio|dia|agenda|notas|membros|docs|certificados|dashboard|projetos)(?:\/|$)/i;
+const ADMIN_PATH = /^\/(?:admin\/solicitacoes|aprender\/itens)(?:\/|$)/i;
+
+export function canAccessPath(profile, pathname) {
+  const path = pathname.split(/[?#]/, 1)[0];
+  if (INTERNAL_PATH.test(path)) return canAccessInternalArea(profile);
+  if (ADMIN_PATH.test(path)) return isAdmin(profile);
+  return isKnownRole(profile?.role);
+}
+
+// Restore only safe, role-appropriate destinations; otherwise use the single home rule.
 export function requestedDestination(from, profile) {
   const path = typeof from === "string" ? from : from?.pathname;
   if (!path || !path.startsWith("/") || path.startsWith("//") || /[\\\s]/.test(path)) return homeFor(profile);
   if (/^\/(login|register|reset-password)(\/|[?#]|$)/i.test(path)) return homeFor(profile);
+  const pathname = path.split(/[?#]/, 1)[0];
+  if (!canAccessPath(profile, pathname)) return homeFor(profile);
   if (typeof from === "string") return path;
   return path + (from.search?.startsWith("?") ? from.search : "") + (from.hash?.startsWith("#") ? from.hash : "");
 }
