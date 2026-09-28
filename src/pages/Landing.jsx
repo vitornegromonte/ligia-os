@@ -330,6 +330,7 @@ export default function Landing() {
   const [generalInitiatives, setGeneralInitiatives] = useState(fallbackInitiatives);
   const [statsLoading, setStatsLoading] = useState(true);
   const [landingLoading, setLandingLoading] = useState(true);
+  const [landingRefreshing, setLandingRefreshing] = useState(false);
   const [boletimEmail, setBoletimEmail] = useState("");
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -421,17 +422,22 @@ export default function Landing() {
   // aconteceu antes disso assentar, corrige o scroll para a seção certa;
   // senão, mantém o comportamento antigo de garantir o topo.
   useEffect(() => {
-    if (landingLoading) return;
+    if (landingLoading || landingRefreshing) return;
     const pendingId = pendingSectionRef.current;
     if (pendingId) {
       pendingSectionRef.current = null;
-      requestAnimationFrame(() => {
-        document.getElementById(pendingId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Espera dois frames para o React aplicar os dados e o browser recalcular
+      // as alturas (inclusive content-visibility) antes de resolver o destino.
+      const firstFrame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById(pendingId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
       });
+      return () => cancelAnimationFrame(firstFrame);
     } else if (!window.location.hash) {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-  }, [landingLoading]);
+  }, [landingLoading, landingRefreshing]);
 
   // Removido redirecionamento automático: usuário logado pode visitar a landing.
   // O botão "Abrir Ligia OS" / "Login" já direciona corretamente via goToOS().
@@ -515,6 +521,8 @@ export default function Landing() {
   }
 
   async function loadStats() {
+    // Também cobre a janela entre hidratar o cache e iniciar o fetch em idle.
+    setLandingRefreshing(true);
     // Hidrata instantâneo do cache (perceived 0ms na 2ª visita)
     const cached = readLandingCache();
     if (cached) {
@@ -596,6 +604,7 @@ export default function Landing() {
       } finally {
         setStatsLoading(false);
         setLandingLoading(false);
+        setLandingRefreshing(false);
       }
     };
 
@@ -619,7 +628,7 @@ export default function Landing() {
     // Se eventos/membros ainda não carregaram, a altura da página vai mudar
     // assim que os dados chegarem — guarda o alvo para corrigir depois (ver
     // efeito de landingLoading acima).
-    pendingSectionRef.current = landingLoading ? id : null;
+    pendingSectionRef.current = landingLoading || landingRefreshing ? id : null;
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

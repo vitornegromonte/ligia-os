@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ExternalLink, RefreshCw, User } from "lucide-react";
 import BoletimShell from "../components/BoletimShell.jsx";
@@ -41,16 +41,30 @@ export default function BoletimTexto() {
   const path = `boletins/${edicao}`;
   const [metadata, setMetadata] = useState(null);
   const [texto, setTexto] = useState(null);
+  const [slugsPublicados, setSlugsPublicados] = useState([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const requestId = useRef(0);
 
   function load() {
+    const id = ++requestId.current;
     setLoading(true);
     setError(false);
-    Promise.all([fetchEdicaoMetadata(path), fetchTexto(path, slug)])
-      .then(([m, t]) => { setMetadata(m); setTexto(t); })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    fetchEdicaoMetadata(path)
+      .then(async m => {
+        const resultados = await Promise.allSettled((m.textos || []).map(itemSlug => fetchTexto(path, itemSlug)));
+        const publicados = resultados
+          .filter(result => result.status === "fulfilled" && !result.value.pendente)
+          .map(result => result.value.slug);
+        const t = resultados.find(result => result.status === "fulfilled" && result.value.slug === slug)?.value;
+        if (!t || t.pendente) throw new Error("Texto não encontrado ou ainda não publicado");
+        if (id !== requestId.current) return;
+        setMetadata(m);
+        setTexto(t);
+        setSlugsPublicados(publicados);
+      })
+      .catch(() => { if (id === requestId.current) setError(true); })
+      .finally(() => { if (id === requestId.current) setLoading(false); });
   }
 
   useEffect(() => {
@@ -63,10 +77,9 @@ export default function BoletimTexto() {
     document.title = texto ? `${texto.titulo} — Boletim Ligia` : "Boletim — Ligia";
   }, [texto]);
 
-  const ordem = metadata?.textos || [];
-  const idx = ordem.indexOf(slug);
-  const prevSlug = idx > 0 ? ordem[idx - 1] : null;
-  const nextSlug = idx >= 0 && idx < ordem.length - 1 ? ordem[idx + 1] : null;
+  const idx = slugsPublicados.indexOf(slug);
+  const prevSlug = idx > 0 ? slugsPublicados[idx - 1] : null;
+  const nextSlug = idx >= 0 && idx < slugsPublicados.length - 1 ? slugsPublicados[idx + 1] : null;
 
   return (
     <BoletimShell active="boletim">
