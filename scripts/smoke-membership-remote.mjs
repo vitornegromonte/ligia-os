@@ -53,11 +53,14 @@ do $$ begin
  exception when insufficient_privilege then null; end;
 end $$;
 do $$ begin
+ begin perform public.submit_membership_request('{"name":"Multiple Areas","discipline":"ML, NLP","affiliation":"UFPE"}'::jsonb);
+   raise exception 'Multiple areas accepted';
+ exception when invalid_parameter_value then null; end;
  begin perform public.submit_membership_request('{"name":"No Institution","discipline":"ML"}'::jsonb);
    raise exception 'Missing institution accepted';
  exception when invalid_parameter_value then null; end;
 end $$;
-select public.submit_membership_request('{"name":"Smoke Applicant","discipline":"ML, NLP","affiliation":"UFPE"}'::jsonb);
+select public.submit_membership_request('{"name":"Smoke Applicant","discipline":"NLP","affiliation":"UFPE"}'::jsonb);
 do $$ begin
  if (select role='externo' and status_membro='pending' from public.profiles where id='${applicant}') is not true then
    raise exception 'Applicant changed role before approval'; end if;
@@ -84,7 +87,7 @@ select set_config('request.jwt.claim.sub','${director}',true);
 select public.review_membership_request((select id from public.membership_requests where profile_id='${applicant}'),true);
 do $$ begin
  if (select role='membro' and status_membro='approved' and name='Smoke Applicant' and team='Preserved team'
-   and discipline='ML, NLP' and affiliation='UFPE' and bio='Preserved biography'
+   and discipline='NLP' and affiliation='UFPE' and bio='Preserved biography'
    and github='https://github.com/preserved' from public.profiles where id='${applicant}') is not true then
    raise exception 'Approval did not preserve or transfer profile fields'; end if;
  if (select reviewed_by='${director}'::uuid and reviewed_at is not null and status='approved'

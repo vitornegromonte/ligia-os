@@ -40,7 +40,11 @@ set role authenticated;
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000001';
 do $$ begin
  begin
-   perform public.submit_membership_request('{"name":"External Student","discipline":"ML, NLP"}'::jsonb);
+   perform public.submit_membership_request('{"name":"External Student","discipline":"ML, NLP","affiliation":"CIn-UFPE"}'::jsonb);
+   raise exception 'Multiple areas were accepted';
+ exception when invalid_parameter_value then null; end;
+ begin
+   perform public.submit_membership_request('{"name":"External Student","discipline":"ML"}'::jsonb);
    raise exception 'Missing institution was accepted';
  exception when invalid_parameter_value then null; end;
 end $$;
@@ -75,7 +79,7 @@ do $$ begin
  exception when insufficient_privilege then null;
  end;
 end $$;
-select public.submit_membership_request('{"name":"External Student","discipline":"ML, NLP","affiliation":"CIn-UFPE"}'::jsonb);
+select public.submit_membership_request('{"name":"External Student","discipline":"ML","affiliation":"CIn-UFPE"}'::jsonb);
 do $$ begin
  if (select status_membro from public.profiles where id=auth.uid()) <> 'pending' then raise exception 'Not pending'; end if;
  if (select count(*) from public.membership_requests) <> 1 then raise exception 'Applicant request visibility mismatch'; end if;
@@ -88,7 +92,7 @@ do $$ begin
  end if;
  if public.is_member_or_admin() then raise exception 'Pending gave internal access'; end if;
  begin
-   perform public.submit_membership_request('{"name":"External Student","discipline":"ML","affiliation":"CIn-UFPE"}'::jsonb);
+   perform public.submit_membership_request('{"name":"External Student","discipline":"NLP","affiliation":"CIn-UFPE"}'::jsonb);
    raise exception 'Duplicate request accepted';
  exception when insufficient_privilege then null;
  end;
