@@ -76,6 +76,41 @@ try {
   const mappedAdmin = run("psql", [...conn, "-q", "-A", "-t"],
     "select role || ':' || status_membro from public.profiles where email='mapped-admin@test';").trim();
   if (mappedAdmin !== "diretor:none") throw new Error("Reviewed legacy administrator was not mapped to director");
+  // The operator script is exercised only against this disposable cluster.
+  run("psql", conn, `
+    update public.profiles set role='externo' where email='mapped-admin@test';
+    insert into auth.users(id,email) values ('10000000-0000-0000-0000-000000000098','bootstrap@test.invalid');
+  `);
+  const bootstrapEnv = { ...env, DATABASE_URL: `postgresql://postgres@127.0.0.1:${port}/postgres` };
+  function bootstrap(args, shouldPass, expected) {
+    const result = spawnSync(process.execPath, [path.join(root, "scripts/bootstrap-first-admin.mjs"), ...args],
+      { env: bootstrapEnv, encoding: "utf8", windowsHide: true, timeout: 30000 });
+    if ((result.status === 0) !== shouldPass || !expected.test(result.stdout + result.stderr)) {
+      throw new Error(`Bootstrap fixture failed for ${args.join(" ")}: ${result.status}; ${result.stdout}${result.stderr}`);
+    }
+  }
+  bootstrap(["--email", "bootstrap@test.invalid", "--role", "diretor"], true, /current role: externo/);
+  bootstrap(["--email", "missing@test.invalid", "--role", "diretor"], false, /match exactly one profile/);
+  bootstrap(["--email", "bootstrap@test.invalid", "--role", "admin"], false, /Usage:/);
+  bootstrap(["--email", "bootstrap@test.invalid", "--role", "diretor", "--apply",
+    "--confirm-id", "10000000-0000-0000-0000-000000000098", "--expect-host", "wrong-host"], false, /host does not match/);
+  bootstrap(["--email", "bootstrap@test.invalid", "--role", "diretor", "--apply",
+    "--confirm-id", "10000000-0000-0000-0000-000000000098", "--expect-host", "127.0.0.1"], true, /Bootstrap complete/);
+  bootstrap(["--email", "bootstrap@test.invalid", "--role", "coordenador"], false, /Administrator already exists/);
+  const bootstrapped = run("psql", [...conn, "-q", "-A", "-t"],
+    "select role || ':' || status_membro from public.profiles where email='bootstrap@test.invalid';").trim();
+  if (bootstrapped !== "diretor:none") throw new Error("Bootstrap did not provision first administrator");
+  run("psql", conn, "update public.profiles set role='externo' where email='bootstrap@test.invalid';");
+  bootstrap(["--id", "10000000-0000-0000-0000-000000000098", "--role", "coordenador"], true, /requested role: coordenador/);
+  bootstrap(["--id", "10000000-0000-0000-0000-000000000098", "--role", "coordenador", "--apply",
+    "--confirm-id", "10000000-0000-0000-0000-000000000098", "--expect-host", "127.0.0.1"], true, /coordenador/);
+  const coordinated = run("psql", [...conn, "-q", "-A", "-t"],
+    "select role from public.profiles where email='bootstrap@test.invalid';").trim();
+  if (coordinated !== "coordenador") throw new Error("Bootstrap did not provision coordinator");
+  run("psql", conn, `
+    delete from auth.users where email='bootstrap@test.invalid';
+    update public.profiles set role='diretor' where email='mapped-admin@test';
+  `);
   run("psql", [...conn, "-f", path.join(root, "supabase/seed/challenges.sql")]);
   run("psql", [...conn, "-f", path.join(root, "supabase/tests/four-roles.sql")]);
   const result = JSON.parse(run("psql", [...conn, "-q", "-A", "-t"], `
@@ -88,7 +123,7 @@ try {
       'clientCanInsertSubmission', has_table_privilege('authenticated','public.submissions','INSERT')
     );
   `).trim());
-  if (result.tables !== 25 || result.withoutRls !== 0 || result.challenges !== 41 ||
+  if (result.tables !== 26 || result.withoutRls !== 0 || result.challenges !== 41 ||
       result.clientCanInsertSubmission) {
     throw new Error(`Unexpected replay result: ${JSON.stringify(result)}`);
   }
@@ -106,7 +141,7 @@ try {
       throw new Error("Replayed public/private schema differs from supplied schema-only snapshot");
     }
   }
-  console.log(`PASS ${migrations.length} migrations in CLI order, 25 RLS tables, four-role flow, 41 challenges, server-only submissions${comparePath ? ", remote schema equivalent" : ""}.`);
+  console.log(`PASS ${migrations.length} migrations in CLI order, ${result.tables} RLS tables, four-role flow, bootstrap, ${result.challenges} challenges, server-only submissions${comparePath ? ", remote schema equivalent" : ""}.`);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

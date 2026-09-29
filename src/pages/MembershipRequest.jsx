@@ -1,71 +1,104 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { isExternal } from "../auth/access.js";
-import { fetchMyMembershipRequests, submitMembershipRequest } from "../services/membership.js";
-
-const fields = [
-  ["name", "Nome completo", true],
-  ["team", "Equipe de interesse", true],
-  ["discipline", "Área de atuação", true],
-  ["affiliation", "Instituição", false],
-  ["bio", "Sobre você", false],
-  ["github", "GitHub", false],
-  ["linkedin", "LinkedIn", false],
-];
+import { fetchMyMembershipRequests, membershipMessage, submitMembershipRequest } from "../services/membership.js";
+import AreaSelect, { PROFILE_AREAS } from "../components/AreaSelect.jsx";
+import { Field, Input } from "../ui/Field.tsx";
+import { Button } from "../ui/Button.tsx";
+import { Alert } from "../ui/Alert.tsx";
+import "./MembershipRequest.css";
 
 export default function MembershipRequest() {
   const { profile, refreshProfile } = useAuth();
   const [requests, setRequests] = useState([]);
-  const [form, setForm] = useState({ name: profile?.name || "", team: "", discipline: "", affiliation: "", bio: "", github: "", linkedin: "", motivation: "" });
+  const [form, setForm] = useState({
+    name: profile?.name || "",
+    discipline: PROFILE_AREAS.includes(profile?.discipline) ? profile.discipline : "",
+    affiliation: profile?.affiliation || "",
+    github: profile?.github || "",
+    linkedin: profile?.linkedin || "",
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [memberConfirmed, setMemberConfirmed] = useState(false);
+  const inFlight = useRef(false);
 
   useEffect(() => {
     let active = true;
     fetchMyMembershipRequests(profile.id).then(data => { if (active) setRequests(data); })
-      .catch(e => { if (active) setError(e.message); })
+      .catch(e => { if (active) setError(membershipMessage(e, "load")); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [profile.id]);
 
   const pending = profile.status_membro === "pending" || requests.some(r => r.status === "pending");
-  async function submit(e) {
-    e.preventDefault();
-    if (saving || pending) return;
+  async function submit(event) {
+    event.preventDefault();
+    if (inFlight.current || pending) return;
+    if (!memberConfirmed) {
+      setError("Confirme que você já é membro efetivo da Ligia para solicitar o acesso interno.");
+      return;
+    }
+    if (!PROFILE_AREAS.includes(form.discipline)) {
+      setError("Selecione uma única área de atuação para solicitar o acesso.");
+      return;
+    }
+    if (form.affiliation.trim().length < 2) {
+      setError("Informe a instituição/vínculo para solicitar o acesso.");
+      return;
+    }
+    inFlight.current = true;
     setSaving(true);
     setError("");
     try {
-      const created = await submitMembershipRequest(form);
+      const created = await submitMembershipRequest({ ...form });
       setRequests(previous => [created, ...previous]);
       refreshProfile();
     } catch (e) {
-      setError(e.message);
-    } finally { setSaving(false); }
+      setError(membershipMessage(e, "submit"));
+    } finally {
+      inFlight.current = false;
+      setSaving(false);
+    }
   }
 
-  return <main className="lg-page" style={{ maxWidth: 820, padding: 32 }}>
-    <h1>Solicitar entrada como membro</h1>
-    <p>Preencha seus dados agora. A equipe administrativa analisará a solicitação; até a aprovação, você continua com acesso a Aprender e Prática Torch.</p>
-    {!isExternal(profile) ? <p>Você já possui acesso interno. <Link to="/inicio">Ir para o início</Link></p>
-      : loading ? <p>Carregando solicitação…</p>
-        : pending ? <p role="status">Solicitação em análise. Você receberá acesso interno após a aprovação.</p>
+  return <main className="lg-page membership-request-page">
+    <header className="lg-page-header">
+      <p className="lg-page-header__eyebrow">Acesso à comunidade</p>
+      <h1 className="lg-page-header__title">Solicitar acesso interno</h1>
+      <p className="lg-page-header__lede">Esta solicitação é exclusiva para quem já é membro efetivo da Ligia e precisa liberar o acesso interno à plataforma. Se você não é membro da Ligia, continue usando Aprender e Prática Torch com seu acesso de Externo.</p>
+    </header>
+    {!isExternal(profile) ? <p>Seu perfil já possui acesso interno. <Link to="/inicio">Ir para o início</Link></p>
+      : loading ? <p role="status">Carregando solicitação…</p>
+        : pending ? <section role="status">
+          <h2>Aguardando validação do acesso</h2>
+          <p>Você continua como Externo e pode usar Aprender e Prática Torch enquanto um Diretor ou Coordenador confirma seu vínculo de membro.</p>
+        </section>
           : <>
-            {profile.status_membro === "rejected" && <p>Sua solicitação anterior foi rejeitada. Você pode enviar uma nova solicitação.</p>}
-            <form onSubmit={submit} style={{ display: "grid", gap: 16, marginTop: 24 }}>
-              {fields.map(([key, label, required]) => <label key={key} style={{ display: "grid", gap: 6 }}>
-                {label}<input required={required} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} />
-              </label>)}
-              <label style={{ display: "grid", gap: 6 }}>Por que deseja participar?
-                <textarea required minLength={20} rows={5} value={form.motivation} onChange={e => setForm({ ...form, motivation: e.target.value })} />
+            {profile.status_membro === "rejected" && <p>O acesso interno não foi validado. Você continua como Externo. Se seu vínculo já existe, confira seus dados e solicite a liberação novamente.</p>}
+            <section className="lg-card lg-card--md membership-request-card">
+            <p className="membership-request-card__intro">Informe os dados que ajudam a Diretoria a reconhecer e validar seu vínculo. Nome, área de atuação e instituição/vínculo são necessários; links são opcionais.</p>
+            <form onSubmit={submit} className="membership-request-form">
+              <Field label="Nome completo">{p => <Input required minLength={2} autoComplete="name" value={form.name} onChange={e => setForm(previous => ({ ...previous, name: e.target.value }))} {...p} />}</Field>
+              <AreaSelect required value={form.discipline} onChange={discipline => setForm(previous => ({ ...previous, discipline }))} />
+              <Field label="Instituição/vínculo">{p => <Input required minLength={2} autoComplete="organization" value={form.affiliation} onChange={e => setForm(previous => ({ ...previous, affiliation: e.target.value }))} {...p} />}</Field>
+              <div className="membership-request-form__links">
+                <Field label="GitHub" hint="Opcional">{p => <Input type="url" value={form.github} onChange={e => setForm(previous => ({ ...previous, github: e.target.value }))} {...p} />}</Field>
+                <Field label="LinkedIn" hint="Opcional">{p => <Input type="url" value={form.linkedin} onChange={e => setForm(previous => ({ ...previous, linkedin: e.target.value }))} {...p} />}</Field>
+              </div>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <input type="checkbox" checked={memberConfirmed} onChange={e => setMemberConfirmed(e.target.checked)} />
+                <span>Confirmo que já sou membro efetivo da Ligia e estou solicitando a liberação do meu acesso interno.</span>
               </label>
-              <button className="access-action" disabled={saving} type="submit">{saving ? "Enviando…" : "Enviar solicitação"}</button>
+              <Button loading={saving} disabled={saving || !memberConfirmed || !PROFILE_AREAS.includes(form.discipline)} type="submit">{saving ? "Enviando…" : "Solicitar acesso interno"}</Button>
             </form>
+            </section>
           </>}
-    {error && <p role="alert">{error}</p>}
-    {requests.length > 0 && <section style={{ marginTop: 32 }}><h2>Histórico</h2><ul>
-      {requests.map(r => <li key={r.id}>{new Date(r.requested_at).toLocaleDateString("pt-BR")} — {r.status}</li>)}
+    {error && <Alert tone="error">{error}</Alert>}
+    {requests.length > 0 && <section style={{ marginTop: 32 }}><h2>Histórico de solicitações de acesso</h2><ul>
+      {requests.map(r => <li key={r.id}>{new Date(r.requested_at).toLocaleDateString("pt-BR")} — {r.status === "rejected" ? "acesso não validado" : r.status === "approved" ? "acesso liberado" : "aguardando validação"}</li>)}
     </ul></section>}
   </main>;
 }

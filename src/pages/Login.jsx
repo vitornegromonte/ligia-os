@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Field, Input } from "../ui/Field.tsx";
 import { Button } from "../ui/Button.tsx";
 import { Alert } from "../ui/Alert.tsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { authMessage } from "../auth/messages.js";
 
 export default function Login() {
   const location = useLocation();
@@ -13,38 +14,40 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
   const [forgot, setForgot] = useState(false);
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (inFlight.current) return;
     setError("");
+    inFlight.current = true;
     setSubmitting(true);
     try {
       await signIn(email, password);
     } catch (err) {
-      setError(err.message === "Invalid login credentials"
-        ? "Email ou senha inválidos."
-        : err.message
-      );
+      setError(authMessage(err, "login"));
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }
 
   async function handleForgot(e) {
     e.preventDefault();
+    if (inFlight.current) return;
     setError("");
+    inFlight.current = true;
     setSubmitting(true);
     try {
       await resetPassword(email);
       setSent(true);
     } catch (err) {
-      setError(err.message === "User not found"
-        ? "Nenhuma conta encontrada para este email."
-        : err.message
-      );
+      if (err?.code === "user_not_found" || /user not found/i.test(err?.message || "")) setSent(true);
+      else setError(authMessage(err, "recovery-request"));
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }
@@ -61,6 +64,7 @@ export default function Login() {
         border: "1px solid var(--line-soft)",
         background: "var(--surface)"
       }}>
+        {location.state?.passwordUpdated && <Alert tone="success" className="lg-mb-16">Senha atualizada. Entre com sua nova senha.</Alert>}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src="/media/logo.svg" alt="Ligia" width="36" height="36"
             style={{ height: 36, width: "auto", marginBottom: 16 }} />
@@ -75,6 +79,7 @@ export default function Login() {
 
         {forgot ? (
           <form onSubmit={handleForgot}>
+            {error && <Alert tone="error" className="lg-mb-16">{error}</Alert>}
             {sent ? (
               <Alert tone="success" className="lg-mb-16">
                 Se um email válido foi informado, enviamos um link de redefinição. Confira sua caixa de entrada.
@@ -90,7 +95,7 @@ export default function Login() {
                   </Field>
                 </div>
 
-                <Button type="submit" loading={submitting} style={{ width: "100%" }}>
+                <Button type="submit" loading={submitting} disabled={submitting} style={{ width: "100%" }}>
                   {submitting ? "Enviando…" : "Enviar link de redefinição"}
                 </Button>
               </>
@@ -120,7 +125,7 @@ export default function Login() {
               </Field>
             </div>
 
-            <Button type="submit" loading={submitting} style={{ width: "100%" }}>
+            <Button type="submit" loading={submitting} disabled={submitting} style={{ width: "100%" }}>
               {submitting ? "Entrando…" : "Entrar"}
             </Button>
           </form>

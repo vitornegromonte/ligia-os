@@ -138,8 +138,20 @@ describe("AuthProvider", () => {
   it("filters registration metadata, leaving role assignment to the database", async () => {
     client.auth.signUp.mockResolvedValue({ data: { session: null } });
     const { result } = renderHook(useAuth, { wrapper });
-    await act(async () => result.current.signUp("a@example.test", "password", { name: "A", role: "diretor", category: "diretor" }));
-    expect(client.auth.signUp).toHaveBeenCalledWith({ email: "a@example.test", password: "password", options: { data: { name: "A" } } });
+    await act(async () => result.current.signUp("a@example.test", "password", { name: "A", role: "diretor", status_membro: "approved", category: "diretor", team: "NLP", github: "https://github.com/a" }));
+    expect(client.auth.signUp).toHaveBeenCalledWith({
+      email: "a@example.test",
+      password: "password",
+      options: { data: { name: "A" }, emailRedirectTo: window.location.origin },
+    });
+  });
+  it("returns password recovery emails to the reset page on the current origin", async () => {
+    client.auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+    const { result } = renderHook(useAuth, { wrapper });
+    await act(async () => result.current.resetPassword("a@example.test"));
+    expect(client.auth.resetPasswordForEmail).toHaveBeenCalledWith("a@example.test", {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
   });
   it("handles recovery without changing role", async () => {
     const { result } = renderHook(useAuth, { wrapper });

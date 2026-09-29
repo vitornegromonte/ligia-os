@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, GraduationCap, Github, Linkedin, Award, ExternalLink, CalendarDays, FileText, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { isExternal } from "../auth/access.js";
 import { updateProfile } from "../services/profiles.js";
 import { showToast } from "../utils/toast.js";
 
@@ -36,7 +37,9 @@ export default function ProfileEdit({ open, onClose }) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...(form || {}) };
+      const payload = isExternal(profile)
+        ? Object.fromEntries(["name", "avatar_url", "bio"].filter(key => (form || profile)[key] !== undefined).map(key => [key, (form || profile)[key]]))
+        : { ...(form || {}) };
       delete payload.role;
       if (payload.skills_string !== undefined) {
         payload.skills = payload.skills_string.split(",").map(s => s.trim()).filter(Boolean);
@@ -145,7 +148,7 @@ export default function ProfileEdit({ open, onClose }) {
                   cursor: "not-allowed"
                 }} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {!isExternal(profile) && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label htmlFor="profile-team" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Equipe</label>
                 <select id="profile-team" name="team" value={f.team || ""} onChange={e => handleChange("team", e.target.value)}
@@ -168,7 +171,7 @@ export default function ProfileEdit({ open, onClose }) {
                     outline: "none", color: "var(--text)", background: "var(--surface)"
                   }} />
               </div>
-            </div>
+            </div>}
             <div>
               <label htmlFor="profile-bio" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Bio</label>
               <textarea id="profile-bio" name="bio" value={f.bio || ""} onChange={e => handleChange("bio", e.target.value)}
@@ -180,6 +183,7 @@ export default function ProfileEdit({ open, onClose }) {
                   fontFamily: "var(--font-body)", fontSize: 13
                 }} />
             </div>
+            {!isExternal(profile) && <>
             <div>
               <label htmlFor="profile-skills" style={{ display: "block", marginBottom: 6, color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Habilidades (separadas por vírgula)</label>
               <input id="profile-skills" name="skills" autoComplete="off" value={f.skills_string || ""} onChange={e => handleChange("skills_string", e.target.value)}
@@ -276,6 +280,7 @@ export default function ProfileEdit({ open, onClose }) {
                 </div>
               </div>
             </div>
+            </>}
           </div>
 
           <button type="submit" disabled={saving}

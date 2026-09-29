@@ -19,8 +19,31 @@ describe("access model", () => {
     expect(homeFor({ role: "externo" })).toBe("/aprender");
     expect(homeFor({ role: "diretor" })).toBe("/inicio");
   });
+  it.each([["externo", "/aprender"], ["membro", "/inicio"], ["diretor", "/inicio"], ["coordenador", "/inicio"]])(
+    "uses the role home for %s",
+    (role, home) => expect(homeFor({ role })).toBe(home),
+  );
+  it.each(["none", "pending", "rejected"])("does not let external membership status %s change the home", status_membro => {
+    expect(homeFor({ role: "externo", status_membro })).toBe("/aprender");
+  });
   it.each(["https://evil.test", "//evil.test", "/\\evil.test", "/login", "/register?next=x", "/reset-password#token", "/login/", " /projetos"])("rejects unsafe/loop destination %s", path => {
     expect(requestedDestination(path, { role: "externo" })).toBe("/aprender");
+  });
+  it.each(["externo", "membro"])("does not restore /inicio for %s unless permitted", role => {
+    const destination = requestedDestination({ pathname: "/inicio", search: "?tab=docs", hash: "#a" }, { role });
+    expect(destination).toBe(role === "externo" ? "/aprender" : "/inicio?tab=docs#a");
+  });
+  it.each([
+    ["externo", "/admin/solicitacoes", "/aprender"],
+    ["membro", "/admin/solicitacoes", "/inicio"],
+    ["diretor", "/admin/solicitacoes", "/admin/solicitacoes"],
+    ["coordenador", "/aprender/itens", "/aprender/itens"],
+    ["externo", "/admin/usuarios", "/aprender"],
+    ["membro", "/admin/usuarios", "/inicio"],
+    ["diretor", "/admin/usuarios", "/admin/usuarios"],
+    ["coordenador", "/admin/usuarios", "/admin/usuarios"],
+  ])("checks previous restricted route for %s at %s", (role, path, destination) => {
+    expect(requestedDestination(path, { role })).toBe(destination);
   });
   it("keeps path, query and fragment for the actual guard", () => {
     expect(requestedDestination({ pathname: "/projetos/123", search: "?tab=docs", hash: "#a" }, { role: "membro" })).toBe("/projetos/123?tab=docs#a");

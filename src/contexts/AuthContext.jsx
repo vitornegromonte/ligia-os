@@ -90,9 +90,13 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(email, password, metadata = {}) {
-    const fields = ["name", "team", "affiliation", "avatar_url", "lattes", "github", "linkedin", "kaggle"];
+    const fields = ["name"];
     const safeMetadata = Object.fromEntries(fields.filter(key => typeof metadata[key] === "string").map(key => [key, metadata[key]]));
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: safeMetadata } });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: safeMetadata, emailRedirectTo: window.location.origin },
+    });
     if (error) throw error;
     return data;
   }

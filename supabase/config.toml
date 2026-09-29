@@ -4,6 +4,13 @@
 # feito por `supabase link --project-ref <ref>`.
 project_id = "ligia-os"
 
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = [
+  "http://localhost:5173",
+  "http://localhost:5173/reset-password",
+]
+
 [db.seed]
 enabled = true
 sql_paths = ["./seed/challenges.sql"]

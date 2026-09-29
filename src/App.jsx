@@ -25,6 +25,7 @@ const Notas = lazy(() => import("./pages/Notas.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const MembershipRequest = lazy(() => import("./pages/MembershipRequest.jsx"));
 const MembershipAdmin = lazy(() => import("./pages/MembershipAdmin.jsx"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers.jsx"));
 
 const Styleguide = lazy(() => import("./pages/aprender/Styleguide.jsx"));
 const Trilha = lazy(() => import("./aprender/Trilha.jsx"));
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/perfil" element={<Profile />} />
             <Route path="/solicitar-entrada" element={<MembershipRequest />} />
             <Route path="/admin/solicitacoes" element={<RoleRoute allowedRoles={ADMIN_ROLES}><MembershipAdmin /></RoleRoute>} />
+            <Route path="/admin/usuarios" element={<RoleRoute allowedRoles={ADMIN_ROLES}><AdminUsers /></RoleRoute>} />
             {/* Endereços antigos: os links já compartilhados continuam vivos. */}
             <Route path="/pratica" element={<Navigate to="/aprender/codar" replace />} />
             <Route path="/pratica/:slug" element={<RedirecionaPratica />} />

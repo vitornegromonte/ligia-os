@@ -8,7 +8,7 @@ import {
   CalendarDays, MoreHorizontal, ExternalLink
 } from "lucide-react";
 import { showToast } from "../utils/toast.js";
-import { fetchProfiles, updateRole, updateProfile } from "../services/profiles.js";
+import { fetchProfiles, updateProfile } from "../services/profiles.js";
 import { fetchEvents } from "../services/events.js";
 import { canManageMembers, isAdmin } from "../auth/access.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -23,13 +23,6 @@ const roleOptions = [
   { value: "CV", label: "CV" },
   { value: "NLP", label: "NLP" },
   { value: "ML", label: "ML" }
-];
-
-const accessRoleOptions = [
-  { value: "diretor", label: "Diretor" },
-  { value: "coordenador", label: "Coordenador" },
-  { value: "membro", label: "Membro" },
-  { value: "externo", label: "Externo" }
 ];
 
 const categoryOptions = [
@@ -277,7 +270,6 @@ function PersonAvatar({ person, size = 46, radius = 13, fontSize = 17, style }) 
 export default function TalentBank() {
   const { menuOpen, setMenuOpen } = useOutletContext();
   const { profile: currentUser } = useAuth();
-  const [roleSaving, setRoleSaving] = useState(false);
   const [people, setPeople] = useState([]);
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
@@ -314,19 +306,6 @@ export default function TalentBank() {
 
   function openProfile(person) { setSelectedPerson(person); }
   function closeProfile() { setSelectedPerson(null); }
-
-  async function handleRoleChange(profileId, role) {
-    if (!canManageMembers(currentUser) || profileId === currentUser.id || roleSaving) return;
-    setRoleSaving(true);
-    try {
-      const updated = await updateRole(profileId, role);
-      setPeople(prev => prev.map(p => p.id === profileId ? updated : p));
-      setSelectedPerson(prev => prev && prev.id === profileId ? updated : prev);
-      showToast("Permissão atualizada");
-    } catch (err) {
-      showToast("Erro: " + err.message, "error");
-    } finally { setRoleSaving(false); }
-  }
 
   async function handleProfileField(profileId, field, value) {
     if (!canManageMembers(currentUser)) return;
@@ -539,19 +518,6 @@ export default function TalentBank() {
                   <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>{selectedPerson.team} · {selectedPerson.affiliation}</p>
                 </div>
                 <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-                  {canManageMembers(currentUser) && selectedPerson.id !== currentUser.id && (
-                    <select aria-label="Papel de acesso" disabled={roleSaving} value={selectedPerson.role || ""}
-                      onChange={e => handleRoleChange(selectedPerson.id, e.target.value)}
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        height: 38, padding: "0 10px", border: "1px solid var(--line)",
-                        borderRadius: 8, outline: "none", color: "var(--text)",
-                        background: "var(--surface-2)", cursor: "pointer",
-                        fontSize: 12, fontFamily: "var(--font-body)"
-                      }}>
-                      {accessRoleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  )}
                   <button style={s.btnPrimary} onClick={() => { if (selectedPerson.email) window.location.href = `mailto:${selectedPerson.email}`; else showToast("Email não disponível"); }}>
                     <Mail size={15} /> Contato
                   </button>
