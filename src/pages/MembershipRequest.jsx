@@ -14,7 +14,6 @@ export default function MembershipRequest() {
   const [requests, setRequests] = useState([]);
   const [form, setForm] = useState({
     name: profile?.name || "",
-    team: profile?.team === "Geral" ? "" : profile?.team || "",
     discipline: profile?.discipline === "Geral" ? [] : (profile?.discipline || "").split(",").map(area => area.trim()).filter(area => PROFILE_AREAS.includes(area)),
     affiliation: profile?.affiliation || "",
     github: profile?.github || "",
@@ -40,6 +39,10 @@ export default function MembershipRequest() {
     if (inFlight.current || pending) return;
     if (!memberConfirmed) {
       setError("Confirme que você já é membro efetivo da Ligia para solicitar o acesso interno.");
+      return;
+    }
+    if (form.affiliation.trim().length < 2) {
+      setError("Informe a instituição/vínculo para solicitar o acesso.");
       return;
     }
     inFlight.current = true;
@@ -74,12 +77,11 @@ export default function MembershipRequest() {
           : <>
             {profile.status_membro === "rejected" && <p>O acesso interno não foi validado. Você continua como Externo. Se seu vínculo já existe, confira seus dados e solicite a liberação novamente.</p>}
             <section className="lg-card lg-card--md membership-request-card">
-            <p className="membership-request-card__intro">Informe os dados que ajudam a Diretoria a reconhecer e validar seu vínculo. Nome, equipe e área são necessários; instituição e links são opcionais.</p>
+            <p className="membership-request-card__intro">Informe os dados que ajudam a Diretoria a reconhecer e validar seu vínculo. Nome, área de atuação e instituição/vínculo são necessários; links são opcionais.</p>
             <form onSubmit={submit} className="membership-request-form">
               <Field label="Nome completo">{p => <Input required minLength={2} autoComplete="name" value={form.name} onChange={e => setForm(previous => ({ ...previous, name: e.target.value }))} {...p} />}</Field>
-              <Field label="Equipe">{p => <Input required minLength={2} value={form.team} onChange={e => setForm(previous => ({ ...previous, team: e.target.value }))} {...p} />}</Field>
               <AreaMultiSelect required value={selectedAreas} onChange={areas => setForm(previous => ({ ...previous, discipline: areas }))} />
-              <Field label="Instituição/vínculo" hint="Opcional">{p => <Input autoComplete="organization" value={form.affiliation} onChange={e => setForm(previous => ({ ...previous, affiliation: e.target.value }))} {...p} />}</Field>
+              <Field label="Instituição/vínculo">{p => <Input required minLength={2} autoComplete="organization" value={form.affiliation} onChange={e => setForm(previous => ({ ...previous, affiliation: e.target.value }))} {...p} />}</Field>
               <div className="membership-request-form__links">
                 <Field label="GitHub" hint="Opcional">{p => <Input type="url" value={form.github} onChange={e => setForm(previous => ({ ...previous, github: e.target.value }))} {...p} />}</Field>
                 <Field label="LinkedIn" hint="Opcional">{p => <Input type="url" value={form.linkedin} onChange={e => setForm(previous => ({ ...previous, linkedin: e.target.value }))} {...p} />}</Field>

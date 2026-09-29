@@ -10,7 +10,7 @@ update public.profiles set role='diretor' where email='director@test';
 update public.profiles set role='coordenador', category='professor' where email='coordinator@test';
 update public.profiles set role='membro', status_membro='approved' where email='member@test';
 update public.profiles set role='membro', status_membro='approved', category='professor' where email='professor@test';
-update public.profiles set bio='Existing biography', github='https://github.com/existing'
+update public.profiles set team='Existing team', bio='Existing biography', github='https://github.com/existing'
   where email='external@test';
 do $$ begin
  if (select count(*) from public.profiles where role='externo' and status_membro='none') <> 2 then
@@ -38,6 +38,12 @@ end $$;
 
 set role authenticated;
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000001';
+do $$ begin
+ begin
+   perform public.submit_membership_request('{"name":"External Student","discipline":"ML, NLP"}'::jsonb);
+   raise exception 'Missing institution was accepted';
+ exception when invalid_parameter_value then null; end;
+end $$;
 do $$ begin
  if public.is_member_or_admin() or public.is_admin() then raise exception 'External gained internal role'; end if;
  if exists(select 1 from public.projects) then raise exception 'External can read internal projects'; end if;
@@ -69,7 +75,7 @@ do $$ begin
  exception when insufficient_privilege then null;
  end;
 end $$;
-select public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering","affiliation":"CIn-UFPE"}'::jsonb);
+select public.submit_membership_request('{"name":"External Student","discipline":"ML, NLP","affiliation":"CIn-UFPE"}'::jsonb);
 do $$ begin
  if (select status_membro from public.profiles where id=auth.uid()) <> 'pending' then raise exception 'Not pending'; end if;
  if (select count(*) from public.membership_requests) <> 1 then raise exception 'Applicant request visibility mismatch'; end if;
@@ -77,9 +83,12 @@ do $$ begin
  if (select details ? 'bio' or details ? 'github' from public.membership_requests limit 1) then
    raise exception 'Omitted optional fields must stay omitted';
  end if;
+ if (select details ? 'team' from public.membership_requests limit 1) then
+   raise exception 'Team must not be part of membership request';
+ end if;
  if public.is_member_or_admin() then raise exception 'Pending gave internal access'; end if;
  begin
-   perform public.submit_membership_request('{"name":"External Student","team":"Machine Learning","discipline":"Engineering"}'::jsonb);
+   perform public.submit_membership_request('{"name":"External Student","discipline":"ML","affiliation":"CIn-UFPE"}'::jsonb);
    raise exception 'Duplicate request accepted';
  exception when insufficient_privilege then null;
  end;
@@ -140,7 +149,7 @@ do $$ begin
  if (select role='membro' and status_membro='approved' from public.profiles where email='external@test') is not true then
    raise exception 'Approval was not atomic';
  end if;
- if (select bio='Existing biography' and github='https://github.com/existing' and affiliation='CIn-UFPE'
+ if (select team='Existing team' and bio='Existing biography' and github='https://github.com/existing' and affiliation='CIn-UFPE'
      from public.profiles where email='external@test') is not true then
    raise exception 'Approval erased an omitted optional profile field';
  end if;
@@ -190,7 +199,7 @@ do $$ begin
 end $$;
 
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000005';
-select public.submit_membership_request('{"name":"Rejected Student","team":"Computer Vision","discipline":"Design"}'::jsonb);
+select public.submit_membership_request('{"name":"Rejected Student","discipline":"CV","affiliation":"CIn-UFPE"}'::jsonb);
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000003';
 do $$ begin
  if not public.is_admin() or not public.is_learning_staff() then raise exception 'Coordinator not admin'; end if;
@@ -204,7 +213,7 @@ do $$ begin
    raise exception 'Rejection created a role audit'; end if;
 end $$;
 set request.jwt.claim.sub='10000000-0000-0000-0000-000000000005';
-select public.submit_membership_request('{"name":"Rejected Student","team":"Computer Vision","discipline":"Design"}'::jsonb);
+select public.submit_membership_request('{"name":"Rejected Student","discipline":"CV","affiliation":"CIn-UFPE"}'::jsonb);
 do $$ begin
  if (select count(*) from public.membership_requests where profile_id=auth.uid()) <> 2 then
    raise exception 'Rejected applicant could not resubmit'; end if;

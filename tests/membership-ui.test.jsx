@@ -5,7 +5,7 @@ import MembershipRequest from "../src/pages/MembershipRequest.jsx";
 import MembershipAdmin from "../src/pages/MembershipAdmin.jsx";
 
 const { auth, api } = vi.hoisted(() => ({
-  auth: { profile: { id: "external", role: "externo", status_membro: "none", name: "Student", team: "NLP", discipline: "Research" }, refreshProfile: vi.fn() },
+  auth: { profile: { id: "external", role: "externo", status_membro: "none", name: "Student", discipline: "Research" }, refreshProfile: vi.fn() },
   api: { fetchMyMembershipRequests: vi.fn(), submitMembershipRequest: vi.fn(), fetchMembershipRequests: vi.fn(), reviewMembershipRequest: vi.fn() },
 }));
 vi.mock("../src/contexts/AuthContext.jsx", () => ({ useAuth: () => auth }));
@@ -13,7 +13,7 @@ vi.mock("../src/services/membership.js", () => api);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  auth.profile = { id: "external", role: "externo", status_membro: "none", name: "Student", team: "NLP", discipline: "Research" };
+  auth.profile = { id: "external", role: "externo", status_membro: "none", name: "Student", discipline: "Research" };
   api.fetchMyMembershipRequests.mockResolvedValue([]);
   api.fetchMembershipRequests.mockResolvedValue([]);
 });
@@ -25,21 +25,36 @@ it("explains that internal access is only for existing Ligia members", async () 
   expect(screen.queryByLabelText(/motivação|participar/i)).toBeNull();
 });
 
-it("submits identity and organizational details without motivation, then shows pending", async () => {
+it("submits identity, multiple areas and required institution without team or motivation", async () => {
   api.submitMembershipRequest.mockResolvedValue({ id: "request", status: "pending", requested_at: "2026-09-27", details: { name: "Student Name" } });
   render(<MemoryRouter><MembershipRequest /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText("Nome completo"), { target: { value: "Student Name" } });
-  fireEvent.change(screen.getByLabelText("Equipe"), { target: { value: "ML" } });
+  expect(screen.queryByLabelText("Equipe")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "ML" }));
   fireEvent.click(screen.getByRole("button", { name: "NLP" }));
+  const institution = screen.getByLabelText("Instituição/vínculo");
+  expect(institution).toBeRequired();
+  fireEvent.change(institution, { target: { value: "CIn-UFPE" } });
   expect(screen.queryByLabelText("Sobre você")).toBeNull();
   fireEvent.click(screen.getByLabelText(/Confirmo que já sou membro efetivo/));
   fireEvent.click(screen.getByRole("button", { name: "Solicitar acesso interno" }));
-  await waitFor(() => expect(api.submitMembershipRequest).toHaveBeenCalledWith(expect.objectContaining({ team: "ML", discipline: "ML, NLP" })));
+  await waitFor(() => expect(api.submitMembershipRequest).toHaveBeenCalledWith(expect.objectContaining({ discipline: "ML, NLP", affiliation: "CIn-UFPE" })));
+  expect(api.submitMembershipRequest.mock.calls[0][0]).not.toHaveProperty("team");
   expect(api.submitMembershipRequest.mock.calls[0][0]).not.toHaveProperty("bio");
   expect(api.submitMembershipRequest.mock.calls[0][0]).not.toHaveProperty("motivation");
   expect(await screen.findByText(/Aguardando validação do acesso/)).toBeInTheDocument();
   expect(auth.refreshProfile).toHaveBeenCalled();
+});
+
+it("blocks submission without institution and explains the required field", async () => {
+  render(<MemoryRouter><MembershipRequest /></MemoryRouter>);
+  const name = await screen.findByLabelText("Nome completo");
+  fireEvent.change(name, { target: { value: "Student Name" } });
+  fireEvent.click(screen.getByRole("button", { name: "ML" }));
+  fireEvent.click(screen.getByLabelText(/Confirmo que já sou membro efetivo/));
+  fireEvent.submit(name.closest("form"));
+  expect(await screen.findByText("Informe a instituição/vínculo para solicitar o acesso.")).toBeInTheDocument();
+  expect(api.submitMembershipRequest).not.toHaveBeenCalled();
 });
 
 it("requires the existing-member declaration before submission", async () => {
@@ -63,9 +78,9 @@ it("blocks duplicate pending requests and allows a new access request after reje
 
 it("shows identity data to reviewers and records an access decision", async () => {
   api.fetchMembershipRequests.mockResolvedValue([{ id: "request", profile_id: "external", applicant_email: "student@example.test", status: "pending", requested_at: "2026-09-27", details: {
-    name: "Student Name", team: "ML", discipline: "Engineering", affiliation: "CIn-UFPE", bio: "Researcher", github: "https://github.com/student", linkedin: "https://linkedin.com/in/student"
+    name: "Student Name", discipline: "ML, NLP", affiliation: "CIn-UFPE", bio: "Researcher", github: "https://github.com/student", linkedin: "https://linkedin.com/in/student"
   } }]);
-  api.reviewMembershipRequest.mockResolvedValue({ id: "request", status: "approved", requested_at: "2026-09-27", details: { name: "Student Name", team: "ML", discipline: "Engineering" } });
+  api.reviewMembershipRequest.mockResolvedValue({ id: "request", status: "approved", requested_at: "2026-09-27", details: { name: "Student Name", discipline: "ML, NLP", affiliation: "CIn-UFPE" } });
   render(<MembershipAdmin />);
   expect(await screen.findByText("Solicitações de acesso de membro")).toBeInTheDocument();
   expect(screen.getByText(/já ser membros efetivos/)).toBeInTheDocument();

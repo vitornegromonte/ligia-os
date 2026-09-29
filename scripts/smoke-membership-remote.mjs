@@ -37,7 +37,7 @@ insert into auth.users(id,email,raw_user_meta_data) values
  ('${director}','${email("director")}', '{}'::jsonb),
  ('${coordinator}','${email("coordinator")}', '{}'::jsonb),
  ('${member}','${email("member")}', '{}'::jsonb);
-update public.profiles set bio='Preserved biography', github='https://github.com/preserved' where id='${applicant}';
+update public.profiles set team='Preserved team', bio='Preserved biography', github='https://github.com/preserved' where id='${applicant}';
 update public.profiles set role='diretor' where id='${director}';
 update public.profiles set role='coordenador' where id='${coordinator}';
 update public.profiles set role='membro', status_membro='approved' where id='${member}';
@@ -52,7 +52,12 @@ do $$ begin
    raise exception 'External changed a role';
  exception when insufficient_privilege then null; end;
 end $$;
-select public.submit_membership_request('{"name":"Smoke Applicant","team":"Ligia","discipline":"Research","affiliation":"UFPE"}'::jsonb);
+do $$ begin
+ begin perform public.submit_membership_request('{"name":"No Institution","discipline":"ML"}'::jsonb);
+   raise exception 'Missing institution accepted';
+ exception when invalid_parameter_value then null; end;
+end $$;
+select public.submit_membership_request('{"name":"Smoke Applicant","discipline":"ML, NLP","affiliation":"UFPE"}'::jsonb);
 do $$ begin
  if (select role='externo' and status_membro='pending' from public.profiles where id='${applicant}') is not true then
    raise exception 'Applicant changed role before approval'; end if;
@@ -60,7 +65,9 @@ do $$ begin
    raise exception 'Pending request missing'; end if;
  if (select details ? 'bio' or details ? 'motivation' from public.membership_requests where profile_id='${applicant}') then
    raise exception 'Omitted fields persisted'; end if;
- begin perform public.submit_membership_request('{"name":"Again","team":"Ligia","discipline":"Research"}'::jsonb);
+ if (select details ? 'team' from public.membership_requests where profile_id='${applicant}') then
+   raise exception 'Request persisted team'; end if;
+ begin perform public.submit_membership_request('{"name":"Again","discipline":"ML","affiliation":"UFPE"}'::jsonb);
    raise exception 'Second pending request accepted';
  exception when insufficient_privilege then null; end;
 end $$;
@@ -76,8 +83,8 @@ end $$;
 select set_config('request.jwt.claim.sub','${director}',true);
 select public.review_membership_request((select id from public.membership_requests where profile_id='${applicant}'),true);
 do $$ begin
- if (select role='membro' and status_membro='approved' and name='Smoke Applicant' and team='Ligia'
-   and discipline='Research' and affiliation='UFPE' and bio='Preserved biography'
+ if (select role='membro' and status_membro='approved' and name='Smoke Applicant' and team='Preserved team'
+   and discipline='ML, NLP' and affiliation='UFPE' and bio='Preserved biography'
    and github='https://github.com/preserved' from public.profiles where id='${applicant}') is not true then
    raise exception 'Approval did not preserve or transfer profile fields'; end if;
  if (select reviewed_by='${director}'::uuid and reviewed_at is not null and status='approved'
@@ -112,7 +119,7 @@ do $$ begin
    raise exception 'Rejected direct promotion left an audit row'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','${rejected}',true);
-select public.submit_membership_request('{"name":"Smoke Rejected","team":"Ligia","discipline":"Design"}'::jsonb);
+select public.submit_membership_request('{"name":"Smoke Rejected","discipline":"CV","affiliation":"CIn-UFPE"}'::jsonb);
 select set_config('request.jwt.claim.sub','${coordinator}',true);
 select public.review_membership_request((select id from public.membership_requests where profile_id='${rejected}' and status='pending'),false);
 do $$ begin
@@ -123,7 +130,7 @@ do $$ begin
    raise exception 'Rejection review metadata missing'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','${rejected}',true);
-select public.submit_membership_request('{"name":"Smoke Resubmitted","team":"Ligia","discipline":"Design"}'::jsonb);
+select public.submit_membership_request('{"name":"Smoke Resubmitted","discipline":"CV","affiliation":"CIn-UFPE"}'::jsonb);
 do $$ begin
  if (select role='externo' and status_membro='pending' from public.profiles where id='${rejected}') is not true then
    raise exception 'Resubmission failed'; end if;

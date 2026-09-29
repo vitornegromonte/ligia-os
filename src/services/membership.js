@@ -40,7 +40,7 @@ export function membershipMessage(error, action = "submit") {
   if (/not eligible/.test(message)) return "Não foi possível abrir a solicitação. Confira se você ainda é Externo e se já não existe um pedido em análise.";
   if (/pending request not found|applicant state changed/.test(message)) return "Esta solicitação já foi analisada ou o acesso da pessoa mudou. Atualize a página e tente novamente.";
   if (/administrator required/.test(message) || code === "42501") return "Seu perfil não tem permissão para esta ação.";
-  if (/complete name|invalid parameter value/.test(message) || code === "22023") return "Confira os campos obrigatórios: nome, equipe e área de atuação.";
+  if (/affiliation|required institution|complete name/.test(message) || code === "22023") return "Confira os campos obrigatórios: nome, área de atuação e instituição/vínculo.";
   if (action === "review") return "Não foi possível registrar a validação do acesso. Atualize a página e tente novamente.";
   if (action === "load") return "Não foi possível carregar as solicitações de acesso. Tente novamente.";
   return "Não foi possível enviar a solicitação de acesso. Tente novamente.";
